@@ -41,13 +41,7 @@ class UtilityCommand : CommandExecutor, Listener {
                 return  // 空のスロットをクリックした場合は何もしない
             }
 
-            // どこでもかまどのアイコンがクリックされた場合
-            if (clickedItem.type == Material.FURNACE) {
-                // 新しいかまどインベントリを作成して開く
-                val furnaceInventory = Bukkit.createInventory(null, InventoryType.FURNACE, "かまど")
-                player.openInventory(furnaceInventory)
-                player.closeInventory() // 便利箱を閉じる
-            }
+
         }
     }
 }

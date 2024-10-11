@@ -1,19 +1,17 @@
-package org.hotamachisubaru.miniutility.Listener;
+package org.hotamachisubaru.miniutility.Listener
 
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.AsyncPlayerChatEvent
 
-public class ChatListener implements Listener {
-
+class ChatListener : Listener {
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
-        String nickname = player.getDisplayName();  // ニックネームを取得
-        String message = event.getMessage();  // チャットメッセージを取得
+    fun onPlayerChat(event: AsyncPlayerChatEvent) {
+        val player = event.player
+        val nickname = player.displayName // ニックネームを取得
+        val message = event.message // チャットメッセージを取得
 
         // チャットのフォーマットをニックネーム付きに変更
-        event.setFormat(nickname + ": " + message);
+        event.format = "$nickname: $message"
     }
 }

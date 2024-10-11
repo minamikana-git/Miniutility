@@ -1,124 +1,123 @@
-package org.hotamachisubaru.miniutility.Listener;
+package org.hotamachisubaru.miniutility.Listener
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.EventHandler;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.Bukkit
+import org.bukkit.ChatColor
+import org.bukkit.Material
+import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.inventory.Inventory
+import org.bukkit.inventory.ItemStack
+import java.util.*
 
-public class TrashBoxListener implements Listener {
-
-    private Inventory lastTrashInventory;
+class TrashBoxListener : Listener {
+    // プレイヤーごとのゴミ箱インベントリを保持
+    private val lastTrashInventories: MutableMap<UUID, Inventory> = HashMap()
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
-        ItemStack clickedItem = event.getCurrentItem();
+    fun onInventoryClick(event: InventoryClickEvent) {
+        val player = event.whoClicked as Player
+        val clickedItem = event.currentItem
 
         // 便利箱のインベントリが開いている場合
-        if (event.getView().getTitle().equals("便利箱")) {
-            event.setCancelled(true);  // 便利箱内の操作をキャンセル
+        if (event.view.title == "便利箱") {
+            event.isCancelled = true // 便利箱内の操作をキャンセル
 
-            if (clickedItem == null || clickedItem.getType() == Material.AIR) {
-                return;
+            if (clickedItem == null || clickedItem.type == Material.AIR) {
+                return
             }
 
-            if (clickedItem.getType() == Material.DROPPER) {
+            if (clickedItem.type == Material.DROPPER) {
                 // ゴミ箱を開く処理
-                Inventory trashInventory = Bukkit.createInventory(player, 54, ChatColor.GREEN + "ゴミ箱");
+                val trashInventory = Bukkit.createInventory(player, 54, ChatColor.GREEN.toString() + "ゴミ箱")
 
                 // 確認ボタンを右下に配置
-                ItemStack confirmButton = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-                ItemMeta confirmMeta = confirmButton.getItemMeta();
-                confirmMeta.setDisplayName(ChatColor.GREEN + "捨てる");
-                confirmButton.setItemMeta(confirmMeta);
+                val confirmButton = ItemStack(Material.GREEN_STAINED_GLASS_PANE)
+                val confirmMeta = confirmButton.itemMeta
+                confirmMeta.setDisplayName(ChatColor.GREEN.toString() + "捨てる")
+                confirmButton.setItemMeta(confirmMeta)
+                trashInventory.setItem(53, confirmButton)
 
-                trashInventory.setItem(53, confirmButton);
+                // ゴミ箱のインベントリをプレイヤーごとに保存
+                lastTrashInventories[player.uniqueId] = trashInventory
 
-                // ゴミ箱のインベントリをlastTrashInventoryに保存
-                lastTrashInventory = trashInventory;
-
-                player.openInventory(trashInventory);
+                player.openInventory(trashInventory)
             }
         }
 
-        // ゴミ箱インベントリを開いている場合
-        if (event.getView().getTitle().equals(ChatColor.GREEN + "ゴミ箱")) {
-            if (event.getRawSlot() == 53 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.GREEN_STAINED_GLASS_PANE) {
-                // スロット53（「捨てる」ボタン）のクリックをキャンセル
-                event.setCancelled(true);
+        // ゴミ箱インベントリが開いている場合
+        if (event.view.title == ChatColor.GREEN.toString() + "ゴミ箱") {
+            if (event.rawSlot == 53 && clickedItem != null && clickedItem.type == Material.GREEN_STAINED_GLASS_PANE) {
+                // 「捨てる」ボタンのクリックをキャンセル
+                event.isCancelled = true
 
                 // 確認画面を開く
-                Inventory confirmInventory = Bukkit.createInventory(player, 27, ChatColor.RED + "本当に捨てますか？");
+                val confirmInventory =
+                    Bukkit.createInventory(player, 27, ChatColor.RED.toString() + "本当に捨てますか？")
 
                 // Yesボタン (緑色のガラス)
-                ItemStack yesItem = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-                ItemMeta yesMeta = yesItem.getItemMeta();
-                yesMeta.setDisplayName(ChatColor.GREEN + "はい");
-                yesItem.setItemMeta(yesMeta);
+                val yesItem = ItemStack(Material.GREEN_STAINED_GLASS_PANE)
+                val yesMeta = yesItem.itemMeta
+                yesMeta.setDisplayName(ChatColor.GREEN.toString() + "はい")
+                yesItem.setItemMeta(yesMeta)
+                confirmInventory.setItem(11, yesItem)
 
                 // Noボタン (赤色のガラス)
-                ItemStack noItem = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-                ItemMeta noMeta = noItem.getItemMeta();
-                noMeta.setDisplayName(ChatColor.RED + "いいえ");
-                noItem.setItemMeta(noMeta);
+                val noItem = ItemStack(Material.RED_STAINED_GLASS_PANE)
+                val noMeta = noItem.itemMeta
+                noMeta.setDisplayName(ChatColor.RED.toString() + "いいえ")
+                noItem.setItemMeta(noMeta)
+                confirmInventory.setItem(15, noItem)
 
-                confirmInventory.setItem(11, yesItem);
-                confirmInventory.setItem(15, noItem);
-
-                player.openInventory(confirmInventory);
+                player.openInventory(confirmInventory)
             } else {
                 // ゴミ箱内でのアイテム移動を許可
-                event.setCancelled(false);
+                event.isCancelled = false
             }
         }
 
         // 確認画面が開いている場合
-        if (event.getView().getTitle().equals(ChatColor.RED + "本当に捨てますか？")) {
-            event.setCancelled(true);  // 確認画面内での操作をキャンセル
+        if (event.view.title == ChatColor.RED.toString() + "本当に捨てますか？") {
+            event.isCancelled = true // 確認画面内での操作をキャンセル
 
-            if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
+            if (clickedItem == null || clickedItem.type == Material.AIR) return
 
-            if (clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
+            if (clickedItem.type == Material.GREEN_STAINED_GLASS_PANE) {
                 // プレイヤーのインベントリをクリア（ゴミ箱にあるアイテムを削除）
-                if (lastTrashInventory != null) {
-                    lastTrashInventory.clear();  // アイテムを削除
-                    player.closeInventory();
-                    player.sendMessage(ChatColor.RED + "アイテムを削除しました。");
+                val trashInventory = lastTrashInventories[player.uniqueId]
+                if (trashInventory != null) {
+                    trashInventory.clear() // アイテムを削除
+                    player.closeInventory()
+                    player.sendMessage(ChatColor.RED.toString() + "アイテムを削除しました。")
                 } else {
-                    player.sendMessage(ChatColor.RED + "エラー: ゴミ箱のインベントリが見つかりません。");
+                    player.sendMessage(ChatColor.RED.toString() + "エラー: ゴミ箱のインベントリが見つかりません。")
                 }
-            } else if (clickedItem.getType() == Material.RED_STAINED_GLASS_PANE) {
+            } else if (clickedItem.type == Material.RED_STAINED_GLASS_PANE) {
                 // キャンセル（ゴミ箱のアイテムを戻す）
-                player.closeInventory();
-                if (lastTrashInventory != null) {
-                    for (ItemStack item : lastTrashInventory.getContents()) {
+                player.closeInventory()
+                val trashInventory = lastTrashInventories[player.uniqueId]
+                if (trashInventory != null) {
+                    for (item in trashInventory.contents) {
                         if (item != null) {
-                            player.getInventory().addItem(item);  // プレイヤーにアイテムを返す
+                            player.inventory.addItem(item) // プレイヤーにアイテムを返す
                         }
                     }
-                    player.sendMessage(ChatColor.YELLOW + "アイテムの削除をキャンセルしました。");
+                    player.sendMessage(ChatColor.YELLOW.toString() + "アイテムの削除をキャンセルしました。")
                 } else {
-                    player.sendMessage(ChatColor.RED + "エラー: ゴミ箱のインベントリが見つかりません。");
+                    player.sendMessage(ChatColor.RED.toString() + "エラー: ゴミ箱のインベントリが見つかりません。")
                 }
             }
         }
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent event) {
-        Inventory inventory = event.getInventory();
-
-        if (event.getView().getTitle().equals(ChatColor.RED + "ゴミ箱") && inventory != null) {
-            // ゴミ箱の内容がある場合にのみクリア
-            if (inventory.getSize() > 0) {
-                inventory.clear();  // ゴミ箱の内容をクリア
+    fun onInventoryClose(event: InventoryCloseEvent) {
+        if (event.view.title == ChatColor.GREEN.toString() + "ゴミ箱") {
+            val inventory = event.inventory
+            if (inventory != null) {
+                inventory.clear() // ゴミ箱の内容をクリア
             }
         }
     }

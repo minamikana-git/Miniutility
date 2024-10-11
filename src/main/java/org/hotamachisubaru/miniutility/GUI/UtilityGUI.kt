@@ -1,45 +1,50 @@
-package org.hotamachisubaru.miniutility.GUI;
+package org.hotamachisubaru.miniutility.GUI
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.Bukkit
+import org.bukkit.Material
+import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 
-public class UtilityGUI {
+object UtilityGUI {
+    fun openUtilityGUI(player: Player) {
+        val gui = Bukkit.createInventory(null, 9, "便利箱")
 
-    public static void openUtilityGUI(Player player) {
-        Inventory gui = Bukkit.createInventory(null, 9, "便利箱");
+
+
+        val nameColorIcon = ItemStack(Material.GREEN_DYE)
+        val nameColorMeta = nameColorIcon.itemMeta
+        nameColorMeta.setDisplayName("プレイヤーに色を付ける")
+        nameColorIcon.setItemMeta(nameColorMeta)
+        gui.setItem(1, nameColorIcon)
 
         // EnderchestOpener icon
-        ItemStack enderChestIcon = new ItemStack(Material.ENDER_CHEST);
-        ItemMeta enderMeta = enderChestIcon.getItemMeta();
-        enderMeta.setDisplayName("どこでもエンダーチェスト");
-        enderChestIcon.setItemMeta(enderMeta);
-        gui.setItem(2, enderChestIcon);
+        val enderChestIcon = ItemStack(Material.ENDER_CHEST)
+        val enderMeta = enderChestIcon.itemMeta
+        enderMeta.setDisplayName("どこでもエンダーチェスト")
+        enderChestIcon.setItemMeta(enderMeta)
+        gui.setItem(2, enderChestIcon)
 
         // InstantCrafter icon
-        ItemStack craftingTableIcon = new ItemStack(Material.CRAFTING_TABLE);
-        ItemMeta craftMeta = craftingTableIcon.getItemMeta();
-        craftMeta.setDisplayName("どこでも作業台");
-        craftingTableIcon.setItemMeta(craftMeta);
-        gui.setItem(4, craftingTableIcon);
+        val craftingTableIcon = ItemStack(Material.CRAFTING_TABLE)
+        val craftMeta = craftingTableIcon.itemMeta
+        craftMeta.setDisplayName("どこでも作業台")
+        craftingTableIcon.setItemMeta(craftMeta)
+        gui.setItem(4, craftingTableIcon)
 
         // TrashBox icon
-        ItemStack trashBoxIcon = new ItemStack(Material.DROPPER);
-        ItemMeta trashMeta = trashBoxIcon.getItemMeta();
-        trashMeta.setDisplayName("ごみ箱");
-        trashBoxIcon.setItemMeta(trashMeta);
-        gui.setItem(6, trashBoxIcon);
+        val trashBoxIcon = ItemStack(Material.DROPPER)
+        val trashMeta = trashBoxIcon.itemMeta
+        trashMeta.setDisplayName("ごみ箱")
+        trashBoxIcon.setItemMeta(trashMeta)
+        gui.setItem(6, trashBoxIcon)
 
         // Nickname icon (本と筆ペン)
-        ItemStack nicknameIcon = new ItemStack(Material.WRITABLE_BOOK);
-        ItemMeta nicknameMeta = nicknameIcon.getItemMeta();
-        nicknameMeta.setDisplayName("ニックネーム変更");
-        nicknameIcon.setItemMeta(nicknameMeta);
-        gui.setItem(8, nicknameIcon); // ニックネームアイコンを8番スロットに配置
+        val nicknameIcon = ItemStack(Material.WRITABLE_BOOK)
+        val nicknameMeta = nicknameIcon.itemMeta
+        nicknameMeta.setDisplayName("ニックネーム変更")
+        nicknameIcon.setItemMeta(nicknameMeta)
+        gui.setItem(8, nicknameIcon) // ニックネームアイコンを8番スロットに配置
 
-        player.openInventory(gui);
+        player.openInventory(gui)
     }
 }

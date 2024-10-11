@@ -1,42 +1,40 @@
-package org.hotamachisubaru.miniutility.Nickname;
+package org.hotamachisubaru.miniutility.Nickname
+
+import org.bukkit.configuration.file.FileConfiguration
+import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
+import java.io.IOException
+import java.util.*
 
 
+class NicknameConfig(plugin: JavaPlugin) {
+    private val config: FileConfiguration
+    private val configFile = File(plugin.dataFolder, "nickname.yml")
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
-public class NicknameConfig {
-    private final FileConfiguration config;
-    private final File configFile;
-
-    public NicknameConfig(JavaPlugin plugin) {
-        this.configFile = new File(plugin.getDataFolder(), "nickname.yml");
+    init {
         if (!configFile.exists()) {
-            plugin.saveResource("nickname.yml", false);
+            plugin.saveResource("nickname.yml", false)
         }
-        this.config = YamlConfiguration.loadConfiguration(configFile);
+        this.config = YamlConfiguration.loadConfiguration(configFile)
     }
 
-    public String getNickname(UUID uuid) {
-        return config.getString("nicknames." + uuid.toString(), null);
+    fun getNickname(uuid: UUID): String {
+        return config.getString("nicknames.$uuid", null)!!
     }
 
-    public void setNickname(UUID uuid, String nickname) {
-        config.set("nicknames." + uuid.toString(), nickname);
-        saveConfig();
+    fun setNickname(uuid: UUID, nickname: String?) {
+        config["nicknames.$uuid"] = nickname
+        saveConfig()
     }
 
-    private void saveConfig() {
+    private fun saveConfig() {
         try {
-            config.save(configFile);
-        } catch (IOException e) {
-            e.printStackTrace();
+            config.save(configFile)
+        } catch (e: IOException) {
+           error("設定ファイルの保存に失敗しました。")
         }
     }
 }
+
 

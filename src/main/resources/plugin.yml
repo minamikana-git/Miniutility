@@ -8,18 +8,3 @@ commands:
   menu:
     description: 便利ツールを集めました。
     usage: /menu
-  nick:
-    description: ニックネームを設定、リセットします。
-    usage: /nick <new nickname>
-  ec:
-    aliases: [enderchest]  # エイリアスに別名を指定
-    usage: /ec
-    description: どこでもエンダーチェストを開きます。
-  c:
-    aliases: [craft]  # エイリアスに別名を指定
-    usage: /c
-    description: どこでも作業台を開きます。
-  trash:
-    aliases: [bin]  # エイリアスに別名を指定
-    usage: /trash
-    description: ごみ箱を開きます。

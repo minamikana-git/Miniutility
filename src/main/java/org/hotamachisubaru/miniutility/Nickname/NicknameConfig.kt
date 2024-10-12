@@ -10,11 +10,11 @@ import java.util.*
 
 class NicknameConfig(plugin: JavaPlugin) {
     private val config: FileConfiguration
-    private val configFile = File(plugin.dataFolder, "nickname.yml")
+    private val configFile = File(plugin.dataFolder, "nickname.json")
 
     init {
         if (!configFile.exists()) {
-            plugin.saveResource("nickname.yml", false)
+            plugin.saveResource("nickname.json", false)
         }
         this.config = YamlConfiguration.loadConfiguration(configFile)
     }

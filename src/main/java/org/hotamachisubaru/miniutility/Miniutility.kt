@@ -30,7 +30,7 @@ class Miniutility : JavaPlugin(), Listener {
 
         // Commands
         getCommand("menu")!!.setExecutor(UtilityCommand())
-        getCommand("nick")!!.setExecutor(NicknameCommand(this))
+
 
         // Initialize nickname config
         nicknameConfig = NicknameConfig(this)

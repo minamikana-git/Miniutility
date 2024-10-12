@@ -13,7 +13,7 @@ import org.hotamachisubaru.miniutility.GUI.UtilityGUI
 class UtilityCommand : CommandExecutor, Listener {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender is Player) {
-            // コマンドが "/mu" だった場合
+            // コマンドが "/menu" だった場合
             if (label.equals("menu", ignoreCase = true)) {
                 // ユーティリティGUIを開く
                 UtilityGUI.openUtilityGUI(sender)

@@ -5,7 +5,7 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
-object UtilityGUI {
+object Utility {
     fun openUtilityGUI(player: Player) {
         val gui = Bukkit.createInventory(null, 9, "便利箱")
 

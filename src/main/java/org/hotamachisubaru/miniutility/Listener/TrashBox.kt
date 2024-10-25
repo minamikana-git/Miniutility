@@ -12,7 +12,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.*
 
-class TrashBoxListener : Listener {
+class TrashBox : Listener {
     // プレイヤーごとのゴミ箱インベントリを保持
     private val lastTrashInventories: MutableMap<UUID, Inventory> = HashMap()
 

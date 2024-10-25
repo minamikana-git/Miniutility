@@ -19,9 +19,10 @@ class NicknameConfig(plugin: JavaPlugin) {
         this.config = YamlConfiguration.loadConfiguration(configFile)
     }
 
-    fun getNickname(uuid: UUID): String {
-        return config.getString("nicknames.$uuid", null)!!
+    fun getNickname(uuid: UUID, playerName: String): String {
+        return config.getString("nicknames.$uuid") ?: playerName
     }
+
 
     fun setNickname(uuid: UUID, nickname: String?) {
         config["nicknames.$uuid"] = nickname

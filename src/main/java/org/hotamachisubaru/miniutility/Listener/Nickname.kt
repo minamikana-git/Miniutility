@@ -8,7 +8,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.hotamachisubaru.miniutility.Miniutility
 import java.util.*
 
-class NicknameInputListener(private val plugin: Miniutility) : Listener {
+class Nickname(private val plugin: Miniutility) : Listener {
     private val waitingForNickname = HashMap<UUID, Boolean>()
 
     // プレイヤーがニックネームの入力を待っているかどうかを確認

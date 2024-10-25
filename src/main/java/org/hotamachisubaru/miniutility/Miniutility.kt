@@ -11,21 +11,21 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import org.hotamachisubaru.miniutility.Command.UtilityCommand
 import org.hotamachisubaru.miniutility.Listener.*
-import org.hotamachisubaru.miniutility.Nickname.NicknameCommand
 import org.hotamachisubaru.miniutility.Nickname.NicknameConfig
 
 class Miniutility : JavaPlugin(), Listener {
     var nicknameConfig: NicknameConfig? = null
         private set
-    private var nicknameInputListener: NicknameInputListener? = null
+    private var nicknameInputListener: Nickname? = null
     private var lastTrashInventory: Inventory? = null
     var waitingForColorInput: Map<Player, Boolean>? = null
     var waitingForNicknameInput: Map<Player, Boolean>? = null
 
     override fun onEnable() {
         // Register event listeners
-        nicknameInputListener = NicknameInputListener(this)
+        nicknameInputListener = Nickname(this)
         registerListeners()
 
         // Commands
@@ -44,16 +44,16 @@ class Miniutility : JavaPlugin(), Listener {
     private fun registerListeners() {
         Bukkit.getPluginManager().registerEvents(this, this)
         Bukkit.getPluginManager().registerEvents(nicknameInputListener!!, this)
-        Bukkit.getPluginManager().registerEvents(ChatListener(), this)
-        Bukkit.getPluginManager().registerEvents(EnderchestOpenerListener(), this)
-        Bukkit.getPluginManager().registerEvents(InstantCrafterListener(), this)
-        Bukkit.getPluginManager().registerEvents(NameColorListener(), this)
+        Bukkit.getPluginManager().registerEvents(Chat(), this)
+        Bukkit.getPluginManager().registerEvents(EnderchestOpener(), this)
+        Bukkit.getPluginManager().registerEvents(InstantCrafter(), this)
+        Bukkit.getPluginManager().registerEvents(NameColor(), this)
     }
 
-    @EventHandler
+    @Override
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
-        val nickname = nicknameConfig?.getNickname(player.uniqueId)
+        val nickname = nicknameConfig?.getNickname(player.uniqueId,player.name)
         nickname?.let {
             player.setDisplayName(it)
             player.setPlayerListName(it)
@@ -91,7 +91,7 @@ class Miniutility : JavaPlugin(), Listener {
 
     private fun promptForColorInput(player: Player) {
         player.sendMessage(ChatColor.YELLOW.toString() + "名前の色を設定するために、チャットにカラーコードを入力してください（例：&6）。")
-        NameColorListener.waitingForColorInput[player] = true
+        NameColor.waitingForColorInput[player] = true
         player.closeInventory()
     }
 

@@ -1,4 +1,4 @@
-package org.hotamachisubaru.miniutility
+package org.hotamachisubaru.miniutility.Command
 
 import org.bukkit.Material
 import org.bukkit.command.Command
@@ -8,7 +8,8 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.hotamachisubaru.miniutility.GUI.UtilityGUI
+import org.hotamachisubaru.miniutility.GUI.Utility
+
 
 class UtilityCommand : CommandExecutor, Listener {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
@@ -16,7 +17,7 @@ class UtilityCommand : CommandExecutor, Listener {
             // コマンドが "/menu" だった場合
             if (label.equals("menu", ignoreCase = true)) {
                 // ユーティリティGUIを開く
-                UtilityGUI.openUtilityGUI(sender)
+                Utility.openUtilityGUI(sender)
                 return true
             }
         } else {

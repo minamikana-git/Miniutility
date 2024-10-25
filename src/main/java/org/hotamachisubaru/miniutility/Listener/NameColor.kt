@@ -18,9 +18,10 @@ class NameColor : Listener {
             val message = event.message
 
             // カラーコードの形式が正しいかを確認（例：&6など）
-            if (message.matches("&[0-9a-fA-F]".toRegex())) {
-                // プレイヤー名を指定されたカラーコードで設定
-                val coloredName = ChatColor.translateAlternateColorCodes('&', message) + player.name
+            if (message.matches("^&[0-9a-fA-F]$".toRegex())) {
+                // プレイヤー名を指定されたカラーコードで設定（ニックネームが既に存在する場合はそれに色をつける）
+                val currentNickname = player.displayName
+                val coloredName = ChatColor.translateAlternateColorCodes('&', message) + ChatColor.stripColor(currentNickname)
                 player.setDisplayName(coloredName)
                 player.setPlayerListName(coloredName)
                 player.sendMessage(ChatColor.GREEN.toString() + "プレイヤー名が " + message + " の色に変更されました！")

@@ -9,19 +9,21 @@ import org.bukkit.event.inventory.InventoryClickEvent
 class EnderchestOpener : Listener {
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
-        if (event.view.title == "便利箱") {  // GUI名が「便利箱」か確認
-            event.isCancelled = true // インベントリの操作をキャンセル
-            val player = event.whoClicked as Player
-            val clickedItem = event.currentItem
+        if (event.getView().getTitle() == "便利箱") { // 特定のGUIタイトルをチェック
+            event.setCancelled(true) // 便利箱内での操作をキャンセル
+            val player = event.getWhoClicked() as Player
+            val clickedItem = event.getCurrentItem()
 
-            if (clickedItem == null || clickedItem.type == Material.AIR) {
+            if (clickedItem == null || clickedItem.getType() == Material.AIR) {
                 return
             }
 
-            if (clickedItem.type == Material.ENDER_CHEST) {
-                player.openInventory(player.enderChest) // エンダーチェストを開く
-                //player.closeInventory();  // 便利箱を閉じる
+            if (clickedItem.getType() == Material.ENDER_CHEST) {
+                player.openInventory(player.getEnderChest()) // エンダーチェストを開く
             }
+        } else if (event.getView().getTitle().contains("エンダーチェスト")) {
+            // エンダーチェストの操作を許可する
+            event.setCancelled(false)
         }
     }
 }

@@ -12,12 +12,6 @@ public class Utility {
     public static void openUtilityGUI(Player player) {
         Inventory gui = Bukkit.createInventory(null, 9, "便利箱");
 
-        // 色付け機能
-        ItemStack nameColorIcon = new ItemStack(Material.GREEN_DYE);
-        ItemMeta nameColorMeta = nameColorIcon.getItemMeta();
-        nameColorMeta.setDisplayName("プレイヤーに色を付ける");
-        nameColorIcon.setItemMeta(nameColorMeta);
-        gui.setItem(0, nameColorIcon);
 
         // エンダーチェスト機能
         ItemStack enderChestIcon = new ItemStack(Material.ENDER_CHEST);

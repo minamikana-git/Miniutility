@@ -32,7 +32,7 @@ public class Miniutility extends JavaPlugin implements Listener {
     private Chat chat;
     private EnderchestOpener enderchestOpener;
     private InstantCrafter instantCrafter;
-    private NameColor nameColor;
+
 
 
     @Override
@@ -43,7 +43,7 @@ public class Miniutility extends JavaPlugin implements Listener {
         chat = new Chat();
         enderchestOpener = new EnderchestOpener();
         instantCrafter = new InstantCrafter();
-        nameColor = new NameColor();
+
         // Initialize waitingForNicknameInput
         waitingForNicknameInput = new HashMap<>();
 
@@ -69,7 +69,6 @@ public class Miniutility extends JavaPlugin implements Listener {
 
     public void registerListeners() {
         Bukkit.getPluginManager().registerEvents(nicknameInputListener, this);
-        Bukkit.getPluginManager().registerEvents(new NameColor(), this);
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new Chat(), this);
         Bukkit.getPluginManager().registerEvents(new EnderchestOpener(), this);
@@ -120,9 +119,7 @@ public class Miniutility extends JavaPlugin implements Listener {
 
         if (clickedItem != null) {
             switch (clickedItem.getType()) {
-                case GREEN_DYE:
-                    promptForColorInput(player);
-                    break;
+
                 case CRAFTING_TABLE:
                     player.openWorkbench(player.getLocation(), true);
                     break;
@@ -142,11 +139,7 @@ public class Miniutility extends JavaPlugin implements Listener {
         }
     }
 
-    public void promptForColorInput(Player player) {
-        player.sendMessage(ChatColor.YELLOW + "名前の色を設定するために、チャットにカラーコードを入力してください（例：&6）。");
-        NameColor.waitingForColorInput.put(player, true);
-        player.closeInventory();
-    }
+
 
     public void promptForNicknameInput(Player player) {
         player.sendMessage(ChatColor.YELLOW + "ニックネームを入力してください。");

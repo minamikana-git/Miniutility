@@ -34,12 +34,6 @@ public class Utility {
         trashBoxIcon.setItemMeta(trashMeta);
         gui.setItem(6, trashBoxIcon);
 
-        // ニックネーム機能
-        ItemStack nicknameIcon = new ItemStack(Material.WRITABLE_BOOK);
-        ItemMeta nicknameMeta = nicknameIcon.getItemMeta();
-        nicknameMeta.setDisplayName("ニックネーム変更");
-        nicknameIcon.setItemMeta(nicknameMeta);
-        gui.setItem(8, nicknameIcon); // ニックネームアイコンを8番スロットに配置
 
         player.openInventory(gui);
     }

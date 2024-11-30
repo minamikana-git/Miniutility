@@ -15,7 +15,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.*;
-import org.hotamachisubaru.miniutility.Nickname.NicknameConfig;
 
 
 import java.util.HashMap;
@@ -24,31 +23,21 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 public class Miniutility extends JavaPlugin implements Listener {
-    private NicknameConfig nicknameConfig;
-    private Nickname nicknameInputListener;
+
+
     private Inventory lastTrashInventory;
-    private Map<Player, Boolean> waitingForColorInput;
-    private Map<UUID, Boolean> waitingForNicknameInput = new HashMap<>();
-    private Chat chat;
     private EnderchestOpener enderchestOpener;
     private InstantCrafter instantCrafter;
-
+    private TrashBox trashBox;
 
 
     @Override
     public void onEnable() {
-        // Initialize nickname config
-        nicknameConfig = new NicknameConfig(this);
-        // Initialize listeners
-        chat = new Chat();
+
         enderchestOpener = new EnderchestOpener();
         instantCrafter = new InstantCrafter();
+        TrashBox trashBox = new TrashBox();
 
-        // Initialize waitingForNicknameInput
-        waitingForNicknameInput = new HashMap<>();
-
-        // Initialize nicknameInputListener
-        nicknameInputListener = new Nickname(waitingForNicknameInput,nicknameConfig);
 
         // Register event listeners
         registerListeners();
@@ -57,7 +46,7 @@ public class Miniutility extends JavaPlugin implements Listener {
         getCommand("menu").setExecutor(new UtilityCommand());
 
         // Initialize other maps
-        waitingForColorInput = new HashMap<>();
+
 
         // Log copyright information
         Logger logger = Bukkit.getLogger();
@@ -66,28 +55,14 @@ public class Miniutility extends JavaPlugin implements Listener {
     }
 
 
-
     public void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(nicknameInputListener, this);
+
         Bukkit.getPluginManager().registerEvents(this, this);
-        Bukkit.getPluginManager().registerEvents(new Chat(), this);
         Bukkit.getPluginManager().registerEvents(new EnderchestOpener(), this);
         Bukkit.getPluginManager().registerEvents(new InstantCrafter(), this);
+        Bukkit.getPluginManager().registerEvents(new TrashBox(), this);
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        String nickname = nicknameConfig != null ? nicknameConfig.getNickname(player.getUniqueId(), player.getName()) : null;
-
-        if (nickname != null) {
-            player.displayName(Component.text(nickname));
-            player.playerListName(Component.text(nickname));
-        } else {
-            player.displayName(Component.text(player.getName()));
-            player.playerListName(Component.text(player.getName()));
-        }
-    }
 
     @EventHandler
     public void utility(InventoryClickEvent event) {
@@ -99,11 +74,11 @@ public class Miniutility extends JavaPlugin implements Listener {
         }
 
         String title = event.getView().getTitle();
-        if (title.equals(Constants.UTILITY_BOX_TITLE)) {
+        if (title.equals("便利箱")) {
             handleUtilityMenuClick(player, clickedItem, event);
-        } else if (title.equals(Constants.TRASH_BOX_TITLE)) {
+        } else if (title.equals("ゴミ箱")) {
             handleTrashBoxClick(player, event);
-        } else if (title.equals(Constants.TRASH_CONFIRM_TITLE)) {
+        } else if (title.equals("本当に捨てますか？")) {
             handleTrashConfirmClick(player, clickedItem, event);
         } else {
             // プレイヤーインベントリ以外はキャンセル
@@ -126,9 +101,6 @@ public class Miniutility extends JavaPlugin implements Listener {
                 case ENDER_CHEST:
                     player.openInventory(player.getEnderChest());
                     break;
-                case WRITABLE_BOOK:
-                    promptForNicknameInput(player);
-                    break;
                 case DROPPER:
                     openTrashBox(player);
                     break;
@@ -139,15 +111,6 @@ public class Miniutility extends JavaPlugin implements Listener {
         }
     }
 
-
-
-    public void promptForNicknameInput(Player player) {
-        player.sendMessage(ChatColor.YELLOW + "ニックネームを入力してください。");
-        if (nicknameInputListener != null) {
-            nicknameInputListener.setWaitingForNickname(player, true);
-        }
-        player.closeInventory();
-    }
 
     public void openTrashBox(Player player) {
         Inventory trashInventory = Bukkit.createInventory(player, 54, ChatColor.GREEN + "ゴミ箱");
@@ -231,7 +194,5 @@ public class Miniutility extends JavaPlugin implements Listener {
         return item;
     }
 
-    public NicknameConfig getNicknameConfig() {
-        return nicknameConfig;
-    }
+
 }

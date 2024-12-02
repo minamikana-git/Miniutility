@@ -10,6 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import net.kyori.adventure.text.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class TrashBox implements Listener {
         ItemStack clickedItem = event.getCurrentItem();
 
         // 便利箱のインベントリが開いている場合
-        if ("便利箱".equals(event.getView().getTitle())) {
+        if ("便利箱".equals(event.getView().title().toString())) {
             event.setCancelled(true); // 便利箱内の操作をキャンセル
 
             if (clickedItem == null || clickedItem.getType() == Material.AIR) {
@@ -38,7 +39,11 @@ public class TrashBox implements Listener {
 
                 // 確認ボタンを右下に配置
                 ItemStack confirmButton = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-                confirmButton.getItemMeta().setDisplayName(ChatColor.GREEN + "捨てる");
+                if (confirmButton.getItemMeta() != null) {
+                    var meta = confirmButton.getItemMeta();
+                    meta.displayName(Component.text(ChatColor.GREEN + "捨てる"));
+                    confirmButton.setItemMeta(meta);
+                }
                 trashInventory.setItem(53, confirmButton);
 
                 // ゴミ箱のインベントリをプレイヤーごとに保存
@@ -49,7 +54,7 @@ public class TrashBox implements Listener {
         }
 
         // ゴミ箱インベントリが開いている場合
-        if ((ChatColor.GREEN + "ゴミ箱").equals(event.getView().getTitle())) {
+        if ((ChatColor.GREEN + "ゴミ箱").equals(event.getView().title().toString())) {
             if (event.getRawSlot() == 53 && clickedItem != null && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
                 // 「捨てる」ボタンのクリックをキャンセル
                 event.setCancelled(true);
@@ -59,12 +64,20 @@ public class TrashBox implements Listener {
 
                 // Yesボタン (緑色のガラス)
                 ItemStack yesItem = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-                yesItem.getItemMeta().setDisplayName(ChatColor.GREEN + "はい");
+                if (yesItem.getItemMeta() != null) {
+                    var meta = yesItem.getItemMeta();
+                    meta.displayName(Component.text(ChatColor.GREEN + "はい"));
+                    yesItem.setItemMeta(meta);
+                }
                 confirmInventory.setItem(11, yesItem);
 
                 // Noボタン (赤色のガラス)
                 ItemStack noItem = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-                noItem.getItemMeta().setDisplayName(ChatColor.RED + "いいえ");
+                if (noItem.getItemMeta() != null) {
+                    var meta = noItem.getItemMeta();
+                    meta.displayName(Component.text(ChatColor.RED + "いいえ"));
+                    noItem.setItemMeta(meta);
+                }
                 confirmInventory.setItem(15, noItem);
 
                 player.openInventory(confirmInventory);
@@ -75,7 +88,7 @@ public class TrashBox implements Listener {
         }
 
         // 確認画面が開いている場合
-        if ((ChatColor.RED + "本当に捨てますか？").equals(event.getView().getTitle())) {
+        if ((ChatColor.RED + "本当に捨てますか？").equals(event.getView().title().toString())) {
             event.setCancelled(true); // 確認画面内での操作をキャンセル
 
             if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
@@ -110,7 +123,7 @@ public class TrashBox implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if ((ChatColor.GREEN + "ゴミ箱").equals(event.getView().getTitle())) {
+        if ((ChatColor.GREEN + "ゴミ箱").equals(event.getView().title().toString())) {
             Inventory inventory = event.getInventory();
             if (inventory != null) {
                 inventory.clear(); // ゴミ箱の内容をクリア

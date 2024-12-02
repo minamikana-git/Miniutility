@@ -1,24 +1,26 @@
 package org.hotamachisubaru.miniutility.Listener;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
+
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class NameColor implements Listener {
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onPlayerChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
 
         // プレイヤーがカラーコードの入力待ち状態であるか確認
         if (waitingForColorInput.getOrDefault(player, false)) {
             event.setCancelled(true); // カラーコードの入力を通常のチャットメッセージとしては処理しない
 
-            String message = event.getMessage();
+            String message = PlainTextComponentSerializer.plainText().serialize(event.message());
 
             // カラーコードの形式が正しいかを確認（例：&6など）
             if (message.matches("^&[0-9a-fA-F]$")) {

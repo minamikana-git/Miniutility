@@ -1,5 +1,6 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,12 +19,11 @@ public class NicknameCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("このコマンドはプレイヤーのみ実行できます。");
             return true;
         }
 
-        Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
         NicknameConfig config = plugin.getNicknameConfig();
 

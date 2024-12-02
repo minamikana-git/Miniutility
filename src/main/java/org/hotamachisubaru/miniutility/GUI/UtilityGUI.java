@@ -7,7 +7,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-public class Utility {
+public class UtilityGUI {
     public static void openUtilityGUI(Player player) {
         Inventory gui = Bukkit.createInventory(null, 9, "便利箱");
 

@@ -4,7 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.hotamachisubaru.miniutility.Miniutility;
 
 import java.util.HashMap;
@@ -25,14 +25,14 @@ public class Nickname implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onPlayerChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
         // ニックネーム入力を待っている場合のみ処理
         if (waitingForNickname.getOrDefault(playerUUID, false)) {
             event.setCancelled(true); // チャットメッセージをキャンセル
-            String nickname = event.getMessage(); // プレイヤーが入力したメッセージをニックネームとして取得
+            String nickname = event.message().toString(); // プレイヤーが入力したメッセージをニックネームとして取得
 
             // ニックネームを設定
             plugin.getNicknameConfig().setNickname(playerUUID, nickname);

@@ -33,7 +33,7 @@ public class NicknameConfig {
         try {
             config.save(configFile);
         } catch (IOException e) {
-            throw new RuntimeException("設定ファイルの保存に失敗しました。");
+            throw new RuntimeException("設定ファイルの保存に失敗しました。", e);
         }
     }
 }

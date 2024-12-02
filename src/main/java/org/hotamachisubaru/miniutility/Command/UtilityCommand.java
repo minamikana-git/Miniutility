@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.hotamachisubaru.miniutility.GUI.Utility;
+import org.hotamachisubaru.miniutility.GUI.UtilityGUI;
 
 public class UtilityCommand implements CommandExecutor, Listener {
     @Override
@@ -17,7 +17,7 @@ public class UtilityCommand implements CommandExecutor, Listener {
             // コマンドが "/menu" だった場合
             if (label.equalsIgnoreCase("menu")) {
                 // ユーティリティGUIを開く
-                Utility.openUtilityGUI((Player) sender);
+                UtilityGUI.openUtilityGUI((Player) sender);
                 return true;
             }
         } else {

@@ -1,5 +1,7 @@
 package org.hotamachisubaru.miniutility.Listener;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,14 +34,17 @@ public class Nickname implements Listener {
         // ニックネーム入力を待っている場合のみ処理
         if (waitingForNickname.getOrDefault(playerUUID, false)) {
             event.setCancelled(true); // チャットメッセージをキャンセル
-            String nickname = event.message().toString(); // プレイヤーが入力したメッセージをニックネームとして取得
+
+            // メッセージを文字列として取得
+            Component messageComponent = event.message();
+            String nickname = PlainTextComponentSerializer.plainText().serialize(messageComponent);
 
             // ニックネームを設定
             plugin.getNicknameConfig().setNickname(playerUUID, nickname);
             player.setDisplayName(nickname);
             player.setPlayerListName(nickname);
 
-            player.sendMessage(ChatColor.GREEN.toString() + "ニックネームを " + nickname + " に設定しました。");
+            player.sendMessage(ChatColor.GREEN + "ニックネームを " + ChatColor.YELLOW + nickname + ChatColor.GREEN + " に設定しました。");
 
             // ニックネーム入力待ち状態を解除
             waitingForNickname.remove(playerUUID);

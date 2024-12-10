@@ -29,6 +29,7 @@ public class Miniutility extends JavaPlugin implements Listener {
     private Inventory lastTrashInventory;
     private final Map<Player, Boolean> waitingForColorInput = new HashMap<>();
 
+
     @Override
     public void onEnable() {
         // リスナーの登録

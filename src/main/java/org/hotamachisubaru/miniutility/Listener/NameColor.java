@@ -1,43 +1,41 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import io.papermc.paper.event.player.AsyncChatEvent;
-
+import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class NameColor implements Listener {
+    private static final Map<Player, Boolean> waitingForColorInput = new HashMap<>();
+
     @EventHandler
-    public void onPlayerChat(AsyncChatEvent event) {
-        Player player = event.getPlayer();
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null || event.getCurrentItem() == null) return;
 
-        // プレイヤーがカラーコードの入力待ち状態であるか確認
-        if (waitingForColorInput.getOrDefault(player, false)) {
-            event.setCancelled(true); // カラーコードの入力を通常のチャットメッセージとしては処理しない
+        Player player = (Player) event.getWhoClicked();
 
-            String message = PlainTextComponentSerializer.plainText().serialize(event.message());
-
-            // カラーコードの形式が正しいかを確認（例：&6など）
-            if (message.matches("^&[0-9a-fA-F]$")) {
-                // プレイヤー名を指定されたカラーコードで設定（ニックネームが既に存在する場合はそれに色をつける）
-                String currentNickname = player.getDisplayName();
-                String coloredName = ChatColor.translateAlternateColorCodes('&', message) + ChatColor.stripColor(currentNickname);
-                player.setDisplayName(coloredName);
-                player.setPlayerListName(coloredName);
-                player.sendMessage(ChatColor.GREEN.toString() + "プレイヤー名が " + message + " の色に変更されました！");
-            } else {
-                player.sendMessage(ChatColor.RED.toString() + "無効なカラーコードです。正しい形式で入力してください（例：&6）。");
-            }
-
-            // 入力待ち状態をリセット
-            waitingForColorInput.put(player, false);
+        // 名前の色変更アイテムをクリックしたか判定
+        if (event.getCurrentItem().getType() == Material.GREEN_DYE) {
+            event.setCancelled(true);
+            promptForColorInput(player);
         }
     }
 
-    public static Map<Player, Boolean> waitingForColorInput = new HashMap<>();
+    private void promptForColorInput(Player player) {
+        waitingForColorInput.put(player, true);
+        player.sendMessage("チャットにカラーコードを入力してください（例：&6）。");
+        player.closeInventory();
+    }
+
+    public static boolean isWaitingForColorInput(Player player) {
+        return waitingForColorInput.getOrDefault(player, false);
+    }
+
+    public static void setWaitingForColorInput(Player player, boolean waiting) {
+        waitingForColorInput.put(player, waiting);
+    }
 }

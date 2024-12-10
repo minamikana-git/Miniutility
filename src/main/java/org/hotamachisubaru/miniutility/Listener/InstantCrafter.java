@@ -5,22 +5,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class InstantCrafter implements Listener {
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if ("便利箱".equals(event.getView().getTitle())) {
-            event.setCancelled(true); // インベントリの操作をキャンセル
-            Player player = (Player) event.getWhoClicked();
-            if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
-                return;
-            }
+        if (event.getClickedInventory() == null || event.getCurrentItem() == null) return;
 
-            if (event.getCurrentItem().getType() == Material.CRAFTING_TABLE) {
-                player.openWorkbench(null, true); // 作業台を開く
-                // player.closeInventory();  // 便利箱を閉じる
-            }
+        Player player = (Player) event.getWhoClicked();
+
+        // 作業台アイテムをクリックしたか判定
+        if (event.getCurrentItem().getType() == Material.CRAFTING_TABLE) {
+            event.setCancelled(true);
+            player.openWorkbench(player.getLocation(), true);
         }
     }
 }

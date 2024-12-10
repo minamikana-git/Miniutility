@@ -1,6 +1,3 @@
-package org.hotamachisubaru.miniutility.Listener;
-
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -14,14 +11,13 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Nickname implements Listener {
-    private final Miniutility plugin;
     private final Map<UUID, Boolean> waitingForNickname = new HashMap<>();
+    private final Miniutility plugin;
 
     public Nickname(Miniutility plugin) {
         this.plugin = plugin;
     }
 
-    // プレイヤーがニックネームの入力を待っているかどうかを確認
     public void setWaitingForNickname(Player player, boolean waiting) {
         waitingForNickname.put(player.getUniqueId(), waiting);
     }
@@ -31,22 +27,19 @@ public class Nickname implements Listener {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
-        // ニックネーム入力を待っている場合のみ処理
         if (waitingForNickname.getOrDefault(playerUUID, false)) {
-            event.setCancelled(true); // チャットメッセージをキャンセル
+            event.setCancelled(true);
+            String message = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
 
-            // メッセージを文字列として取得
-            Component messageComponent = event.message();
-            String nickname = PlainTextComponentSerializer.plainText().serialize(messageComponent);
+            if (message.isEmpty()) {
+                player.sendMessage(ChatColor.RED + "無効なニックネームです。もう一度入力してください。");
+                return;
+            }
 
-            // ニックネームを設定
-            plugin.getNicknameConfig().setNickname(playerUUID, nickname);
-            player.setDisplayName(nickname);
-            player.setPlayerListName(nickname);
-
-            player.sendMessage(ChatColor.GREEN + "ニックネームを " + ChatColor.YELLOW + nickname + ChatColor.GREEN + " に設定しました。");
-
-            // ニックネーム入力待ち状態を解除
+            plugin.getNicknameConfig().setNickname(playerUUID, message);
+            player.setDisplayName(ChatColor.translateAlternateColorCodes('&', message));
+            player.setPlayerListName(ChatColor.translateAlternateColorCodes('&', message));
+            player.sendMessage(ChatColor.GREEN + "ニックネームを " + message + " に設定しました！");
             waitingForNickname.remove(playerUUID);
         }
     }

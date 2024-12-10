@@ -159,4 +159,8 @@ public class Miniutility extends JavaPlugin implements Listener {
     public NicknameConfig getNicknameConfig() {
         return nicknameConfig;
     }
+
+    public Map<Player, Boolean> getWaitingForColorInput() {
+        return waitingForColorInput;
+    }
 }

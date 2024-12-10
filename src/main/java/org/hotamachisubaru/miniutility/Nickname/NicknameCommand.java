@@ -1,14 +1,11 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.hotamachisubaru.miniutility.Miniutility;
-
-import java.util.UUID;
 
 public class NicknameCommand implements CommandExecutor {
     private final Miniutility plugin;
@@ -19,29 +16,24 @@ public class NicknameCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("このコマンドはプレイヤーのみ実行できます。");
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "このコマンドはプレイヤーのみが使用できます。");
             return true;
         }
 
-        UUID uuid = player.getUniqueId();
-        NicknameConfig config = plugin.getNicknameConfig();
+        Player player = (Player) sender;
 
         if (args.length == 0) {
-            // ニックネームのリセット
-            config.setNickname(uuid, null);
-            player.setDisplayName(player.getName());
-            player.setPlayerListName(player.getName()); // プレイヤーリスト名もリセット
-            player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
-        } else {
-            // ニックネームの設定
-            String nickname = String.join(" ", args);
-            config.setNickname(uuid, nickname);
-            player.setDisplayName(nickname);
-            player.setPlayerListName(nickname); // プレイヤーリスト名も更新
-            player.sendMessage(ChatColor.GREEN + "ニックネームを " + nickname + " に設定しました。");
+            player.sendMessage(ChatColor.YELLOW + "新しいニックネームを入力してください。");
+            plugin.getNicknameConfig().setWaitingForNickname(player, true);
+            return true;
         }
 
-        return true; // チャットには影響を与えない
+        String nickname = String.join(" ", args).trim();
+        plugin.getNicknameConfig().setNickname(player.getUniqueId(), nickname);
+        player.setDisplayName(ChatColor.translateAlternateColorCodes('&', nickname));
+        player.setPlayerListName(ChatColor.translateAlternateColorCodes('&', nickname));
+        player.sendMessage(ChatColor.GREEN + "ニックネームを " + nickname + " に設定しました！");
+        return true;
     }
 }

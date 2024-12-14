@@ -1,5 +1,6 @@
 package org.hotamachisubaru.miniutility.Command;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -13,19 +14,18 @@ import org.hotamachisubaru.miniutility.GUI.UtilityGUI;
 public class UtilityCommand implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player) {
-            // コマンドが "/menu" だった場合
-            if (label.equalsIgnoreCase("menu")) {
-                // ユーティリティGUIを開く
-                UtilityGUI.openUtilityGUI((Player) sender);
-                return true;
-            }
-        } else {
-            sender.sendMessage("このコマンドはプレイヤーのみ実行できます。");
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "このコマンドはプレイヤーのみが使用できます。");
+            return true;
         }
 
-        return false;
+        Player player = (Player) sender;
+
+        // メニューを開く
+        UtilityGUI.openUtilityMenu(player);
+        return true;
     }
+
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {

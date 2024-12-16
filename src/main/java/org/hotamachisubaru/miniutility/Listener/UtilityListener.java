@@ -66,7 +66,7 @@ public class UtilityListener implements Listener {
     }
 
     private void handleTrashBoxClick(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        event.setCancelled(true); // アイテム移動を防ぐ
+
 
         // ゴミ箱にアイテムを入れる場合はキャンセルしない
         if (event.getRawSlot() < event.getClickedInventory().getSize()) {

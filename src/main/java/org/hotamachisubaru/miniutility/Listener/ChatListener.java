@@ -1,6 +1,5 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -13,8 +12,29 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
-    private final Map<UUID, Boolean> waitingForNickname = new HashMap<>();
-    private final Map<Player, Boolean> waitingForColorInput = new HashMap<>();
+   // ニックネーム入力待機フラグ
+    private static final Map<UUID, Boolean> waitingForNickname = new HashMap<UUID, Boolean>();
+
+    // 色変更入力待機フラグ
+    private static final Map<Player, Boolean> waitingForColorInput = new HashMap<>();
+    // ニックネーム設定待機フラグをセット
+    public static void setWaitingForNickname(Player player, boolean waiting) {
+        waitingForNickname.put(player.getUniqueId(), waiting);
+    }
+
+    // 色変更設定待機フラグをセット
+    public static void setWaitingForColorInput(Player player, boolean waiting) {
+        waitingForColorInput.put(player, waiting);
+    }
+
+    // フラグを取得する（必要なら追加）
+    public boolean isWaitingForColorInput(Player player) {
+        return waitingForColorInput.getOrDefault(player, false);
+    }
+
+    public boolean isWaitingForNickname(Player player) {
+        return waitingForNickname.getOrDefault(player, false);
+    }
 
     @EventHandler
     public void onPlayerChat(AsyncChatEvent event) {

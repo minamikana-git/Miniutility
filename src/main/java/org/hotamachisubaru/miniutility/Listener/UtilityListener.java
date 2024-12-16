@@ -1,7 +1,5 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-
-
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -13,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.hotamachisubaru.miniutility.Miniutility;
 
 public class UtilityListener implements Listener {
 
@@ -37,11 +36,24 @@ public class UtilityListener implements Listener {
         event.setCancelled(true); // アイテムの移動を防ぐ
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
+        // Miniutility プラグインのインスタンスを取得
+        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
+
         // アイテムに応じた動作
         switch (clickedItem.getType()) {
             case ENDER_CHEST -> player.openInventory(player.getEnderChest());
             case CRAFTING_TABLE -> player.openWorkbench(null, true);
             case DROPPER -> openTrashBox(player);
+            case GREEN_DYE -> {
+                player.sendMessage(ChatColor.YELLOW + "名前の色を設定するために、チャットにカラーコードを入力してください（例：&6）。");
+                plugin.getChatListener().setWaitingForColorInput(player, true); // 色変更のフラグをセット
+                player.closeInventory();
+            }
+            case WRITABLE_BOOK -> {
+                player.sendMessage(ChatColor.YELLOW + "ニックネームを設定するために、チャットで名前を入力してください。");
+                plugin.getChatListener().setWaitingForNickname(player, true); // ニックネーム変更のフラグをセット
+                player.closeInventory();
+            }
             default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
         }
     }

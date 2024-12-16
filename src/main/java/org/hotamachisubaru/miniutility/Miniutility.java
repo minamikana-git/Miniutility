@@ -21,6 +21,7 @@ import java.util.Map;
 
 public class Miniutility extends JavaPlugin implements Listener {
     private NicknameConfig nicknameConfig = null;
+    private ChatListener chatListener = new ChatListener();
 
     @Override
     public void onEnable() {
@@ -42,7 +43,7 @@ public class Miniutility extends JavaPlugin implements Listener {
     }
 
     private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(new ChatListener(), this);
+        Bukkit.getPluginManager().registerEvents(chatListener, this);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
     }
 
@@ -59,4 +60,8 @@ public class Miniutility extends JavaPlugin implements Listener {
     public NicknameConfig getNicknameConfig() {
         return nicknameConfig;
     }
+    public ChatListener getChatListener() {
+        return chatListener;
+    }
+
 }

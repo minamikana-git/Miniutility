@@ -63,14 +63,17 @@ public class ChatListener implements Listener {
     }
 
     private void handleColorInput(Player player, String message) {
-        if (message.matches("^&[0-9a-fA-F]$")) {
-            String coloredName = ChatColor.translateAlternateColorCodes('&', message) + ChatColor.stripColor(player.getDisplayName());
+        if (message.matches("^&[0-9a-fA-F].*")) {
+            // カラーコードの変換と適用
+            String coloredName = ChatColor.translateAlternateColorCodes('&', message)
+                    + ChatColor.stripColor(player.getDisplayName());
             player.setDisplayName(coloredName);
             player.setPlayerListName(coloredName);
-            player.sendMessage(ChatColor.GREEN + "色を変更しました！");
+            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！");
         } else {
             player.sendMessage(ChatColor.RED + "無効なカラーコードです。");
         }
         waitingForColorInput.put(player, false);
     }
+
 }

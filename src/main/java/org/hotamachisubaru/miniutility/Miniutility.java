@@ -1,25 +1,17 @@
 package org.hotamachisubaru.miniutility;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
-import org.hotamachisubaru.miniutility.Listener.*;
+import org.hotamachisubaru.miniutility.Listener.ChatListener;
+import org.hotamachisubaru.miniutility.Listener.UtilityListener;
+import org.hotamachisubaru.miniutility.Nickname.NicknameCommand;
 import org.hotamachisubaru.miniutility.Nickname.NicknameConfig;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class Miniutility extends JavaPlugin implements Listener {
+public class Miniutility extends JavaPlugin {
     private NicknameConfig nicknameConfig = null;
     private ChatListener chatListener = new ChatListener();
 
@@ -39,6 +31,7 @@ public class Miniutility extends JavaPlugin implements Listener {
     }
 
     private void registerCommands() {
+        getCommand("nick").setExecutor(new NicknameCommand(this));
         getCommand("menu").setExecutor(new UtilityCommand());
     }
 

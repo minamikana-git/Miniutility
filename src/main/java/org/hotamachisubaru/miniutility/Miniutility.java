@@ -6,8 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
-import org.hotamachisubaru.miniutility.Listener.ChatListener;
-import org.hotamachisubaru.miniutility.Listener.UtilityListener;
+import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameCommand;
 import org.hotamachisubaru.miniutility.Nickname.NicknameConfig;
 
@@ -38,6 +37,7 @@ public class Miniutility extends JavaPlugin {
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(chatListener, this);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
+        Bukkit.getPluginManager().registerEvents(new CreeperExplosionRecover(this),this);
     }
 
     @EventHandler

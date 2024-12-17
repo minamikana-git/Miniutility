@@ -17,6 +17,9 @@ public class UtilityGUI {
         // ユーティリティメニューを作成
         Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("便利箱"));
 
+        //試験的機能
+        utilityMenu.setItem(4,createMenuItem(Material.CREEPER_HEAD,"クリーパーのブロック破壊を防ぐ","この機能はテスト中です。"));
+
         // 色変更アイテム
         utilityMenu.setItem(9, createMenuItem(Material.GREEN_DYE, "色を変更する", "クリックして名前の色を設定"));
 

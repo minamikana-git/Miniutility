@@ -5,15 +5,19 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.Miniutility;
 
 public class UtilityListener implements Listener {
+
+    private boolean creeperProtectionEnabled = false;
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
@@ -36,7 +40,6 @@ public class UtilityListener implements Listener {
         event.setCancelled(true); // アイテムの移動を防ぐ
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
-        // Miniutility プラグインのインスタンスを取得
         Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
 
         // アイテムに応じた動作
@@ -46,12 +49,18 @@ public class UtilityListener implements Listener {
             case DROPPER -> openTrashBox(player);
             case GREEN_DYE -> {
                 player.sendMessage(ChatColor.YELLOW + "名前の色を設定するために、チャットにカラーコードを入力してください（例：&6）。");
-                plugin.getChatListener().setWaitingForColorInput(player, true); // 色変更のフラグをセット
+                plugin.getChatListener().setWaitingForColorInput(player, true);
                 player.closeInventory();
             }
             case WRITABLE_BOOK -> {
                 player.sendMessage(ChatColor.YELLOW + "ニックネームを設定するために、チャットで名前を入力してください。");
-                plugin.getChatListener().setWaitingForNickname(player, true); // ニックネーム変更のフラグをセット
+                plugin.getChatListener().setWaitingForNickname(player, true);
+                player.closeInventory();
+            }
+            case CREEPER_HEAD -> {
+                creeperProtectionEnabled = !creeperProtectionEnabled; // 切り替え
+                String status = creeperProtectionEnabled ? "有効" : "無効";
+                player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
                 player.closeInventory();
             }
             default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
@@ -66,16 +75,12 @@ public class UtilityListener implements Listener {
     }
 
     private void handleTrashBoxClick(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-
-
-        // ゴミ箱にアイテムを入れる場合はキャンセルしない
         if (event.getRawSlot() < event.getClickedInventory().getSize()) {
             if (clickedItem != null && clickedItem.getType() != Material.GREEN_STAINED_GLASS_PANE) {
                 return; // ゴミ箱に移動を許可
             }
         }
 
-        // 確認ボタンのクリック処理
         if (event.getRawSlot() == 53 && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
             openTrashConfirm(player);
         }
@@ -89,7 +94,7 @@ public class UtilityListener implements Listener {
     }
 
     private void handleTrashConfirmClick(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        event.setCancelled(true); // アイテム移動を防ぐ
+        event.setCancelled(true);
         if (clickedItem == null) return;
 
         switch (clickedItem.getType()) {
@@ -113,5 +118,12 @@ public class UtilityListener implements Listener {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    @EventHandler
+    public void onCreeperExplode(EntityExplodeEvent event) {
+        if (creeperProtectionEnabled && event.getEntity() instanceof Creeper) {
+            event.blockList().clear(); // クリーパー爆発のブロック破壊のみを防ぐ
+        }
     }
 }

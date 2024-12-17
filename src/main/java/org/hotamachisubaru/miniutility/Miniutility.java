@@ -37,7 +37,6 @@ public class Miniutility extends JavaPlugin {
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(chatListener, this);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
-        Bukkit.getPluginManager().registerEvents(new CreeperExplosionRecover(this),this);
     }
 
     @EventHandler

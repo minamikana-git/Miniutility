@@ -63,6 +63,12 @@ public class UtilityListener implements Listener {
                 player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
                 player.closeInventory();
             }
+            case COOKED_BEEF -> {
+                player.setHealth(20);
+                player.sendMessage("回復しました。");
+                player.closeInventory();
+            }
+
             default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
         }
     }

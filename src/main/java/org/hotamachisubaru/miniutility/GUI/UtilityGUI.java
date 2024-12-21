@@ -17,10 +17,13 @@ public class UtilityGUI {
         // ユーティリティメニューを作成
         Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("便利箱"));
 
-        //試験的機能
+
+        //全回復する
+        utilityMenu.setItem(2,createMenuItem(Material.COOKED_BEEF,"全回復","全回復します。"));
+        //クリーパーのブロック破壊を防ぐ
         utilityMenu.setItem(4,createMenuItem(Material.CREEPER_HEAD,"クリーパーのブロック破壊を防ぐ","クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 
-        // 色変更アイテム
+        // 色変更アイテム（デバッグ中）
         utilityMenu.setItem(9, createMenuItem(Material.BARRIER, "色を変更する", "この機能は現在使用できません。"));
 
         // エンダーチェスト

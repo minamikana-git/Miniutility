@@ -21,6 +21,7 @@ public class Miniutility extends JavaPlugin {
         registerListeners();
         // Commands
         registerCommands();
+
         // Initialize nickname config
         nicknameConfig = new NicknameConfig(this);
         // Log startup information
@@ -40,7 +41,7 @@ public class Miniutility extends JavaPlugin {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void loadNickname(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         String nickname = nicknameConfig.getNickname(player.getUniqueId(), player.getName());
         if (nickname != null) {

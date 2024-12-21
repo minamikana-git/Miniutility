@@ -12,7 +12,7 @@ import org.hotamachisubaru.miniutility.Nickname.NicknameConfig;
 
 public class Miniutility extends JavaPlugin {
     private NicknameConfig nicknameConfig = null;
-    private ChatListener chatListener = new ChatListener();
+    private ChatListener chatListener = new ChatListener(this);
 
     @Override
     public void onEnable() {
@@ -36,7 +36,7 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(chatListener, this);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
     }
 

@@ -8,15 +8,20 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
-
+    private final Plugin plugin;
     private static final Map<UUID, Boolean> waitingForNickname = new HashMap<>();
     private static final Map<UUID, Boolean> waitingForColorInput = new HashMap<>();
+
+    public ChatListener(Plugin plugin){
+        this.plugin = plugin;
+    }
 
     public static void setWaitingForNickname(Player player, boolean waiting) {
         waitingForNickname.put(player.getUniqueId(), waiting);
@@ -64,18 +69,30 @@ public class ChatListener implements Listener {
     }
 
     private void handleColorInput(Player player, Component messageComponent) {
+        // Component から文字列に変換
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
-        Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("YourPluginName"), () -> {
-            if (message.matches("^&[0-9a-fA-F]$")) {
-                String coloredName = ChatColor.translateAlternateColorCodes('&', message) + player.getName();
-                player.setDisplayName(coloredName);
-                player.setPlayerListName(coloredName);
-                player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！");
-            } else {
-                player.sendMessage(ChatColor.RED + "無効なカラーコードです。例: &6");
-            }
-            waitingForColorInput.put(player.getUniqueId(), false);
-        });
+        // 入力が空でないかチェック
+        if (message.isEmpty()) {
+            player.sendMessage(ChatColor.RED + "無効な入力です。カラーコードを指定してください。");
+            return;
+        }
+
+        // カラーコードを適用する
+        String coloredName = ChatColor.translateAlternateColorCodes('&', message);
+
+        // 有効な色付き文字列かを確認
+        if (!ChatColor.stripColor(coloredName).equals(message)) {
+            // プレイヤーの表示名を更新
+            player.setDisplayName(coloredName);
+            player.setPlayerListName(coloredName);
+            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！");
+        } else {
+            player.sendMessage(ChatColor.RED + "無効なカラーコードです。例: &6Hello");
+        }
+
+        // 待機フラグをリセット
+        waitingForColorInput.put(player.getUniqueId(), false);
     }
+
 }

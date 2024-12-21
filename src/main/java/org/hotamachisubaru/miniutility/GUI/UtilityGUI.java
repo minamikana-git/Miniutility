@@ -24,7 +24,7 @@ public class UtilityGUI {
         utilityMenu.setItem(4,createMenuItem(Material.CREEPER_HEAD,"クリーパーのブロック破壊を防ぐ","クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 
         // 色変更アイテム（デバッグ中）
-        utilityMenu.setItem(9, createMenuItem(Material.BARRIER, "色を変更する", "この機能は現在使用できません。"));
+        utilityMenu.setItem(9, createMenuItem(Material.GREEN_DYE, "色を変更する", "この機能は現在使用できません。"));
 
         // エンダーチェスト
         utilityMenu.setItem(11, createMenuItem(Material.ENDER_CHEST, "エンダーチェスト", "クリックしてエンダーチェストを開く"));

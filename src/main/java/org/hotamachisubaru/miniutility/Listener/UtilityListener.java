@@ -65,6 +65,7 @@ public class UtilityListener implements Listener {
             }
             case COOKED_BEEF -> {
                 player.setHealth(20);
+                player.setFoodLevel(20);
                 player.sendMessage("回復しました。");
                 player.closeInventory();
             }

@@ -1,59 +1,23 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
-import org.bukkit.Bukkit;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
 
 public class NicknameManager implements Listener {
-    private final File nicknameFile;
-    private final FileConfiguration nicknameConfig;
+    private final NicknameConfig nicknameConfig;
 
-    public NicknameManager(JavaPlugin plugin) {
-        // ファイルの読み込み
-        nicknameFile = new File(plugin.getDataFolder(), "nickname.yml");
-        if (!nicknameFile.exists()) {
-            try {
-                nicknameFile.createNewFile();
-            } catch (IOException e) {
-                plugin.getLogger().severe(ChatColor.RED + "nickname.ymlを作成できませんでした");
-            }
-        }
-        nicknameConfig = YamlConfiguration.loadConfiguration(nicknameFile);
+    public NicknameManager(NicknameConfig nicknameConfig) {
+        this.nicknameConfig = nicknameConfig;
     }
 
-    // プレイヤーがログインした際にニックネームを適用
-    @EventHandler
-    public void applyNickname(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        UUID playerUUID = player.getUniqueId();
-        String nickname = nicknameConfig.getString(playerUUID.toString());
-
-        if (nickname != null && !nickname.isEmpty()) {
-            player.setDisplayName(nickname);
-            player.setPlayerListName(nickname);
-            player.sendMessage(ChatColor.GREEN + "ようこそ、" + nickname + " さん！");
-        } else {
-            player.sendMessage(ChatColor.YELLOW + "ニックネームが設定されていません。");
-        }
-    }
-
-
-    // ニックネームを設定して保存
-    public String setNickname(Player player, String nickname) {
+    public String setNicknameWithPrefix(Player player, String nickname) {
         if (nickname == null || nickname.trim().isEmpty()) {
             String defaultName = player.getName();
-            nicknameConfig.set(player.getUniqueId().toString(), null);
-            saveConfig();
+            nicknameConfig.setNickname(player.getUniqueId(), null);
 
             player.setDisplayName(defaultName);
             player.setPlayerListName(defaultName);
@@ -61,6 +25,7 @@ public class NicknameManager implements Listener {
             player.sendMessage(ChatColor.YELLOW + "ニックネームをリセットしました。");
             return defaultName;
         }
+
         if (!nickname.contains("&")) {
             nickname = "&f" + nickname;
         }
@@ -71,24 +36,24 @@ public class NicknameManager implements Listener {
 
         String formattedNickname = ChatColor.translateAlternateColorCodes('&', nickname);
 
-        nicknameConfig.set(player.getUniqueId().toString(), formattedNickname);
-        saveConfig();
+        // LuckPermsからプレフィックスを取得
+        LuckPerms luckPerms = LuckPermsProvider.get();
+        CachedMetaData metaData = luckPerms.getPlayerAdapter(Player.class).getMetaData(player);
+        String prefix = metaData.getPrefix();
 
-        player.setDisplayName(formattedNickname);
-        player.setPlayerListName(formattedNickname);
-
-        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました。" + formattedNickname);
-
-        return formattedNickname;
-    }
-
-    // 設定を保存
-    private void saveConfig() {
-        try {
-            nicknameConfig.save(nicknameFile);
-        } catch (IOException e) {
-            Bukkit.getLogger().severe(ChatColor.RED + "nickname.ymlを保存できませんでした");
+        if (prefix == null) {
+            prefix = ""; // プレフィックスがない場合は空にする
         }
+
+        String displayName = ChatColor.translateAlternateColorCodes('&', prefix) + formattedNickname;
+
+        nicknameConfig.setNickname(player.getUniqueId(), formattedNickname);
+
+        player.setDisplayName(displayName);
+        player.setPlayerListName(displayName);
+
+        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました。" + displayName);
+
+        return displayName;
     }
 }
-

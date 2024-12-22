@@ -1,34 +1,38 @@
 package org.hotamachisubaru.miniutility;
 
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.*;
 
-
 public class Miniutility extends JavaPlugin {
-    private NicknameConfig nicknameConfig = null;
-    private ChatListener chatListener = new ChatListener(this);
+    private NicknameConfig nicknameConfig;
+    private ChatListener chatListener;
     private NicknameManager nicknameManager;
+
     @Override
     public void onEnable() {
+        nicknameConfig = new NicknameConfig(this);
+        chatListener = new ChatListener(this);
+        nicknameManager = new NicknameManager(nicknameConfig); // NicknameConfigを渡す
 
         // Register event listeners
         registerListeners();
         // Commands
         registerCommands();
 
-        // register nickname
-        nicknameConfig = new NicknameConfig(this);
-        nicknameManager = new NicknameManager(this);
         // Log startup information
         getLogger().info("copyright 2024 hotamachisubaru all rights reserved.");
         getLogger().info("developed by hotamachisubaru");
-
     }
 
     private void registerCommands() {
@@ -37,25 +41,24 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
+        Bukkit.getPluginManager().registerEvents(chatListener, this);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
-        Bukkit.getPluginManager().registerEvents(new NicknameManager(this), this);
+        Bukkit.getPluginManager().registerEvents(nicknameManager, this); // 修正済み
     }
 
-    //ニックネームの読み込み
+
+    // プレイヤーがログインした際にニックネームを適用
     @EventHandler
     public void loadNickname(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         String nickname = nicknameConfig.getNickname(player.getUniqueId(), player.getName());
-        if (nickname != null) {
-            player.setDisplayName(nickname);
-            player.setPlayerListName(nickname);
+        if (nickname != null && !nickname.trim().isEmpty()) {
+            applyFormattedNickname(player, nickname);
         }
     }
 
-    //ニックネームのセット
+    // ニックネームのセット
     public String setNickname(Player player, String nickname) {
-        // バリデーション: 空白や長さの制限を設定
         if (nickname == null || nickname.trim().isEmpty()) {
             throw new IllegalArgumentException("無効なニックネームです。空白にすることはできません。");
         }
@@ -63,15 +66,26 @@ public class Miniutility extends JavaPlugin {
             throw new IllegalArgumentException("ニックネームは16文字以内にしてください。");
         }
 
-        // ニックネームを保存
         nicknameConfig.setNickname(player.getUniqueId(), nickname);
-        saveConfig();
+        return applyFormattedNickname(player, nickname);
+    }
 
-        // プレイヤーの表示名とリスト名を更新
-        player.setDisplayName(nickname);
-        player.setPlayerListName(nickname);
+    // ニックネームとLuckPermsのプレフィックスを適用
+    private String applyFormattedNickname(Player player, String nickname) {
+        LuckPerms luckPerms = LuckPermsProvider.get();
+        CachedMetaData metaData = luckPerms.getPlayerAdapter(Player.class).getMetaData(player);
 
-        return nickname;
+        String prefix = metaData.getPrefix();
+        if (prefix == null) {
+            prefix = ""; // プレフィックスが設定されていない場合は空にする
+        }
+
+        String formattedNickname = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
+        player.setDisplayName(formattedNickname);
+        player.setPlayerListName(formattedNickname);
+
+        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + formattedNickname);
+        return formattedNickname;
     }
 
     public NicknameManager getNicknameManager() {
@@ -81,8 +95,8 @@ public class Miniutility extends JavaPlugin {
     public NicknameConfig getNicknameConfig() {
         return nicknameConfig;
     }
+
     public ChatListener getChatListener() {
         return chatListener;
     }
-
 }

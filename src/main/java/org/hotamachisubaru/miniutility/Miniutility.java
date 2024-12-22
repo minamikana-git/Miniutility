@@ -7,13 +7,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.*;
-import org.hotamachisubaru.miniutility.Nickname.NicknameCommand;
-import org.hotamachisubaru.miniutility.Nickname.NicknameConfig;
+import org.hotamachisubaru.miniutility.Nickname.*;
+
 
 public class Miniutility extends JavaPlugin {
     private NicknameConfig nicknameConfig = null;
     private ChatListener chatListener = new ChatListener(this);
-
+    private NicknameManager nicknameManager;
     @Override
     public void onEnable() {
 
@@ -22,8 +22,9 @@ public class Miniutility extends JavaPlugin {
         // Commands
         registerCommands();
 
-        // Initialize nickname config
+        // register nickname
         nicknameConfig = new NicknameConfig(this);
+        nicknameManager = new NicknameManager(this);
         // Log startup information
         getLogger().info("copyright 2024 hotamachisubaru all rights reserved.");
         getLogger().info("developed by hotamachisubaru");
@@ -38,6 +39,7 @@ public class Miniutility extends JavaPlugin {
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
+        Bukkit.getPluginManager().registerEvents(new NicknameManager(this), this);
     }
 
     @EventHandler

@@ -42,6 +42,7 @@ public class Miniutility extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new NicknameManager(this), this);
     }
 
+    //ニックネームの読み込み
     @EventHandler
     public void loadNickname(PlayerJoinEvent event) {
         Player player = event.getPlayer();
@@ -50,6 +51,31 @@ public class Miniutility extends JavaPlugin {
             player.setDisplayName(nickname);
             player.setPlayerListName(nickname);
         }
+    }
+
+    //ニックネームのセット
+    public String setNickname(Player player, String nickname) {
+        // バリデーション: 空白や長さの制限を設定
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("無効なニックネームです。空白にすることはできません。");
+        }
+        if (nickname.length() > 16) {
+            throw new IllegalArgumentException("ニックネームは16文字以内にしてください。");
+        }
+
+        // ニックネームを保存
+        nicknameConfig.setNickname(player.getUniqueId(), nickname);
+        saveConfig();
+
+        // プレイヤーの表示名とリスト名を更新
+        player.setDisplayName(nickname);
+        player.setPlayerListName(nickname);
+
+        return nickname;
+    }
+
+    public NicknameManager getNicknameManager() {
+        return nicknameManager;
     }
 
     public NicknameConfig getNicknameConfig() {

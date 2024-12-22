@@ -1,6 +1,7 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -24,14 +25,13 @@ public class NicknameManager implements Listener {
             try {
                 nicknameFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().severe("Could not create nickname.yml file!");
+                plugin.getLogger().severe(ChatColor.RED + "nickname.ymlを作成できませんでした");
             }
         }
         nicknameConfig = YamlConfiguration.loadConfiguration(nicknameFile);
     }
 
     // プレイヤーがログインした際にニックネームを適用
-    @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
@@ -40,18 +40,20 @@ public class NicknameManager implements Listener {
         if (nickname != null && !nickname.isEmpty()) {
             player.setDisplayName(nickname);
             player.setPlayerListName(nickname);
-            player.sendMessage("ようこそ、" + nickname + " さん！");
+            player.sendMessage(ChatColor.GREEN + "ようこそ、" + nickname + " さん！");
         } else {
-            player.sendMessage("ニックネームが設定されていません。");
+            player.sendMessage(ChatColor.YELLOW + "ニックネームが設定されていません。");
         }
     }
 
+
     // ニックネームを設定して保存
-    public void setNickname(Player player, String nickname) {
+    public String setNickname(Player player, String nickname) {
         nicknameConfig.set(player.getUniqueId().toString(), nickname);
         saveConfig();
         player.setDisplayName(nickname);
         player.setPlayerListName(nickname);
+        return nickname;
     }
 
     // 設定を保存
@@ -59,7 +61,7 @@ public class NicknameManager implements Listener {
         try {
             nicknameConfig.save(nicknameFile);
         } catch (IOException e) {
-            Bukkit.getLogger().severe("Could not save nickname.yml!");
+            Bukkit.getLogger().severe(ChatColor.RED + "nickname.ymlを保存できませんでした");
         }
     }
 }

@@ -32,7 +32,8 @@ public class NicknameManager implements Listener {
     }
 
     // プレイヤーがログインした際にニックネームを適用
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    @EventHandler
+    public void applyNickname(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
         String nickname = nicknameConfig.getString(playerUUID.toString());
@@ -49,11 +50,36 @@ public class NicknameManager implements Listener {
 
     // ニックネームを設定して保存
     public String setNickname(Player player, String nickname) {
-        nicknameConfig.set(player.getUniqueId().toString(), nickname);
+        if (nickname == null || nickname.trim().isEmpty()) {
+            String defaultName = player.getName();
+            nicknameConfig.set(player.getUniqueId().toString(), null);
+            saveConfig();
+
+            player.setDisplayName(defaultName);
+            player.setPlayerListName(defaultName);
+
+            player.sendMessage(ChatColor.YELLOW + "ニックネームをリセットしました。");
+            return defaultName;
+        }
+        if (!nickname.contains("&")) {
+            nickname = "&f" + nickname;
+        }
+
+        if (!nickname.matches(".*&[0-9a-fA-F].*")) {
+            throw new IllegalArgumentException("無効なカラーコードです。例：&6ニックネーム");
+        }
+
+        String formattedNickname = ChatColor.translateAlternateColorCodes('&', nickname);
+
+        nicknameConfig.set(player.getUniqueId().toString(), formattedNickname);
         saveConfig();
-        player.setDisplayName(nickname);
-        player.setPlayerListName(nickname);
-        return nickname;
+
+        player.setDisplayName(formattedNickname);
+        player.setPlayerListName(formattedNickname);
+
+        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました。" + formattedNickname);
+
+        return formattedNickname;
     }
 
     // 設定を保存

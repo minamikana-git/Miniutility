@@ -7,6 +7,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.hotamachisubaru.miniutility.Miniutility;
 
+import java.sql.SQLException;
+
 public class NicknameCommand implements CommandExecutor {
     private final Miniutility plugin;
 
@@ -30,7 +32,11 @@ public class NicknameCommand implements CommandExecutor {
         }
 
         String nickname = String.join(" ", args).trim();
-        plugin.getNicknameConfig().setNickname(player.getUniqueId(), nickname);
+        try {
+            plugin.getNicknameConfig().setNickname(player.getUniqueId(), nickname);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         player.setDisplayName(ChatColor.translateAlternateColorCodes('&', nickname));
         player.setPlayerListName(ChatColor.translateAlternateColorCodes('&', nickname));
         player.sendMessage(ChatColor.GREEN + "ニックネームを " + nickname + " に設定しました！");

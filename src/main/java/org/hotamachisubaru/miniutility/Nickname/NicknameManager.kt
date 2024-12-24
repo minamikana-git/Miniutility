@@ -1,59 +1,70 @@
-package org.hotamachisubaru.miniutility.Nickname;
+package org.hotamachisubaru.miniutility.Nickname
 
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.cacheddata.CachedMetaData;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
+import net.luckperms.api.LuckPermsProvider
+import org.bukkit.ChatColor
+import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.AsyncPlayerChatEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import java.util.logging.Logger
+import java.util.regex.Pattern
 
-public class NicknameManager implements Listener {
-    private final NicknameConfig nicknameConfig;
+class NicknameManager(private val nicknameConfig: NicknameConfig) : Listener {
 
-    public NicknameManager(NicknameConfig nicknameConfig) {
-        this.nicknameConfig = nicknameConfig;
+    private val logger: Logger = Logger.getLogger("Miniutility")
+
+    @EventHandler
+    fun loadNickname(event: PlayerJoinEvent) {
+        val player = event.player
+        logger.info("Player joined: ${player.name}")
+        applyFormattedDisplayName(player)
     }
 
-    public String setNicknameWithPrefix(Player player, String nickname) {
-        if (nickname == null || nickname.trim().isEmpty()) {
-            String defaultName = player.getName();
-            nicknameConfig.setNickname(player.getUniqueId(), null);
+    fun setNickname(player: Player, nickname: String): String {
+        require(nickname.trim().isNotEmpty()) { "無効なニックネームです。空白にすることはできません。" }
+        require(nickname.length <= 16) { "ニックネームは16文字以内にしてください。" }
 
-            player.setDisplayName(defaultName);
-            player.setPlayerListName(defaultName);
+        nicknameConfig.setNickname(player.uniqueId, nickname)
+        logger.info("Setting nickname for player ${player.name}: $nickname")
 
-            player.sendMessage(ChatColor.YELLOW + "ニックネームをリセットしました。");
-            return defaultName;
+        applyFormattedDisplayName(player)
+        player.sendMessage("${ChatColor.GREEN}ニックネームが設定されました: $nickname")
+        return nickname
+    }
+
+    private fun translateHexColorCodes(message: String): String {
+        val hexPattern = Pattern.compile("(?i)&#([0-9a-fA-F]{6})")
+        val matcher = hexPattern.matcher(message)
+        val buffer = StringBuffer()
+
+        while (matcher.find()) {
+            val replacement = matcher.group(1).toCharArray().joinToString("") { "§$it" }
+            matcher.appendReplacement(buffer, "§x$replacement")
         }
+        matcher.appendTail(buffer)
+        return buffer.toString()
+    }
 
-        if (!nickname.contains("&")) {
-            nickname = "&f" + nickname;
-        }
+    fun applyFormattedDisplayName(player: Player) {
+        val luckPerms = LuckPermsProvider.get()
+        val metaData = luckPerms.getPlayerAdapter(Player::class.java).getMetaData(player)
 
-        if (!nickname.matches(".*&[0-9a-fA-F].*")) {
-            throw new IllegalArgumentException("無効なカラーコードです。例：&6ニックネーム");
-        }
+        val prefix = metaData.prefix ?: ""
+        val nickname = nicknameConfig.getNickname(player.uniqueId, player.name)
 
-        String formattedNickname = ChatColor.translateAlternateColorCodes('&', nickname);
+        val formattedName = translateHexColorCodes(prefix + nickname)
 
-        // LuckPermsからプレフィックスを取得
-        LuckPerms luckPerms = LuckPermsProvider.get();
-        CachedMetaData metaData = luckPerms.getPlayerAdapter(Player.class).getMetaData(player);
-        String prefix = metaData.getPrefix();
+        player.setDisplayName(formattedName)
+        player.setPlayerListName(formattedName)
 
-        if (prefix == null) {
-            prefix = ""; // プレフィックスがない場合は空にする
-        }
+        logger.info("Formatted display name for player ${player.name}: $formattedName")
+    }
 
-        String displayName = ChatColor.translateAlternateColorCodes('&', prefix) + formattedNickname;
-
-        nicknameConfig.setNickname(player.getUniqueId(), formattedNickname);
-
-        player.setDisplayName(displayName);
-        player.setPlayerListName(displayName);
-
-        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました。" + displayName);
-
-        return displayName;
+    @EventHandler
+    fun onPlayerChat(event: AsyncPlayerChatEvent) {
+        val player = event.player
+        event.format = "${player.displayName}: ${event.message}"
     }
 }
+

@@ -1,39 +1,59 @@
 package org.hotamachisubaru.miniutility;
 
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hotamachisubaru.miniutility.Command.UtilityCommand;
+import org.hotamachisubaru.miniutility.Command.*;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.*;
+
+import java.sql.SQLException;
+
 
 public class Miniutility extends JavaPlugin {
     private NicknameConfig nicknameConfig;
     private ChatListener chatListener;
     private NicknameManager nicknameManager;
-
     @Override
     public void onEnable() {
-        nicknameConfig = new NicknameConfig(this);
+        saveDefaultConfig();
+        setupDatabase();
+        nicknameConfig = new NicknameConfig();
         chatListener = new ChatListener(this);
         nicknameManager = new NicknameManager(nicknameConfig); // NicknameConfigを渡す
-
+        saveResource("nickname.db",false);
         // Register event listeners
         registerListeners();
         // Commands
         registerCommands();
-
         // Log startup information
         getLogger().info("copyright 2024 hotamachisubaru all rights reserved.");
         getLogger().info("developed by hotamachisubaru");
     }
+
+    private void setupDatabase() {
+        String dbPath = getConfig().getString("database.path", "nickname.db");
+        boolean autoCreate = getConfig().getBoolean("database.autoCreate", true);
+
+        try {
+            NicknameDatabase database = new NicknameDatabase("nickname.db");
+            database.openConnection(getDataFolder().getAbsolutePath() + "/" + dbPath);
+
+            if (autoCreate) {
+                database.setupDatabase();
+            }
+            getLogger().info("Database setup completed.");
+        } catch (SQLException e) {
+            getLogger().severe("Failed to setup the database: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void updateConfig(String key, Object value) {
+        getConfig().set(key, value);
+        saveConfig();
+    }
+
+
 
     private void registerCommands() {
         getCommand("nick").setExecutor(new NicknameCommand(this));
@@ -43,58 +63,8 @@ public class Miniutility extends JavaPlugin {
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(chatListener, this);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
-        Bukkit.getPluginManager().registerEvents(nicknameManager, this); // 修正済み
+        Bukkit.getPluginManager().registerEvents(nicknameManager, this);
     }
-
-
-    // プレイヤーがログインした際にニックネームを適用
-    @EventHandler
-    public void loadNickname(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        applyFormattedDisplayName(player); // フォーマットを適用
-    }
-
-    // ニックネームのセット
-    public String setNickname(Player player, String nickname) {
-        if (nickname == null || nickname.trim().isEmpty()) {
-            throw new IllegalArgumentException("無効なニックネームです。空白にすることはできません。");
-        }
-        if (nickname.length() > 16) {
-            throw new IllegalArgumentException("ニックネームは16文字以内にしてください。");
-        }
-
-        nicknameConfig.setNickname(player.getUniqueId(), nickname);
-
-        // フォーマットを適用
-        applyFormattedDisplayName(player);
-
-        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + nickname);
-        return nickname;
-    }
-
-    // ニックネームとLuckPermsのプレフィックスを適用
-
-
-    public void applyFormattedDisplayName(Player player) {
-        LuckPerms luckPerms = LuckPermsProvider.get();
-        CachedMetaData metaData = luckPerms.getPlayerAdapter(Player.class).getMetaData(player);
-
-        String prefix = metaData.getPrefix();
-        if (prefix == null) {
-            prefix = ""; // プレフィックスが設定されていない場合は空
-        }
-
-        String nickname = nicknameConfig.getNickname(player.getUniqueId(), player.getName());
-        if (nickname == null || nickname.trim().isEmpty()) {
-            nickname = player.getName(); // ニックネームがない場合はプレイヤー名
-        }
-
-        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
-
-        player.setDisplayName(formattedName);
-        player.setPlayerListName(formattedName);
-    }
-
 
     public NicknameManager getNicknameManager() {
         return nicknameManager;

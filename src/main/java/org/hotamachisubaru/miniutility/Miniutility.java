@@ -51,10 +51,7 @@ public class Miniutility extends JavaPlugin {
     @EventHandler
     public void loadNickname(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        String nickname = nicknameConfig.getNickname(player.getUniqueId(), player.getName());
-        if (nickname != null && !nickname.trim().isEmpty()) {
-            applyFormattedNickname(player, nickname);
-        }
+        applyFormattedDisplayName(player); // フォーマットを適用
     }
 
     // ニックネームのセット
@@ -67,26 +64,37 @@ public class Miniutility extends JavaPlugin {
         }
 
         nicknameConfig.setNickname(player.getUniqueId(), nickname);
-        return applyFormattedNickname(player, nickname);
+
+        // フォーマットを適用
+        applyFormattedDisplayName(player);
+
+        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + nickname);
+        return nickname;
     }
 
     // ニックネームとLuckPermsのプレフィックスを適用
-    private String applyFormattedNickname(Player player, String nickname) {
+
+
+    public void applyFormattedDisplayName(Player player) {
         LuckPerms luckPerms = LuckPermsProvider.get();
         CachedMetaData metaData = luckPerms.getPlayerAdapter(Player.class).getMetaData(player);
 
         String prefix = metaData.getPrefix();
         if (prefix == null) {
-            prefix = ""; // プレフィックスが設定されていない場合は空にする
+            prefix = ""; // プレフィックスが設定されていない場合は空
         }
 
-        String formattedNickname = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
-        player.setDisplayName(formattedNickname);
-        player.setPlayerListName(formattedNickname);
+        String nickname = nicknameConfig.getNickname(player.getUniqueId(), player.getName());
+        if (nickname == null || nickname.trim().isEmpty()) {
+            nickname = player.getName(); // ニックネームがない場合はプレイヤー名
+        }
 
-        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + formattedNickname);
-        return formattedNickname;
+        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
+
+        player.setDisplayName(formattedName);
+        player.setPlayerListName(formattedName);
     }
+
 
     public NicknameManager getNicknameManager() {
         return nicknameManager;

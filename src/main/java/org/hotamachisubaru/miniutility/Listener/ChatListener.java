@@ -14,12 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-
 public class ChatListener implements Listener {
     private final Plugin plugin;
     private static final Map<UUID, Boolean> waitingForNickname = new HashMap<>();
+    private static final Map<UUID, Boolean> waitingForColorInput = new HashMap<>();
 
-    public ChatListener(Plugin plugin) {
+    public ChatListener(Plugin plugin){
         this.plugin = plugin;
     }
 
@@ -27,8 +27,16 @@ public class ChatListener implements Listener {
         waitingForNickname.put(player.getUniqueId(), waiting);
     }
 
+    public static void setWaitingForColorInput(Player player, boolean waiting) {
+        waitingForColorInput.put(player.getUniqueId(), waiting);
+    }
+
     public boolean isWaitingForNickname(Player player) {
         return waitingForNickname.getOrDefault(player.getUniqueId(), false);
+    }
+
+    public boolean isWaitingForColorInput(Player player) {
+        return waitingForColorInput.getOrDefault(player.getUniqueId(), false);
     }
 
     @EventHandler
@@ -39,6 +47,9 @@ public class ChatListener implements Listener {
         if (waitingForNickname.getOrDefault(playerUUID, false)) {
             event.setCancelled(true);
             handleNicknameInput(player, event.message());
+        } else if (waitingForColorInput.getOrDefault(playerUUID, false)) {
+            event.setCancelled(true);
+            handleColorInput(player, event.message());
         }
     }
 
@@ -56,4 +67,32 @@ public class ChatListener implements Listener {
             waitingForNickname.put(player.getUniqueId(), false);
         });
     }
+
+    private void handleColorInput(Player player, Component messageComponent) {
+        // Component から文字列に変換
+        String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
+
+        // 入力が空でないかチェック
+        if (message.isEmpty()) {
+            player.sendMessage(ChatColor.RED + "無効な入力です。カラーコードを指定してください。");
+            return;
+        }
+
+        // カラーコードを適用する
+        String coloredName = ChatColor.translateAlternateColorCodes('&', message);
+
+        // 有効な色付き文字列かを確認
+        if (!ChatColor.stripColor(coloredName).equals(message)) {
+            // プレイヤーの表示名を更新
+            player.setDisplayName(coloredName);
+            player.setPlayerListName(coloredName);
+            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！");
+        } else {
+            player.sendMessage(ChatColor.RED + "無効なカラーコードです。例: &6Hello");
+        }
+
+        // 待機フラグをリセット
+        waitingForColorInput.put(player.getUniqueId(), false);
+    }
+
 }

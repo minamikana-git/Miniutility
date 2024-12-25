@@ -1,49 +1,73 @@
 package org.hotamachisubaru.miniutility;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.*;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.*;
-
-import java.sql.SQLException;
-
-
+import java.io.File;
 public class Miniutility extends JavaPlugin {
     private NicknameConfig nicknameConfig;
     private ChatListener chatListener;
     private NicknameManager nicknameManager;
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        setupDatabase();
-        nicknameConfig = new NicknameConfig();
-        chatListener = new ChatListener(this);
-        nicknameManager = new NicknameManager(nicknameConfig); // NicknameConfigを渡す
-        saveResource("nickname.db",false);
-        // Register event listeners
-        registerListeners();
-        // Commands
-        registerCommands();
-        // Log startup information
+        migration(); // データ移行処理を実行
+        setupDatabase(); // データベースセットアップ
+        nicknameConfig = new NicknameConfig(); // 設定のロード
+        chatListener = new ChatListener(this); // チャットリスナー
+        nicknameManager = new NicknameManager(nicknameConfig); // ニックネーム管理
+        saveResource("nickname.db", false); // デフォルトリソースを保存
+        registerListeners(); // イベントリスナー登録
+        registerCommands(); // コマンド登録
         getLogger().info("copyright 2024 hotamachisubaru all rights reserved.");
         getLogger().info("developed by hotamachisubaru");
     }
 
-    private void setupDatabase() {
-        String dbPath = getConfig().getString("database.path", "nickname.db");
-        boolean autoCreate = getConfig().getBoolean("database.autoCreate", true);
-
+    private void migration() {
         try {
-            NicknameDatabase database = new NicknameDatabase("nickname.db");
-            database.openConnection(getDataFolder().getAbsolutePath() + "/" + dbPath);
-
-            if (autoCreate) {
-                database.setupDatabase();
+            File oldFile = new File(getDataFolder(), "nickname.yml");
+            if (!oldFile.exists()) {
+                getLogger().info("No old data to migrate.");
+                return;
             }
-            getLogger().info("Database setup completed.");
-        } catch (SQLException e) {
-            getLogger().severe("Failed to setup the database: " + e.getMessage());
+
+            FileConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldFile);
+            NicknameDatabase database = new NicknameDatabase(getDataFolder().getAbsolutePath());
+
+            for (String key : oldConfig.getKeys(false)) {
+                String nickname = oldConfig.getString(key);
+                if (nickname != null) {
+                    database.saveNicknameToDatabase(key, nickname); // データベースに保存
+                    getLogger().info("ニックネームが移行されました：" + key);
+                }
+            }
+
+            if (oldFile.renameTo(new File(getDataFolder(), "nickname.yml.bak"))) {
+                getLogger().info("古いnickname.ymlは、nickname.yml.bakとしてバックアップされました。");
+            } else {
+                getLogger().warning("nickname.ymlのバックアップに失敗しました。");
+            }
+        } catch (Exception e) {
+            getLogger().severe("ニックネームの統合に失敗しました: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    private void setupDatabase() {
+        try {
+            NicknameDatabase database = new NicknameDatabase(getDataFolder().getAbsolutePath());
+            database.setupDatabase();
+            getLogger().info("データベースの設定が完了しました.");
+        } catch (Exception e) {
+            getLogger().severe("データベースの設定ができませんでした: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -52,8 +76,6 @@ public class Miniutility extends JavaPlugin {
         getConfig().set(key, value);
         saveConfig();
     }
-
-
 
     private void registerCommands() {
         getCommand("nick").setExecutor(new NicknameCommand(this));

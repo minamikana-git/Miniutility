@@ -47,11 +47,6 @@ public class UtilityListener implements Listener {
             case ENDER_CHEST -> player.openInventory(player.getEnderChest());
             case CRAFTING_TABLE -> player.openWorkbench(null, true);
             case DROPPER -> openTrashBox(player);
-            case GREEN_DYE -> {
-                player.sendMessage(ChatColor.YELLOW + "名前の色を設定するために、チャットにカラーコードを入力してください（例：&6）。");
-                plugin.getChatListener().setWaitingForColorInput(player, true);
-                player.closeInventory();
-            }
             case WRITABLE_BOOK -> {
                 player.sendMessage(ChatColor.YELLOW + "ニックネームを設定するために、チャットで名前を入力してください。");
                 plugin.getChatListener().setWaitingForNickname(player, true);
@@ -63,13 +58,6 @@ public class UtilityListener implements Listener {
                 player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
                 player.closeInventory();
             }
-            case COOKED_BEEF -> {
-                player.setHealth(20);
-                player.setFoodLevel(20);
-                player.sendMessage("回復しました。");
-                player.closeInventory();
-            }
-
             default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
         }
     }

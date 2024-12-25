@@ -3,6 +3,7 @@ version: '${project.version}'
 main: org.hotamachisubaru.miniutility.Miniutility
 api-version: '1.21'
 author: hotamachisubaru
+load: STARTUP
 description: copyright 2024 hotamachisubaru all rights reserved.
 commands:
   menu:

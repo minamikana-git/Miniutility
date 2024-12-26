@@ -7,6 +7,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.*;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.*;
+
+
 import java.io.File;
 public class Miniutility extends JavaPlugin {
     private NicknameConfig nicknameConfig;

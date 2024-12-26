@@ -10,7 +10,6 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.sql.SQLException;
-import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,7 +89,7 @@ public class NicknameManager implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void applyNickname(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         event.setFormat(player.getDisplayName() + ": " + event.getMessage());
     }

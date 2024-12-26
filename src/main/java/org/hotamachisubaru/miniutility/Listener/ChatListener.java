@@ -19,7 +19,7 @@ public class ChatListener implements Listener {
     private static final Map<UUID, Boolean> waitingForNickname = new HashMap<>();
     private static final Map<UUID, Boolean> waitingForColorInput = new HashMap<>();
 
-    public ChatListener(Plugin plugin){
+    public ChatListener(Plugin plugin) {
         this.plugin = plugin;
     }
 
@@ -81,12 +81,12 @@ public class ChatListener implements Listener {
         // カラーコードを適用する
         String coloredName = ChatColor.translateAlternateColorCodes('&', message);
 
-        // 有効な色付き文字列かを確認
-        if (!ChatColor.stripColor(coloredName).equals(message)) {
+        // 入力された文字列が有効な色付き文字列であることを確認
+        if (!coloredName.equals(ChatColor.stripColor(coloredName))) {
             // プレイヤーの表示名を更新
             player.setDisplayName(coloredName);
             player.setPlayerListName(coloredName);
-            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！");
+            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！: " + coloredName);
         } else {
             player.sendMessage(ChatColor.RED + "無効なカラーコードです。例: &6Hello");
         }
@@ -94,5 +94,5 @@ public class ChatListener implements Listener {
         // 待機フラグをリセット
         waitingForColorInput.put(player.getUniqueId(), false);
     }
-
 }
+

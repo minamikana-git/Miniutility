@@ -18,19 +18,19 @@ public class UtilityGUI {
         Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("便利箱"));
 
         //クリーパーのブロック破壊を防ぐ
-        utilityMenu.setItem(18,createMenuItem(Material.CREEPER_HEAD,"クリーパーのブロック破壊を防ぐ","クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
+        utilityMenu.setItem(9,createMenuItem(Material.CREEPER_HEAD,"クリーパーのブロック破壊を防ぐ","クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 
         // エンダーチェスト
-        utilityMenu.setItem(20, createMenuItem(Material.ENDER_CHEST, "エンダーチェスト", "クリックしてエンダーチェストを開く"));
+        utilityMenu.setItem(11, createMenuItem(Material.ENDER_CHEST, "エンダーチェスト", "クリックしてエンダーチェストを開く"));
 
         // ゴミ箱
-        utilityMenu.setItem(22, createMenuItem(Material.DROPPER, "ゴミ箱", "クリックしてゴミ箱を開く"));
+        utilityMenu.setItem(13, createMenuItem(Material.DROPPER, "ゴミ箱", "クリックしてゴミ箱を開く"));
 
         // ニックネーム変更アイテム
-        utilityMenu.setItem(24, createMenuItem(Material.WRITABLE_BOOK, "ニックネーム変更", "クリックしてニックネームを変更"));
+        utilityMenu.setItem(15, createMenuItem(Material.WRITABLE_BOOK, "ニックネーム変更", "クリックしてニックネームを変更"));
 
         // 作業台アイテム
-        utilityMenu.setItem(26, createMenuItem(Material.CRAFTING_TABLE, "どこでも作業台", "クリックして作業台を開く"));
+        utilityMenu.setItem(17, createMenuItem(Material.CRAFTING_TABLE, "どこでも作業台", "クリックして作業台を開く"));
 
         // プレイヤーにメニューを開かせる
         player.openInventory(utilityMenu);

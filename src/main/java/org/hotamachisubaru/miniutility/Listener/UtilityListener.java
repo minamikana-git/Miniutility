@@ -69,7 +69,7 @@ public class UtilityListener implements Listener {
         player.openInventory(trashInventory);
     }
 
-    private void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    private void handlerTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         if (event.getRawSlot() < event.getClickedInventory().getSize()) {
             if (clickedItem != null && clickedItem.getType() != Material.GREEN_STAINED_GLASS_PANE) {
                 return; // ゴミ箱に移動を許可

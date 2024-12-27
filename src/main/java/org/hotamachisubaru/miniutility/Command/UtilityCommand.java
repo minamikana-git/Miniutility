@@ -28,7 +28,7 @@ public class UtilityCommand implements CommandExecutor, Listener {
 
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
+    public void openMenu(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         if (event.getView().getTitle().equals("便利箱")) {
             event.setCancelled(true);

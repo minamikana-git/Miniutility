@@ -36,7 +36,7 @@ public class UtilityListener implements Listener {
         }
     }
 
-    private void handleUtilityBoxClick(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         event.setCancelled(true); // アイテムの移動を防ぐ
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
@@ -69,7 +69,7 @@ public class UtilityListener implements Listener {
         player.openInventory(trashInventory);
     }
 
-    private void handleTrashBoxClick(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    private void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         if (event.getRawSlot() < event.getClickedInventory().getSize()) {
             if (clickedItem != null && clickedItem.getType() != Material.GREEN_STAINED_GLASS_PANE) {
                 return; // ゴミ箱に移動を許可
@@ -81,14 +81,14 @@ public class UtilityListener implements Listener {
         }
     }
 
-    private void openTrashConfirm(Player player) {
+    private void TrashConfirm(Player player) {
         Inventory confirmInventory = Bukkit.createInventory(player, 27, Component.text("本当に捨てますか？"));
         confirmInventory.setItem(11, createMenuItem(Material.GREEN_STAINED_GLASS_PANE, "はい"));
         confirmInventory.setItem(15, createMenuItem(Material.RED_STAINED_GLASS_PANE, "いいえ"));
         player.openInventory(confirmInventory);
     }
 
-    private void handleTrashConfirmClick(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    private void TrashConfirm(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         event.setCancelled(true);
         if (clickedItem == null) return;
 
@@ -116,7 +116,7 @@ public class UtilityListener implements Listener {
     }
 
     @EventHandler
-    public void onCreeperExplode(EntityExplodeEvent event) {
+    public void CreeperExplodeCancel(EntityExplodeEvent event) {
         if (creeperProtectionEnabled && event.getEntity() instanceof Creeper) {
             event.blockList().clear(); // クリーパー爆発のブロック破壊のみを防ぐ
         }

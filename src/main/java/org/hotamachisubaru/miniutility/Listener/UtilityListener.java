@@ -17,10 +17,10 @@ import org.hotamachisubaru.miniutility.Miniutility;
 
 public class UtilityListener implements Listener {
 
-    private boolean creeperProtectionEnabled = false;
+    private boolean creeperProtectionEnabled = true;
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
+    public void Utility(InventoryClickEvent event) {
         if (event.getClickedInventory() == null || event.getCurrentItem() == null) return;
 
         Player player = (Player) event.getWhoClicked();
@@ -30,9 +30,9 @@ public class UtilityListener implements Listener {
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
 
         switch (title) {
-            case "便利箱" -> handleUtilityBoxClick(player, clickedItem, event);
-            case "ゴミ箱" -> handleTrashBoxClick(player, clickedItem, event);
-            case "本当に捨てますか？" -> handleTrashConfirmClick(player, clickedItem, event);
+            case "便利箱" -> handleUtilityBox(player, clickedItem, event);
+            case "ゴミ箱" -> handleTrashBox(player, clickedItem, event);
+            case "本当に捨てますか？" -> TrashConfirm(player, clickedItem, event);
         }
     }
 
@@ -69,7 +69,7 @@ public class UtilityListener implements Listener {
         player.openInventory(trashInventory);
     }
 
-    private void handlerTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    private void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         if (event.getRawSlot() < event.getClickedInventory().getSize()) {
             if (clickedItem != null && clickedItem.getType() != Material.GREEN_STAINED_GLASS_PANE) {
                 return; // ゴミ箱に移動を許可
@@ -77,7 +77,7 @@ public class UtilityListener implements Listener {
         }
 
         if (event.getRawSlot() == 53 && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
-            openTrashConfirm(player);
+            Confirm(player);
         }
     }
 

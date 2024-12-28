@@ -1,6 +1,8 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
 
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,25 +15,20 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.hotamachisubaru.miniutility.Nickname.DisplayNameUtil.applyFormattedDisplayName;
+
 
 public class NicknameManager implements Listener {
 
-    private final NicknameConfig nicknameConfig;
-    private final Logger logger = Logger.getLogger("Miniutility");
-
-    public NicknameManager(NicknameConfig nicknameConfig) {
-        this.nicknameConfig = nicknameConfig;
-    }
+    private static final Logger logger = Logger.getLogger("Miniutility");
 
     @EventHandler
     public void loadNickname(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         logger.info("Player joined: " + player.getName());
-        DisplayNameUtil.applyFormattedDisplayName(player);
+        applyFormattedDisplayName(player);
     }
 
-    public String setNickname(Player player, String nickname) throws SQLException {
+    public static String setNickname(Player player, String nickname) throws SQLException {
         if (nickname.trim().isEmpty()) {
             throw new IllegalArgumentException("無効なニックネームです。空白にすることはできません。");
         }
@@ -39,12 +36,29 @@ public class NicknameManager implements Listener {
             throw new IllegalArgumentException("ニックネームは16文字以内にしてください。");
         }
 
-        nicknameConfig.setNickname(player.getUniqueId(), nickname);
+        NicknameManager.setNickname(player, nickname);
         logger.info("Setting nickname for player " + player.getName() + ": " + nickname);
 
         applyFormattedDisplayName(player);
         player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + nickname);
         return nickname;
+    }
+
+    public static void applyFormattedDisplayName(Player player) {
+        String prefix = getLuckPermsPrefix(player);
+        String nickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
+        if (nickname == null || nickname.isEmpty()) {
+            nickname = player.getName();
+        }
+
+        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
+        player.setDisplayName(formattedName);
+        player.setPlayerListName(formattedName);
+    }
+
+    private static String getLuckPermsPrefix(Player player) {
+        CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
+        return metaData.getPrefix() != null ? metaData.getPrefix() : "";
     }
 
     private String translateHexColorCodes(String message) {

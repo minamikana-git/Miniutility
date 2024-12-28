@@ -3,12 +3,15 @@ package org.hotamachisubaru.miniutility.Listener;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +43,7 @@ public class ChatListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncChatEvent event) {
+    public void NicknameBase(AsyncChatEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
@@ -56,11 +59,15 @@ public class ChatListener implements Listener {
     private void handleNicknameInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
-        Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("Miniutility"), () -> {
+        Bukkit.getScheduler().runTask(plugin, () -> {
             if (!message.isEmpty()) {
-                player.setDisplayName(message);
-                player.setPlayerListName(message);
-                player.sendMessage(ChatColor.GREEN + "ニックネームを設定しました！");
+                // ニックネームをデータベースに保存
+                NicknameDatabase.saveNickname(player.getUniqueId().toString(), message);
+
+                // 表示名を更新
+                updateDisplayNameWithPrefix(player, message);
+
+                player.sendMessage(ChatColor.GREEN + "ニックネームを設定しました: " + message);
             } else {
                 player.sendMessage(ChatColor.RED + "無効なニックネームです。");
             }
@@ -69,30 +76,44 @@ public class ChatListener implements Listener {
     }
 
     private void handleColorInput(Player player, Component messageComponent) {
-        // Component から文字列に変換
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
-        // 入力が空でないかチェック
         if (message.isEmpty()) {
             player.sendMessage(ChatColor.RED + "無効な入力です。カラーコードを指定してください。");
             return;
         }
 
-        // カラーコードを適用する
         String coloredName = ChatColor.translateAlternateColorCodes('&', message);
 
-        // 入力された文字列が有効な色付き文字列であることを確認
         if (!coloredName.equals(ChatColor.stripColor(coloredName))) {
-            // プレイヤーの表示名を更新
-            player.setDisplayName(coloredName);
-            player.setPlayerListName(coloredName);
-            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！: " + coloredName);
+            // データベースのニックネームに色を適用
+            String currentNickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
+            if (currentNickname == null || currentNickname.isEmpty()) {
+                currentNickname = player.getName();
+            }
+            String updatedNickname = coloredName;
+
+            NicknameDatabase.saveNickname(player.getUniqueId().toString(), updatedNickname);
+
+            // 表示名を更新
+            updateDisplayNameWithPrefix(player, updatedNickname);
+
+            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！: " + updatedNickname);
         } else {
             player.sendMessage(ChatColor.RED + "無効なカラーコードです。例: &6Hello");
         }
 
-        // 待機フラグをリセット
         waitingForColorInput.put(player.getUniqueId(), false);
     }
-}
 
+    private void updateDisplayNameWithPrefix(Player player, String nickname) {
+        // LuckPermsのPrefixを取得
+        CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
+        String prefix = metaData.getPrefix() != null ? metaData.getPrefix() : "";
+
+        // プレイヤーの表示名を設定
+        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
+        player.setDisplayName(formattedName);
+        player.setPlayerListName(formattedName);
+    }
+}

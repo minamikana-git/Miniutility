@@ -47,7 +47,7 @@ public class UtilityListener implements Listener {
             case ENDER_CHEST -> player.openInventory(player.getEnderChest());
             case CRAFTING_TABLE -> player.openWorkbench(null, true);
             case DROPPER -> openTrashBox(player);
-            case WRITABLE_BOOK -> {
+            case NAME_TAG -> {
                 player.sendMessage(ChatColor.YELLOW + "ニックネームを設定するために、チャットで名前を入力してください。");
                 plugin.getChatListener().setWaitingForNickname(player, true);
                 player.closeInventory();

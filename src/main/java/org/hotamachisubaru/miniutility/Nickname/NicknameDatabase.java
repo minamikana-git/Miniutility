@@ -1,55 +1,57 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.logging.Logger;
 
 public class NicknameDatabase {
 
+    private static final String DB_URL = "jdbc:sqlite:plugins/Miniutility/nickname.db";
     private static String path;
     private Connection connection;
     private static final Logger logger = Logger.getLogger("NicknameDatabase");
-
-    public NicknameDatabase(String path) {
+    public NicknameDatabase(String path){
         NicknameDatabase.path = path;
     }
 
-    public static void saveNicknameToDatabase(String uuid, String nickname) {
-        String query = "REPLACE INTO nicknames (uuid, nickname) VALUES (?, ?);";
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + path + "/nickname.db");
-             var pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, uuid);
-            pstmt.setString(2, nickname);
-            pstmt.executeUpdate();
-            logger.info("UUID: " + uuid + " のニックネームをデータベースに保存しました。");
+    static {
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+            String createTable = "CREATE TABLE IF NOT EXISTS nicknames (uuid TEXT PRIMARY KEY, nickname TEXT);";
+            conn.createStatement().execute(createTable);
         } catch (SQLException e) {
-            logger.severe("UUID: " + uuid + " のニックネームをデータベースに保存できませんでした: " + e.getMessage());
+            logger.severe("データベースの接続に失敗しました。");
         }
     }
 
-    public static String loadNicknameFromDatabase(String uuid) {
-        String query = "SELECT nickname FROM nicknames WHERE uuid = ?;";
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + path + "/nickname.db");
-             var pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, uuid);
-            try (var rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("nickname");
-                }
+
+
+
+    public static void saveNickname(String uuid, String nickname) {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement("REPLACE INTO nicknames (uuid, nickname) VALUES (?, ?);")) {
+            stmt.setString(1, uuid);
+            stmt.setString(2, nickname);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.severe("ニックネームの保存に失敗しました。");
+        }
+    }
+
+    public static String getNickname(String uuid) {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement("SELECT nickname FROM nicknames WHERE uuid = ?;")) {
+            stmt.setString(1, uuid);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("nickname");
             }
         } catch (SQLException e) {
-            logger.severe("UUID: " + uuid + " のニックネームをデータベースから取得できませんでした: " + e.getMessage());
+            logger.warning("ニックネームの取得に失敗しました。ファイルが破損している可能性があります。");
         }
         return null;
     }
 
-    public void openConnection() throws SQLException {
-        String url = "jdbc:sqlite:" + path + "/nickname.db"; // URL修正
-        connection = DriverManager.getConnection(url);
-        createTables();
-    }
+
+
 
     public void setupDatabase() {
         try {
@@ -76,6 +78,11 @@ public class NicknameDatabase {
             }
         }
     }
+    public void openConnection() throws SQLException {
+        String url = "jdbc:sqlite:" + path + "/nickname.db"; // URL修正
+        connection = DriverManager.getConnection(url);
+        createTables();
+    }
 
     public void closeConnection() {
         try {
@@ -88,3 +95,5 @@ public class NicknameDatabase {
         }
     }
 }
+
+

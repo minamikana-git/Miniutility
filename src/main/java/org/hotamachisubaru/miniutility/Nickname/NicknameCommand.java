@@ -27,13 +27,17 @@ public class NicknameCommand implements CommandExecutor {
 
         if (args.length == 0) {
             player.sendMessage(ChatColor.YELLOW + "新しいニックネームを入力してください。");
-            plugin.getNicknameConfig().setWaitingForNickname(player, true);
+            try {
+                NicknameManager.setNickname(player,"" );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
             return true;
         }
 
         String nickname = String.join(" ", args).trim();
         try {
-            plugin.getNicknameConfig().setNickname(player.getUniqueId(), nickname);
+            NicknameManager.setNickname(player, nickname);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

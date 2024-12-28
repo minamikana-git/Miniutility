@@ -11,7 +11,6 @@ import org.hotamachisubaru.miniutility.Nickname.*;
 
 import java.io.File;
 public class Miniutility extends JavaPlugin {
-    private NicknameConfig nicknameConfig;
     private ChatListener chatListener;
     private NicknameManager nicknameManager;
 
@@ -20,9 +19,8 @@ public class Miniutility extends JavaPlugin {
         saveDefaultConfig();
         migration(); // データ移行処理を実行
         setupDatabase(); // データベースセットアップ
-        nicknameConfig = new NicknameConfig(); // 設定のロード
         chatListener = new ChatListener(this); // チャットリスナー
-        nicknameManager = new NicknameManager(nicknameConfig); // ニックネーム管理
+        nicknameManager = new NicknameManager(); // ニックネーム管理
         saveResource("nickname.db", false); // デフォルトリソースを保存
         registerListeners(); // イベントリスナー登録
         registerCommands(); // コマンド登録
@@ -44,7 +42,7 @@ public class Miniutility extends JavaPlugin {
             for (String key : oldConfig.getKeys(false)) {
                 String nickname = oldConfig.getString(key);
                 if (nickname != null) {
-                    database.saveNicknameToDatabase(key, nickname); // データベースに保存
+                    database.saveNickname(key, nickname); // データベースに保存
                     getLogger().info("ニックネームが移行されました：" + key);
                 }
             }
@@ -56,7 +54,6 @@ public class Miniutility extends JavaPlugin {
             }
         } catch (Exception e) {
             getLogger().severe("ニックネームの統合に失敗しました: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -70,7 +67,6 @@ public class Miniutility extends JavaPlugin {
             getLogger().info("データベースの設定が完了しました.");
         } catch (Exception e) {
             getLogger().severe("データベースの設定ができませんでした: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -92,10 +88,6 @@ public class Miniutility extends JavaPlugin {
 
     public NicknameManager getNicknameManager() {
         return nicknameManager;
-    }
-
-    public NicknameConfig getNicknameConfig() {
-        return nicknameConfig;
     }
 
     public ChatListener getChatListener() {

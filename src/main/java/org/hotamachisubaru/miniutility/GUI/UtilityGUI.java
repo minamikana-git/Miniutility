@@ -27,7 +27,7 @@ public class UtilityGUI {
         utilityMenu.setItem(13, createMenuItem(Material.DROPPER, "ゴミ箱", "クリックしてゴミ箱を開く"));
 
         // ニックネーム変更アイテム
-        utilityMenu.setItem(15, createMenuItem(Material.WRITABLE_BOOK, "ニックネーム変更", "クリックしてニックネームを変更"));
+        utilityMenu.setItem(15, createMenuItem(Material.NAME_TAG, "ニックネーム変更", "クリックしてニックネームを変更"));
 
         // 作業台アイテム
         utilityMenu.setItem(17, createMenuItem(Material.CRAFTING_TABLE, "どこでも作業台", "クリックして作業台を開く"));

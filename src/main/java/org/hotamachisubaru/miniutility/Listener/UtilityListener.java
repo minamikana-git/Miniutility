@@ -81,7 +81,7 @@ public class UtilityListener implements Listener {
         }
     }
 
-    private void TrashConfirm(Player player) {
+    private void Confirm(Player player) {
         Inventory confirmInventory = Bukkit.createInventory(player, 27, Component.text("本当に捨てますか？"));
         confirmInventory.setItem(11, createMenuItem(Material.GREEN_STAINED_GLASS_PANE, "はい"));
         confirmInventory.setItem(15, createMenuItem(Material.RED_STAINED_GLASS_PANE, "いいえ"));

@@ -1,5 +1,6 @@
 package org.hotamachisubaru.miniutility;
 
+import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,18 +22,27 @@ public class Miniutility extends JavaPlugin {
         setupDatabase(); // データベースセットアップ
         chatListener = new ChatListener(this); // チャットリスナー
         nicknameManager = new NicknameManager(); // ニックネーム管理
-        saveResource("nickname.db", false); // デフォルトリソースを保存
+        saveResource("nickname.db", false);
+        checkLuckPerms();// デフォルトリソースを保存
         registerListeners(); // イベントリスナー登録
         registerCommands(); // コマンド登録
         getLogger().info("copyright 2024 hotamachisubaru all rights reserved.");
         getLogger().info("developed by hotamachisubaru");
     }
 
+    private void checkLuckPerms() {
+        if (Bukkit.getPluginManager().getPlugin("LuckPerms") == null){
+            getServer().getLogger().severe("LuckPermsが見つかりません。pluginsフォルダにあるか確認してください。");
+            getServer().getPluginManager().disablePlugin(this);
+        }
+    }
+
+
     private void migration() {
         try {
             File oldFile = new File(getDataFolder(), "nickname.yml");
             if (!oldFile.exists()) {
-                getLogger().info("No old data to migrate.");
+                getLogger().info("統合するデータがありません。");
                 return;
             }
 

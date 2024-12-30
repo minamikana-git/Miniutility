@@ -14,3 +14,12 @@ commands:
   nick:
     description: ニックネームを設定します。
     usage: /nick <nickname>
+  load:
+    description: データベースからニックネームをロードします。
+    usage: /load
+    permission: miniutility.load
+permissions:
+  load:
+    description: データベースからニックネームをロードします。
+    default: op
+

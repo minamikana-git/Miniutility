@@ -75,7 +75,7 @@ public class ChatListener implements Listener {
         });
     }
 
-    private void handleColorInput(Player player, Component messageComponent) {
+    public void handleColorInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         if (message.isEmpty()) {
@@ -106,14 +106,20 @@ public class ChatListener implements Listener {
         waitingForColorInput.put(player.getUniqueId(), false);
     }
 
-    private void updateDisplayNameWithPrefix(Player player, String nickname) {
-        // LuckPermsのPrefixを取得
+    public static void updateDisplayNameWithPrefix(Player player, String nickname) {
         CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
+
+        // LuckPermsのPrefixを取得
         String prefix = metaData.getPrefix() != null ? metaData.getPrefix() : "";
 
-        // プレイヤーの表示名を設定
+        // Prefixとニックネームを結合
         String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
+
+        // 表示名とTabリストの名前を更新
         player.setDisplayName(formattedName);
         player.setPlayerListName(formattedName);
+
+        Bukkit.getLogger().info("ニックネームが設定されました " + player.getName() + ": " + formattedName);
     }
+
 }

@@ -88,6 +88,7 @@ public class Miniutility extends JavaPlugin {
     private void registerCommands() {
         getCommand("nick").setExecutor(new NicknameCommand(this));
         getCommand("menu").setExecutor(new UtilityCommand());
+        getCommand("load").setExecutor(new Load());
     }
 
     private void registerListeners() {

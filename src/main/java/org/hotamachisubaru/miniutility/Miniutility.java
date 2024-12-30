@@ -5,13 +5,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hotamachisubaru.miniutility.Command.Load;
-import org.hotamachisubaru.miniutility.Command.UtilityCommand;
-import org.hotamachisubaru.miniutility.Listener.ChatListener;
-import org.hotamachisubaru.miniutility.Listener.UtilityListener;
-import org.hotamachisubaru.miniutility.Nickname.NicknameCommand;
-import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
-import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+import org.hotamachisubaru.miniutility.Command.*;
+import org.hotamachisubaru.miniutility.Listener.*;
+import org.hotamachisubaru.miniutility.Nickname.*;
+
 
 import java.io.File;
 public class Miniutility extends JavaPlugin {

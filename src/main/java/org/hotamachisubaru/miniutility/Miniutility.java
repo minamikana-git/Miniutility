@@ -11,23 +11,27 @@ import org.hotamachisubaru.miniutility.Nickname.*;
 
 
 import java.io.File;
+import java.util.logging.Logger;
+
 public class Miniutility extends JavaPlugin {
     private ChatListener chatListener;
     private NicknameManager nicknameManager;
+    private Logger logger = getLogger();
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
+        logger.info("copyright 2024 hotamachisubaru all rights reserved.");
+        logger.info("developed by hotamachisubaru");
+        saveDefaultConfig(); //config.ymlの作成
         migration(); // データ移行処理を実行
         setupDatabase(); // データベースセットアップ
         chatListener = new ChatListener(this); // チャットリスナー
         nicknameManager = new NicknameManager(); // ニックネーム管理
-        saveResource("nickname.db", false);
-        checkLuckPerms();// デフォルトリソースを保存
+        saveResource("nickname.db", false);// デフォルトリソースを保存
+        checkLuckPerms(); //LuckPermsがあるかチェック
         registerListeners(); // イベントリスナー登録
         registerCommands(); // コマンド登録
-        getLogger().info("copyright 2024 hotamachisubaru all rights reserved.");
-        getLogger().info("developed by hotamachisubaru");
+
     }
 
     private void checkLuckPerms() {
@@ -42,7 +46,7 @@ public class Miniutility extends JavaPlugin {
         try {
             File oldFile = new File(getDataFolder(), "nickname.yml");
             if (!oldFile.exists()) {
-                getLogger().info("統合するデータがありません。");
+                logger.info("統合するデータがありません。");
                 return;
             }
 
@@ -53,17 +57,17 @@ public class Miniutility extends JavaPlugin {
                 String nickname = oldConfig.getString(key);
                 if (nickname != null) {
                     database.saveNickname(key, nickname); // データベースに保存
-                    getLogger().info("ニックネームが移行されました：" + key);
+                   logger.info("ニックネームが移行されました：" + key);
                 }
             }
 
             if (oldFile.renameTo(new File(getDataFolder(), "nickname.yml.bak"))) {
-                getLogger().info("古いnickname.ymlは、nickname.yml.bakとしてバックアップされました。");
+                logger.info("古いnickname.ymlは、nickname.yml.bakとしてバックアップされました。");
             } else {
-                getLogger().warning("nickname.ymlのバックアップに失敗しました。");
+                logger.warning("nickname.ymlのバックアップに失敗しました。");
             }
         } catch (Exception e) {
-            getLogger().severe("ニックネームの統合に失敗しました: " + e.getMessage());
+            logger.severe("ニックネームの統合に失敗しました: " + e.getMessage());
         }
     }
 
@@ -74,9 +78,9 @@ public class Miniutility extends JavaPlugin {
         try {
             NicknameDatabase database = new NicknameDatabase(getDataFolder().getAbsolutePath());
             database.setupDatabase();
-            getLogger().info("データベースの設定が完了しました.");
+            logger.info("データベースの設定が完了しました.");
         } catch (Exception e) {
-            getLogger().severe("データベースの設定ができませんでした: " + e.getMessage());
+            logger.severe("データベースの設定ができませんでした: " + e.getMessage());
         }
     }
 

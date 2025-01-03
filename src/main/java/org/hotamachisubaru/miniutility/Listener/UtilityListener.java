@@ -62,6 +62,10 @@ public class UtilityListener implements Listener {
         }
     }
 
+
+
+    
+
     private void openTrashBox(Player player) {
         Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
         ItemStack confirmButton = createMenuItem(Material.GREEN_STAINED_GLASS_PANE, "捨てる");
@@ -122,3 +126,4 @@ public class UtilityListener implements Listener {
         }
     }
 }
+        

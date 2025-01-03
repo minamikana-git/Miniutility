@@ -15,12 +15,13 @@ public class UtilityGUI {
 
     public static void openUtilityMenu(Player player) {
         // ユーティリティメニューを作成
-        Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("便利箱"));
+        Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("メニュー"));
 
         //クリーパーのブロック破壊を防ぐ
         utilityMenu.setItem(9,createMenuItem(Material.CREEPER_HEAD,"クリーパーのブロック破壊を防ぐ","クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 
         // エンダーチェスト
+
         utilityMenu.setItem(11, createMenuItem(Material.ENDER_CHEST, "エンダーチェスト", "クリックしてエンダーチェストを開く"));
 
         // ゴミ箱

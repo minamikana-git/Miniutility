@@ -6,7 +6,7 @@ author: hotamachisubaru
 load: STARTUP
 depend:
   - LuckPerms
-description: copyright 2024 hotamachisubaru all rights reserved.
+description: copyright 2024-2025 hotamachisubaru all rights reserved.
 commands:
   menu:
     description: 便利ツールを集めました。

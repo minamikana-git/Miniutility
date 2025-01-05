@@ -24,7 +24,6 @@ public class NicknameManager implements Listener {
     @EventHandler
     public void loadNickname(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        logger.info("Player joined: " + player.getName());
         applyFormattedDisplayName(player);
     }
 
@@ -37,7 +36,7 @@ public class NicknameManager implements Listener {
         }
 
         NicknameManager.setNickname(player, nickname);
-        logger.info("Setting nickname for player " + player.getName() + ": " + nickname);
+
 
         applyFormattedDisplayName(player);
         player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + nickname);

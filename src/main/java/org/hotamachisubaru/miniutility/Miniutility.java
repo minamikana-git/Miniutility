@@ -20,23 +20,23 @@ public class Miniutility extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        logger.info("copyright 2024 hotamachisubaru all rights reserved.");
-        logger.info("developed by hotamachisubaru");
-        saveDefaultConfig(); //config.ymlの作成
-        migration(); // データ移行処理を実行
-        setupDatabase(); // データベースセットアップ
         chatListener = new ChatListener(this); // チャットリスナー
         nicknameManager = new NicknameManager(); // ニックネーム管理
         saveResource("nickname.db", false);// デフォルトリソースを保存
+        saveDefaultConfig(); //config.ymlの作成
         checkLuckPerms(); //LuckPermsがあるかチェック
         registerListeners(); // イベントリスナー登録
+        migration(); // データ移行処理を実行
+        setupDatabase(); // データベースセットアップ
         registerCommands(); // コマンド登録
+        logger.info("copyright 2024 hotamachisubaru all rights reserved.");
+        logger.info("developed by hotamachisubaru");
 
     }
 
     private void checkLuckPerms() {
         if (Bukkit.getPluginManager().getPlugin("LuckPerms") == null){
-            getServer().getLogger().severe("LuckPermsが見つかりません。pluginsフォルダにあるか確認してください。");
+            logger.severe("LuckPermsが見つかりません。pluginsフォルダにあるか確認してください。");
             getServer().getPluginManager().disablePlugin(this);
         }
     }
@@ -70,8 +70,6 @@ public class Miniutility extends JavaPlugin {
             logger.severe("ニックネームの統合に失敗しました: " + e.getMessage());
         }
     }
-
-
 
 
     private void setupDatabase() {

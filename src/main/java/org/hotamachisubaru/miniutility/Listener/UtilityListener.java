@@ -30,7 +30,7 @@ public class UtilityListener implements Listener {
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
 
         switch (title) {
-            case "便利箱" -> handleUtilityBox(player, clickedItem, event);
+            case "メニュー" -> handleUtilityBox(player, clickedItem, event);
             case "ゴミ箱" -> handleTrashBox(player, clickedItem, event);
             case "本当に捨てますか？" -> TrashConfirm(player, clickedItem, event);
         }

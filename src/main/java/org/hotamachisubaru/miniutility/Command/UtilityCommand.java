@@ -30,7 +30,7 @@ public class UtilityCommand implements CommandExecutor, Listener {
     @EventHandler
     public void openMenu(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-        if (event.getView().getTitle().equals("便利箱")) {
+        if (event.getView().getTitle().equals("メニュー")) {
             event.setCancelled(true);
 
             if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {

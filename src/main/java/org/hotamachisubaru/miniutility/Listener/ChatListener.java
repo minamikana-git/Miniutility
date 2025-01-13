@@ -1,6 +1,5 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.luckperms.api.LuckPermsProvider;
@@ -10,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.plugin.Plugin;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 
@@ -59,7 +59,7 @@ public class ChatListener implements Listener {
     private void handleNicknameInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getGlobalRegionScheduler().execute(plugin, () -> {
             if (!message.isEmpty()) {
                 // ニックネームをデータベースに保存
                 NicknameDatabase.saveNickname(player.getUniqueId().toString(), message);
@@ -67,9 +67,9 @@ public class ChatListener implements Listener {
                 // 表示名を更新
                 updateDisplayNameWithPrefix(player, message);
 
-                player.sendMessage(ChatColor.GREEN + "ニックネームを設定しました: " + message);
+                player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームを設定しました: " + message));
             } else {
-                player.sendMessage(ChatColor.RED + "無効なニックネームです。");
+                player.sendMessage(Component.text(ChatColor.RED + "無効なニックネームです。"));
             }
             waitingForNickname.put(player.getUniqueId(), false);
         });
@@ -79,7 +79,7 @@ public class ChatListener implements Listener {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         if (message.isEmpty()) {
-            player.sendMessage(ChatColor.RED + "無効な入力です。カラーコードを指定してください。");
+            player.sendMessage(Component.text(ChatColor.RED + "無効な入力です。カラーコードを指定してください。"));
             return;
         }
 
@@ -98,9 +98,9 @@ public class ChatListener implements Listener {
             // 表示名を更新
             updateDisplayNameWithPrefix(player, updatedNickname);
 
-            player.sendMessage(ChatColor.GREEN + "名前の色を変更しました！: " + updatedNickname);
+            player.sendMessage(Component.text(ChatColor.GREEN + "名前の色を変更しました！: " + updatedNickname));
         } else {
-            player.sendMessage(ChatColor.RED + "無効なカラーコードです。例: &6Hello");
+            player.sendMessage(Component.text(ChatColor.RED + "無効なカラーコードです。例: &6Hello"));
         }
 
         waitingForColorInput.put(player.getUniqueId(), false);
@@ -116,10 +116,9 @@ public class ChatListener implements Listener {
         String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
 
         // 表示名とTabリストの名前を更新
-        player.setDisplayName(formattedName);
-        player.setPlayerListName(formattedName);
+        player.displayName(Component.text(formattedName));
+        player.playerListName(Component.text(formattedName));
 
         Bukkit.getLogger().info("ニックネームが設定されました " + player.getName() + ": " + formattedName);
     }
-
 }

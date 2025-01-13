@@ -38,7 +38,7 @@ public class UtilityListener implements Listener {
 
     private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         event.setCancelled(true); // アイテムの移動を防ぐ
-        if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
+        if (clickedItem == null || clickedItem.getType().isAir()) return;
 
         Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
 
@@ -61,10 +61,6 @@ public class UtilityListener implements Listener {
             default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
         }
     }
-
-
-
-    
 
     private void openTrashBox(Player player) {
         Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));

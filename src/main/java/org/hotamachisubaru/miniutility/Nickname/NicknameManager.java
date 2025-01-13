@@ -1,21 +1,19 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
-
+import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.sql.SQLException;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-
 
 public class NicknameManager implements Listener {
 
@@ -37,9 +35,8 @@ public class NicknameManager implements Listener {
 
         NicknameManager.setNickname(player, nickname);
 
-
         applyFormattedDisplayName(player);
-        player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + nickname);
+        player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームが設定されました: " + nickname));
         return nickname;
     }
 
@@ -51,8 +48,8 @@ public class NicknameManager implements Listener {
         }
 
         String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
-        player.setDisplayName(formattedName);
-        player.setPlayerListName(formattedName);
+        player.displayName(Component.text(formattedName));
+        player.playerListName(Component.text(formattedName));
     }
 
     private static String getLuckPermsPrefix(Player player) {
@@ -75,10 +72,10 @@ public class NicknameManager implements Listener {
         return buffer.toString();
     }
 
-
     @EventHandler
-    public void applyNickname(AsyncPlayerChatEvent event) {
+    public void applyNickname(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        event.setFormat(player.getDisplayName() + ": " + event.getMessage());
+        event.renderer((sender, displayName, message, viewers) ->
+                Component.text(player.getDisplayName() + ": ").append(message));
     }
 }

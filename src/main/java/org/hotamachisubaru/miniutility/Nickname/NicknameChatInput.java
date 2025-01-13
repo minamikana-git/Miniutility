@@ -1,5 +1,7 @@
 package org.hotamachisubaru.miniutility.Nickname;
-import org.bukkit.ChatColor;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,7 +26,7 @@ public class NicknameChatInput implements Listener {
 
             String nickname = event.getMessage();
             if (nickname.length() > 16) {
-                player.sendMessage(ChatColor.RED + "ニックネームは16文字以内にしてください。");
+                player.sendMessage(Component.text("ニックネームは16文字以内にしてください。", NamedTextColor.RED));
                 return;
             }
 
@@ -33,7 +35,8 @@ public class NicknameChatInput implements Listener {
 
             // 表示名を更新
             NicknameManager.applyFormattedDisplayName(player);
-            player.sendMessage(ChatColor.GREEN + "ニックネームが設定されました: " + nickname);
+            player.sendMessage(Component.text("ニックネームが設定されました: ", NamedTextColor.GREEN)
+                    .append(Component.text(nickname, NamedTextColor.GREEN)));
 
             playersInNicknameInput.remove(player);
         }

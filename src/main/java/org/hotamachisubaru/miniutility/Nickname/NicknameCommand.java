@@ -1,6 +1,7 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -19,16 +20,16 @@ public class NicknameCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "このコマンドはプレイヤーのみが使用できます。");
+            sender.sendMessage(Component.text("このコマンドはプレイヤーのみが使用できます。", NamedTextColor.RED));
             return true;
         }
 
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage(ChatColor.YELLOW + "新しいニックネームを入力してください。");
+            player.sendMessage(Component.text("新しいニックネームを入力してください。", NamedTextColor.YELLOW));
             try {
-                NicknameManager.setNickname(player,"" );
+                NicknameManager.setNickname(player, "");
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -41,9 +42,9 @@ public class NicknameCommand implements CommandExecutor {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        player.setDisplayName(ChatColor.translateAlternateColorCodes('&', nickname));
-        player.setPlayerListName(ChatColor.translateAlternateColorCodes('&', nickname));
-        player.sendMessage(ChatColor.GREEN + "ニックネームを " + nickname + " に設定しました！");
+        player.displayName(Component.text(nickname));
+        player.playerListName(Component.text(nickname));
+        player.sendMessage(Component.text("ニックネームを " + nickname + " に設定しました！", NamedTextColor.GREEN));
         return true;
     }
 }

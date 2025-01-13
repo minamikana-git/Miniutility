@@ -18,10 +18,9 @@ public class UtilityGUI {
         Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("メニュー"));
 
         //クリーパーのブロック破壊を防ぐ
-        utilityMenu.setItem(9,createMenuItem(Material.CREEPER_HEAD,"クリーパーのブロック破壊を防ぐ","クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
+        utilityMenu.setItem(9, createMenuItem(Material.CREEPER_HEAD, "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 
         // エンダーチェスト
-
         utilityMenu.setItem(11, createMenuItem(Material.ENDER_CHEST, "エンダーチェスト", "クリックしてエンダーチェストを開く"));
 
         // ゴミ箱
@@ -49,8 +48,8 @@ public class UtilityGUI {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.YELLOW + name); // アイテム名を黄色に設定
-            meta.setLore(Collections.singletonList(ChatColor.GRAY + lore)); // アイテム説明を灰色に設定
+            meta.displayName(Component.text(ChatColor.YELLOW + name)); // アイテム名を黄色に設定
+            meta.lore(Collections.singletonList(Component.text(ChatColor.GRAY + lore))); // アイテム説明を灰色に設定
             item.setItemMeta(meta);
         }
         return item;

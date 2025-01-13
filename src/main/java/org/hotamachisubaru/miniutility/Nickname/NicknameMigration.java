@@ -1,8 +1,10 @@
 package org.hotamachisubaru.miniutility.Nickname;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -38,7 +40,7 @@ public class NicknameMigration {
         }
 
         // Connect to the database
-        String dbUrl = "jdbc:sqlite:" + dbPath;
+        String dbUrl = "jdbc:sqlite:" + Path.of(dbPath).toAbsolutePath();
         try (Connection connection = DriverManager.getConnection(dbUrl)) {
             String insertQuery = "REPLACE INTO nicknames (uuid, nickname) VALUES (?, ?)";
             try (PreparedStatement pstmt = connection.prepareStatement(insertQuery)) {

@@ -1,5 +1,6 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.logging.Logger;
 
@@ -9,8 +10,9 @@ public class NicknameDatabase {
     private static String path;
     private Connection connection;
     private static final Logger logger = Logger.getLogger("NicknameDatabase");
-    public NicknameDatabase(String path){
-        NicknameDatabase.path = path;
+
+    public NicknameDatabase(String path) {
+        NicknameDatabase.path = Paths.get(path).toAbsolutePath().toString();
     }
 
     static {
@@ -21,9 +23,6 @@ public class NicknameDatabase {
             logger.severe("データベースの接続に失敗しました。");
         }
     }
-
-
-
 
     public static void saveNickname(String uuid, String nickname) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
@@ -50,9 +49,6 @@ public class NicknameDatabase {
         return null;
     }
 
-
-
-
     public void setupDatabase() {
         try {
             openConnection(); // データベース接続を開く
@@ -68,16 +64,17 @@ public class NicknameDatabase {
         if (connection != null) {
             try (Statement statement = connection.createStatement()) {
                 String nicknamesTableQuery = """
-                CREATE TABLE IF NOT EXISTS nicknames (
-                    uuid TEXT PRIMARY KEY,
-                    nickname TEXT
-                );
-                """;
+                        CREATE TABLE IF NOT EXISTS nicknames (
+                            uuid TEXT PRIMARY KEY,
+                            nickname TEXT
+                        );
+                        """;
                 statement.execute(nicknamesTableQuery);
                 logger.info("ニックネームテーブルを作成しました（既に存在する場合もあります）。");
             }
         }
     }
+
     public void openConnection() throws SQLException {
         String url = "jdbc:sqlite:" + path + "/nickname.db"; // URL修正
         connection = DriverManager.getConnection(url);

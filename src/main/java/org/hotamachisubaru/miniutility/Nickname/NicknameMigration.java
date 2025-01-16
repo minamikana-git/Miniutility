@@ -54,7 +54,6 @@ public class NicknameMigration {
                     }
                 }
             }
-            logger.info("データベースへのニックネームの統合に成功しました。");
         } catch (SQLException e) {
             logger.severe("データベースへのニックネームの統合に失敗しました: " + e.getMessage());
             e.printStackTrace();

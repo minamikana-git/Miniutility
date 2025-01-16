@@ -24,7 +24,7 @@ public class Load implements CommandExecutor {
         } else {
             player.sendMessage(Component.text(ChatColor.GREEN + "データベースからニックネームを読み込みました。"));
         }
-        ChatListener.updateDisplayNameWithPrefix(player, nickname);
+        ChatListener.updateDisplayNamePrefix(player, nickname);
         return true;
     }
 }

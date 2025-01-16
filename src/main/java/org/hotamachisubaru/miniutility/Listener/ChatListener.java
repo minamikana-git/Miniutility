@@ -43,20 +43,20 @@ public class ChatListener implements Listener {
     }
 
     @EventHandler
-    public void NicknameBase(AsyncChatEvent event) {
+    public void Nickname(AsyncChatEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
         if (waitingForNickname.getOrDefault(playerUUID, false)) {
             event.setCancelled(true);
-            handleNicknameInput(player, event.message());
+            NicknameInput(player, event.message());
         } else if (waitingForColorInput.getOrDefault(playerUUID, false)) {
             event.setCancelled(true);
-            handleColorInput(player, event.message());
+            ColorInput(player, event.message());
         }
     }
 
-    private void handleNicknameInput(Player player, Component messageComponent) {
+    private void NicknameInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         Bukkit.getGlobalRegionScheduler().execute(plugin, () -> {
@@ -65,7 +65,7 @@ public class ChatListener implements Listener {
                 NicknameDatabase.saveNickname(player.getUniqueId().toString(), message);
 
                 // 表示名を更新
-                updateDisplayNameWithPrefix(player, message);
+                updateDisplayNamePrefix(player, message);
 
                 player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームを設定しました: " + message));
             } else {
@@ -75,7 +75,7 @@ public class ChatListener implements Listener {
         });
     }
 
-    public void handleColorInput(Player player, Component messageComponent) {
+    public void ColorInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         if (message.isEmpty()) {
@@ -96,7 +96,7 @@ public class ChatListener implements Listener {
             NicknameDatabase.saveNickname(player.getUniqueId().toString(), updatedNickname);
 
             // 表示名を更新
-            updateDisplayNameWithPrefix(player, updatedNickname);
+            updateDisplayNamePrefix(player, updatedNickname);
 
             player.sendMessage(Component.text(ChatColor.GREEN + "名前の色を変更しました！: " + updatedNickname));
         } else {
@@ -106,7 +106,7 @@ public class ChatListener implements Listener {
         waitingForColorInput.put(player.getUniqueId(), false);
     }
 
-    public static void updateDisplayNameWithPrefix(Player player, String nickname) {
+    public static void updateDisplayNamePrefix(Player player, String nickname) {
         CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
 
         // LuckPermsのPrefixを取得

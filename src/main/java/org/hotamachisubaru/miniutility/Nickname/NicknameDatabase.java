@@ -9,7 +9,7 @@ public class NicknameDatabase {
     private static final String DB_URL = "jdbc:sqlite:plugins/Miniutility/nickname.db";
     private static String path;
     private Connection connection;
-    private static final Logger logger = Logger.getLogger("NicknameDatabase");
+    private static final Logger logger = Logger.getLogger("Database");
 
     public NicknameDatabase(String path) {
         NicknameDatabase.path = Paths.get(path).toAbsolutePath().toString();
@@ -85,7 +85,6 @@ public class NicknameDatabase {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                logger.info("データベース接続を閉じました。");
             }
         } catch (SQLException e) {
             logger.severe("データベース接続を閉じることができませんでした: " + e.getMessage());

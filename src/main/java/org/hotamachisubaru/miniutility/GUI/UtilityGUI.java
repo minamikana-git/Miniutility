@@ -36,6 +36,24 @@ public class UtilityGUI {
         player.openInventory(utilityMenu);
     }
 
+    public static void openNicknameMenu(Player player){
+        Inventory nicknameMenu =  Bukkit.createInventory(player,9,Component.text("ニックネーム"));
+
+        nicknameMenu.setItem(3,createMenuItem(
+                Material.PAPER,
+                "ニックネームを変更",
+                "クリックして新しいニックネームを入力"
+        ));
+
+        nicknameMenu.setItem(5,createMenuItem(
+                Material.BARRIER,
+                "ニックネームをリセット",
+                "クリックしてニックネームをリセット"
+        ));
+
+        player.openInventory(nicknameMenu);
+    }
+
     /**
      * メニューアイテムを作成するヘルパーメソッド
      *

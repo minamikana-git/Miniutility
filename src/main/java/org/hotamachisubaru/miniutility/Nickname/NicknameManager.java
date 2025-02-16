@@ -1,5 +1,6 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
@@ -7,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.sql.SQLException;
@@ -43,29 +43,31 @@ public class NicknameManager implements Listener {
     public static void applyFormattedDisplayName(Player player) {
         String prefix = getLuckPermsPrefix(player);
         String nickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
+
         if (nickname == null || nickname.isEmpty()) {
             nickname = player.getName();
         }
 
-        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
+        // カラーコードの変換を適用
+        String formattedName = translateHexColorCodes(ChatColor.translateAlternateColorCodes('&', prefix + nickname));
+
+        // 表示名とタブリスト名を更新
         player.displayName(Component.text(formattedName));
         player.playerListName(Component.text(formattedName));
     }
-
     private static String getLuckPermsPrefix(Player player) {
         CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
         return metaData.getPrefix() != null ? metaData.getPrefix() : "";
     }
 
-    private String translateHexColorCodes(String message) {
+    private static String translateHexColorCodes(String message) {
         Pattern hexPattern = Pattern.compile("(?i)&#([0-9a-fA-F]{6})");
         Matcher matcher = hexPattern.matcher(message);
         StringBuffer buffer = new StringBuffer();
 
         while (matcher.find()) {
-            String replacement = matcher.group(1).chars()
-                    .mapToObj(c -> "§" + (char) c)
-                    .reduce("§x", String::concat);
+            String hexCode = matcher.group(1);
+            String replacement = net.kyori.adventure.text.format.TextColor.fromHexString("#" + hexCode).toString();
             matcher.appendReplacement(buffer, replacement);
         }
         matcher.appendTail(buffer);

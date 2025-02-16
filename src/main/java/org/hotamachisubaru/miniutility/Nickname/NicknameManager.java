@@ -41,7 +41,7 @@ public class NicknameManager implements Listener {
     }
 
     private static String translateHexColorCodes(String message) {
-        Pattern pattern = Pattern.compile("(?i)&#([0-9A-F]{6})");
+        Pattern pattern = Pattern.compile("(?i)&#([0-9A-Fa-f]{6})");
         Matcher matcher = pattern.matcher(message);
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {

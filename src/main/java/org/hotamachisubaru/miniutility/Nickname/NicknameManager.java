@@ -26,39 +26,35 @@ public class NicknameManager implements Listener {
     }
 
     public static String setNickname(Player player, String nickname) throws SQLException {
+        // 空文字の場合はニックネームをリセット（データベースに空文字を保存）
         if (nickname.trim().isEmpty()) {
-            throw new IllegalArgumentException("無効なニックネームです。空白にすることはできません。");
+            NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
+            applyFormattedDisplayName(player);
+            player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームをリセットしました。"));
+            return "";
         }
         if (nickname.length() > 16) {
             throw new IllegalArgumentException("ニックネームは16文字以内にしてください。");
         }
-
-        NicknameManager.setNickname(player, nickname);
-
+        NicknameDatabase.saveNickname(player.getUniqueId().toString(), nickname);
         applyFormattedDisplayName(player);
         player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームが設定されました: " + nickname));
         return nickname;
     }
 
+
     public static void applyFormattedDisplayName(Player player) {
         String prefix = getLuckPermsPrefix(player);
         String nickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
-
         if (nickname == null || nickname.isEmpty()) {
-            nickname = player.getName();
+            nickname = player.getName(); // ニックネームが空の場合、デフォルトのIDを使用
         }
 
-        // カラーコードの変換を適用
-        String formattedName = translateHexColorCodes(ChatColor.translateAlternateColorCodes('&', prefix + nickname));
-
-        // 表示名とタブリスト名を更新
+        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
         player.displayName(Component.text(formattedName));
         player.playerListName(Component.text(formattedName));
     }
-    private static String getLuckPermsPrefix(Player player) {
-        CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
-        return metaData.getPrefix() != null ? metaData.getPrefix() : "";
-    }
+
 
     private static String translateHexColorCodes(String message) {
         Pattern hexPattern = Pattern.compile("(?i)&#([0-9a-fA-F]{6})");
@@ -73,6 +69,13 @@ public class NicknameManager implements Listener {
         matcher.appendTail(buffer);
         return buffer.toString();
     }
+
+    private static String getLuckPermsPrefix(Player player) {
+        CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
+        return metaData.getPrefix() != null ? metaData.getPrefix() : "";
+    }
+
+
 
     @EventHandler
     public void applyNickname(AsyncChatEvent event) {

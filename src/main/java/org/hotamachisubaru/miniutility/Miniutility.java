@@ -41,7 +41,7 @@ public class Miniutility extends JavaPlugin {
     private void checkLuckPerms() {
         if (Bukkit.getPluginManager().getPlugin("LuckPerms") == null) {
             logger.severe("LuckPermsが見つかりません。pluginsフォルダにあるか確認してください。");
-            getServer().getPluginManager().disablePlugin(this);
+            pm.disablePlugin(this);
         }
     }
 

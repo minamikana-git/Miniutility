@@ -1,5 +1,6 @@
 package org.hotamachisubaru.miniutility.Listener;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.luckperms.api.LuckPermsProvider;
@@ -9,20 +10,23 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.plugin.Plugin;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
-public class ChatListener implements Listener {
+import static org.bukkit.Bukkit.getLogger;
+
+public class Chat implements Listener {
     private final Plugin plugin;
+    private static final Logger logger = getLogger();
     private static final Map<UUID, Boolean> waitingForNickname = new HashMap<>();
     private static final Map<UUID, Boolean> waitingForColorInput = new HashMap<>();
 
-    public ChatListener(Plugin plugin) {
+    public Chat(Plugin plugin) {
         this.plugin = plugin;
     }
 
@@ -119,6 +123,6 @@ public class ChatListener implements Listener {
         player.displayName(Component.text(formattedName));
         player.playerListName(Component.text(formattedName));
 
-        Bukkit.getLogger().info("ニックネームが設定されました " + player.getName() + ": " + formattedName);
+        logger.info("ニックネームが設定されました " + player.getName() + ": " + formattedName);
     }
 }

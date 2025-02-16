@@ -4,9 +4,12 @@ package org.hotamachisubaru.miniutility;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hotamachisubaru.miniutility.Command.*;
-import org.hotamachisubaru.miniutility.Listener.*;
+import org.hotamachisubaru.miniutility.Command.Load;
+import org.hotamachisubaru.miniutility.Command.UtilityCommand;
+import org.hotamachisubaru.miniutility.Listener.Chat;
+import org.hotamachisubaru.miniutility.Listener.Utility;
 import org.hotamachisubaru.miniutility.Nickname.NicknameCommand;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
@@ -15,13 +18,14 @@ import java.io.File;
 import java.util.logging.Logger;
 
 public class Miniutility extends JavaPlugin {
-    private ChatListener chatListener;
+    private Chat chatListener;
     private NicknameManager nicknameManager;
-    private Logger logger = getLogger();
+    private final Logger logger = getLogger();
+    private final PluginManager pm = getServer().getPluginManager();
 
     @Override
     public void onEnable() {
-        chatListener = new ChatListener(this); // チャットリスナー
+        chatListener = new Chat(this); // チャットリスナー
         nicknameManager = new NicknameManager(); // ニックネーム管理
         saveResource("nickname.db", false); // デフォルトリソースを保存
         saveDefaultConfig(); // config.ymlの作成
@@ -55,7 +59,7 @@ public class Miniutility extends JavaPlugin {
             for (String key : oldConfig.getKeys(false)) {
                 String nickname = oldConfig.getString(key);
                 if (nickname != null) {
-                    database.saveNickname(key, nickname); // データベースに保存
+                    NicknameDatabase.saveNickname(key, nickname); // データベースに保存
                     logger.info("ニックネームが移行されました：" + key);
                 }
             }
@@ -86,32 +90,22 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void registerCommands() {
-        try {
-            if (getCommand("nick") != null) {
-                getCommand("nick").setExecutor(new NicknameCommand(this));
-            }
-            if (getCommand("menu") != null) {
-                getCommand("menu").setExecutor(new UtilityCommand());
-            }
-            if (getCommand("load") != null) {
-                getCommand("load").setExecutor(new Load());
-            }
-        } catch (Exception e) {
-            logger.severe("コマンドの登録に失敗しました: " + e.getMessage());
-        }
+       getCommand("nick").setExecutor(new NicknameCommand(this));
+       getCommand("menu").setExecutor(new UtilityCommand());
+       getCommand("load").setExecutor(new Load());
     }
 
     private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(chatListener, this);
-        Bukkit.getPluginManager().registerEvents(new UtilityListener(), this);
-        Bukkit.getPluginManager().registerEvents(nicknameManager, this);
+        pm.registerEvents(new Chat(this), this);
+        pm.registerEvents(new Utility(), this);
+        pm.registerEvents(nicknameManager, this);
     }
 
     public NicknameManager getNicknameManager() {
         return nicknameManager;
     }
 
-    public ChatListener getChatListener() {
+    public Chat getChatListener() {
         return chatListener;
     }
 }

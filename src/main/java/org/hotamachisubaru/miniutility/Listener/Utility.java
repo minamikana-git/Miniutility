@@ -15,9 +15,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.Miniutility;
 
-public class UtilityListener implements Listener {
+public class Utility implements Listener {
 
-    private boolean creeperProtectionEnabled = true;
+    private boolean creeperProtectionEnabled = false;
 
     @EventHandler
     public void Utility(InventoryClickEvent event) {
@@ -49,7 +49,7 @@ public class UtilityListener implements Listener {
             case DROPPER -> openTrashBox(player);
             case NAME_TAG -> {
                 player.sendMessage(ChatColor.YELLOW + "ニックネームを設定するために、チャットで名前を入力してください。");
-                plugin.getChatListener().setWaitingForNickname(player, true);
+                Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
             }
             case CREEPER_HEAD -> {

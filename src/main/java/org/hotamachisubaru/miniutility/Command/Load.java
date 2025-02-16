@@ -6,7 +6,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.hotamachisubaru.miniutility.Listener.ChatListener;
+import org.hotamachisubaru.miniutility.Listener.Chat;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 
 public class Load implements CommandExecutor {
@@ -24,7 +24,7 @@ public class Load implements CommandExecutor {
         } else {
             player.sendMessage(Component.text(ChatColor.GREEN + "データベースからニックネームを読み込みました。"));
         }
-        ChatListener.updateDisplayNamePrefix(player, nickname);
+        Chat.updateDisplayNamePrefix(player, nickname);
         return true;
     }
 }

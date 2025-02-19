@@ -1,5 +1,7 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
+import org.bukkit.ChatColor;
+
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.logging.Logger;
@@ -25,15 +27,17 @@ public class NicknameDatabase {
     }
 
     public static void saveNickname(String uuid, String nickname) {
+        String formattedNickname = ChatColor.translateAlternateColorCodes('&', nickname); // カラーコードを適用
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement stmt = conn.prepareStatement("REPLACE INTO nicknames (uuid, nickname) VALUES (?, ?);")) {
             stmt.setString(1, uuid);
-            stmt.setString(2, nickname);
+            stmt.setString(2, formattedNickname);
             stmt.executeUpdate();
         } catch (SQLException e) {
             logger.severe("ニックネームの保存に失敗しました。");
         }
     }
+
 
     public static String getNickname(String uuid) {
         try (Connection conn = DriverManager.getConnection(DB_URL);

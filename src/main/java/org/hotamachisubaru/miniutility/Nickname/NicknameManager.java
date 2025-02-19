@@ -1,13 +1,14 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.sql.SQLException;
@@ -25,7 +26,7 @@ public class NicknameManager implements Listener {
         applyFormattedDisplayName(player);
     }
 
-    public static String setNickname(Player player, String nickname) throws SQLException {
+    public static void setNickname(Player player, String nickname) throws SQLException {
         if (nickname.trim().isEmpty()) {
             throw new IllegalArgumentException("無効なニックネームです。空白にすることはできません。");
         }
@@ -33,11 +34,9 @@ public class NicknameManager implements Listener {
             throw new IllegalArgumentException("ニックネームは16文字以内にしてください。");
         }
 
-        NicknameManager.setNickname(player, nickname);
-
+        NicknameDatabase.saveNickname(player.getUniqueId().toString(), nickname);
         applyFormattedDisplayName(player);
         player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームが設定されました: " + nickname));
-        return nickname;
     }
 
     public static void applyFormattedDisplayName(Player player) {
@@ -48,8 +47,8 @@ public class NicknameManager implements Listener {
         }
 
         String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
-        player.displayName(Component.text(formattedName));
-        player.playerListName(Component.text(formattedName));
+        player.displayName(LegacyComponentSerializer.legacy('&').deserialize(formattedName));
+        player.playerListName(LegacyComponentSerializer.legacy('&').deserialize(formattedName));
     }
 
     private static String getLuckPermsPrefix(Player player) {
@@ -76,6 +75,7 @@ public class NicknameManager implements Listener {
     public void applyNickname(AsyncChatEvent event) {
         Player player = event.getPlayer();
         event.renderer((sender, displayName, message, viewers) ->
-                Component.text(player.getDisplayName() + ": ").append(message));
+                Component.text(player.displayName() + ": ").append(message));
     }
 }
+

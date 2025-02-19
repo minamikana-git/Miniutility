@@ -1,7 +1,6 @@
 package org.hotamachisubaru.miniutility;
 
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
@@ -39,14 +38,19 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void checkLuckPerms() {
-        if (Bukkit.getPluginManager().getPlugin("LuckPerms") == null) {
-            logger.severe("LuckPermsが見つかりません。pluginsフォルダにあるか確認してください。");
-            getServer().getPluginManager().disablePlugin(this);
+        if (pm.getPlugin("LuckPerms") == null) {
+            logger.warning("LuckPermsが見つかりません。デフォルト設定でPrefixなしで続行します。");
         }
     }
 
     private void migration() {
         try {
+            File migrationFlag = new File(getDataFolder(), "migrationCompleted.flag");
+            if (migrationFlag.exists()) {
+                logger.info("ニックネームの統合は既に完了しています。スキップします。");
+                return;
+            }
+
             File oldFile = new File(getDataFolder(), "nickname.yml");
             if (!oldFile.exists()) {
                 logger.info("統合するデータがありません。");
@@ -68,6 +72,13 @@ public class Miniutility extends JavaPlugin {
                 logger.info("古いnickname.ymlは、nickname.yml.bakとしてバックアップされました。");
             } else {
                 logger.warning("nickname.ymlのバックアップに失敗しました。");
+            }
+
+            // 統合完了フラグを作成
+            if (migrationFlag.createNewFile()) {
+                logger.info("ニックネームの統合が完了し、フラグファイルが作成されました。");
+            } else {
+                logger.warning("フラグファイルの作成に失敗しました。");
             }
         } catch (Exception e) {
             logger.severe("ニックネームの統合に失敗しました: " + e.getMessage());

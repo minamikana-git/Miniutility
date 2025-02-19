@@ -2,6 +2,7 @@ package org.hotamachisubaru.miniutility.Listener;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
@@ -53,28 +54,30 @@ public class Chat implements Listener {
 
         if (waitingForNickname.getOrDefault(playerUUID, false)) {
             event.setCancelled(true);
-            NicknameInput(player, event.message());
+            NicknameInput(player, event.originalMessage());
         } else if (waitingForColorInput.getOrDefault(playerUUID, false)) {
             event.setCancelled(true);
-            ColorInput(player, event.message());
+            ColorInput(player, event.originalMessage());
         }
     }
 
     private void NicknameInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
+        if (message.isEmpty() || message.length() > 16) { // ニックネームの長さチェック
+            player.sendMessage(Component.text(ChatColor.RED + "無効なニックネームです。16文字以内の有効なニックネームを入力してください。"));
+            waitingForNickname.put(player.getUniqueId(), false);
+            return;
+        }
+
         Bukkit.getGlobalRegionScheduler().execute(plugin, () -> {
-            if (!message.isEmpty()) {
-                // ニックネームをデータベースに保存
-                NicknameDatabase.saveNickname(player.getUniqueId().toString(), message);
+            // ニックネームをデータベースに保存
+            NicknameDatabase.saveNickname(player.getUniqueId().toString(), message);
 
-                // 表示名を更新
-                updateDisplayNamePrefix(player, message);
+            // 表示名を更新
+            updateDisplayNamePrefix(player, message);
 
-                player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームを設定しました: " + message));
-            } else {
-                player.sendMessage(Component.text(ChatColor.RED + "無効なニックネームです。"));
-            }
+            player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームを設定しました: " + message));
             waitingForNickname.put(player.getUniqueId(), false);
         });
     }
@@ -82,15 +85,15 @@ public class Chat implements Listener {
     public void ColorInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
-        if (message.isEmpty()) {
-            player.sendMessage(Component.text(ChatColor.RED + "無効な入力です。カラーコードを指定してください。"));
+        if (message.isEmpty() || message.length() > 16) { // 入力のバリデーション
+            player.sendMessage(Component.text(ChatColor.RED + "無効な入力です。有効なカラーコードを16文字以内で指定してください。"));
+            waitingForColorInput.put(player.getUniqueId(), false);
             return;
         }
 
         String coloredName = ChatColor.translateAlternateColorCodes('&', message);
 
         if (!coloredName.equals(ChatColor.stripColor(coloredName))) {
-            // データベースのニックネームに色を適用
             String currentNickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
             if (currentNickname == null || currentNickname.isEmpty()) {
                 currentNickname = player.getName();
@@ -99,7 +102,6 @@ public class Chat implements Listener {
 
             NicknameDatabase.saveNickname(player.getUniqueId().toString(), updatedNickname);
 
-            // 表示名を更新
             updateDisplayNamePrefix(player, updatedNickname);
 
             player.sendMessage(Component.text(ChatColor.GREEN + "名前の色を変更しました！: " + updatedNickname));
@@ -117,12 +119,16 @@ public class Chat implements Listener {
         String prefix = metaData.getPrefix() != null ? metaData.getPrefix() : "";
 
         // Prefixとニックネームを結合
-        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
+        String formattedName = prefix + nickname;
+
+        // レガシーカラーコード対応でComponentに変換
+        Component coloredComponent = LegacyComponentSerializer.legacy('&').deserialize(formattedName);
 
         // 表示名とTabリストの名前を更新
-        player.displayName(Component.text(formattedName));
-        player.playerListName(Component.text(formattedName));
+        player.displayName(coloredComponent);
+        player.playerListName(coloredComponent);
 
-        logger.info("ニックネームが設定されました " + player.getName() + ": " + formattedName);
+        logger.info("ニックネームが更新されました プレイヤー: " + player.getName() + ": " + formattedName);
     }
+
 }

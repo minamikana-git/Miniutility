@@ -24,7 +24,12 @@ public class NicknameChatInput implements Listener {
         if (playersInNicknameInput.contains(player)) {
             event.setCancelled(true);
 
-            String nickname = event.getMessage();
+            String nickname = event.getMessage().trim(); // トリムで余分な空白を除去
+            if (nickname.isEmpty()) {
+                player.sendMessage(Component.text("無効なニックネームです。空白にすることはできません。", NamedTextColor.RED));
+                return;
+            }
+
             if (nickname.length() > 16) {
                 player.sendMessage(Component.text("ニックネームは16文字以内にしてください。", NamedTextColor.RED));
                 return;

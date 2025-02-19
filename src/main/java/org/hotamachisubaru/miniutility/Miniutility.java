@@ -9,7 +9,6 @@ import org.hotamachisubaru.miniutility.Command.Load;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.Chat;
 import org.hotamachisubaru.miniutility.Listener.Utility;
-import org.hotamachisubaru.miniutility.Nickname.NicknameCommand;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
@@ -101,7 +100,7 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void registerCommands() {
-       getCommand("nick").setExecutor(new NicknameCommand(this));
+
        getCommand("menu").setExecutor(new UtilityCommand());
        getCommand("load").setExecutor(new Load());
     }

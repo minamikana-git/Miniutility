@@ -11,9 +11,6 @@ commands:
   menu:
     description: 便利ツールを集めました。
     usage: /menu
-  nick:
-    description: ニックネームを設定します。
-    usage: /nick <nickname>
   load:
     description: データベースからニックネームをロードします。
     usage: /load

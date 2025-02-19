@@ -13,12 +13,15 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.hotamachisubaru.miniutility.GUI.UtilityGUI;
 import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
+import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
 public class Utility implements Listener {
 
     private boolean creeperProtectionEnabled = false;
-
+    
     @EventHandler
     public void Utility(InventoryClickEvent event) {
         if (event.getClickedInventory() == null || event.getCurrentItem() == null) return;
@@ -48,9 +51,7 @@ public class Utility implements Listener {
             case CRAFTING_TABLE -> player.openWorkbench(null, true);
             case DROPPER -> openTrashBox(player);
             case NAME_TAG -> {
-                player.sendMessage(ChatColor.YELLOW + "ニックネームを設定するために、チャットで名前を入力してください。");
-                Chat.setWaitingForNickname(player, true);
-                player.closeInventory();
+               UtilityGUI.openNicknameMenu(player);
             }
             case CREEPER_HEAD -> {
                 creeperProtectionEnabled = !creeperProtectionEnabled; // 切り替え
@@ -121,5 +122,38 @@ public class Utility implements Listener {
             event.blockList().clear(); // クリーパー爆発のブロック破壊のみを防ぐ
         }
     }
+
+    @EventHandler
+    public void setNickname(InventoryClickEvent event) {
+        if (event.getView().title().equals(Component.text("ニックネーム"))) {
+            event.setCancelled(true);
+            Player player = (Player) event.getWhoClicked();
+            ItemStack clickedItem = event.getCurrentItem();
+            if (clickedItem == null || clickedItem.getType().isAir()) return;
+
+            switch (clickedItem.getType()) {
+                case PAPER -> {
+                    // ニックネームを変更
+                    player.sendMessage(ChatColor.YELLOW + "新しいニックネームをチャットに入力してください。");
+                    // チャット入力待機状態にする
+                    Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
+                    Chat.setWaitingForNickname(player, true);
+                    player.closeInventory();
+                }
+                case BARRIER -> {
+                    // ニックネームをリセット
+                    NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
+                    NicknameManager.applyFormattedDisplayName(player);
+                    player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
+                    player.closeInventory();
+                }
+                default -> {
+                    // それ以外は何もしない
+
+                }
+            }
+        }
+    }
+
 }
         

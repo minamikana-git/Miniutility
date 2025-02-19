@@ -5,7 +5,7 @@ api-version: '1.21'
 author: hotamachisubaru
 load: STARTUP
 depend:
-  - LuckPerms
+  - [LuckPerms]
 description: copyright 2024-2025 hotamachisubaru all rights reserved.
 commands:
   menu:

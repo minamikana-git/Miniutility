@@ -1,7 +1,7 @@
 package org.hotamachisubaru.miniutility.Command;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,7 +16,7 @@ public class UtilityCommand implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text(ChatColor.RED + "このコマンドはプレイヤーのみが使用できます。"));
+            sender.sendMessage(Component.text(NamedTextColor.RED + "このコマンドはプレイヤーのみが使用できます。"));
             return true;
         }
 
@@ -33,7 +33,6 @@ public class UtilityCommand implements CommandExecutor, Listener {
             event.setCancelled(true);
 
             if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
-                return;
             }
         }
     }

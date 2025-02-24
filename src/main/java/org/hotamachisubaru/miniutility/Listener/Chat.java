@@ -2,6 +2,7 @@ package org.hotamachisubaru.miniutility.Listener;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.luckperms.api.LuckPermsProvider;
@@ -65,7 +66,7 @@ public class Chat implements Listener {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         if (message.isEmpty() || message.length() > 16) { // ニックネームの長さチェック
-            player.sendMessage(Component.text(ChatColor.RED + "無効なニックネームです。16文字以内の有効なニックネームを入力してください。"));
+            player.sendMessage(Component.text(NamedTextColor.RED + "無効なニックネームです。16文字以内の有効なニックネームを入力してください。"));
             waitingForNickname.put(player.getUniqueId(), false);
             return;
         }
@@ -77,7 +78,7 @@ public class Chat implements Listener {
             // 表示名を更新
             updateDisplayNamePrefix(player, message);
 
-            player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームを設定しました: " + message));
+            player.sendMessage(Component.text(NamedTextColor.GREEN + "ニックネームを設定しました: " + message));
             waitingForNickname.put(player.getUniqueId(), false);
         });
     }
@@ -86,7 +87,7 @@ public class Chat implements Listener {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         if (message.isEmpty() || message.length() > 16) { // 入力のバリデーション
-            player.sendMessage(Component.text(ChatColor.RED + "無効な入力です。有効なカラーコードを16文字以内で指定してください。"));
+            player.sendMessage(Component.text(NamedTextColor.RED + "無効な入力です。有効なカラーコードを16文字以内で指定してください。"));
             waitingForColorInput.put(player.getUniqueId(), false);
             return;
         }
@@ -104,9 +105,9 @@ public class Chat implements Listener {
 
             updateDisplayNamePrefix(player, updatedNickname);
 
-            player.sendMessage(Component.text(ChatColor.GREEN + "名前の色を変更しました！: " + updatedNickname));
+            player.sendMessage(Component.text(NamedTextColor.GREEN + "名前の色を変更しました！: " + updatedNickname));
         } else {
-            player.sendMessage(Component.text(ChatColor.RED + "無効なカラーコードです。例: &6Hello"));
+            player.sendMessage(Component.text(NamedTextColor.RED + "無効なカラーコードです。例: &6Hello"));
         }
 
         waitingForColorInput.put(player.getUniqueId(), false);

@@ -17,6 +17,8 @@ public class UtilityGUI {
         // ユーティリティメニューを作成
         Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("メニュー"));
 
+
+        utilityMenu.setItem(0,createMenuItem(Material.ARMOR_STAND,"死亡地点にワープ","死亡地点にワープします。溺れたり、溶岩遊泳した場合は安全な場所にテレポートします。"));
         //クリーパーのブロック破壊を防ぐ
         utilityMenu.setItem(9, createMenuItem(Material.CREEPER_HEAD, "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 

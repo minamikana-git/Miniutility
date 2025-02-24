@@ -1,9 +1,9 @@
 package org.hotamachisubaru.miniutility.Listener;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Player;
@@ -21,9 +21,12 @@ import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 public class Utility implements Listener {
 
     private boolean creeperProtectionEnabled = false;
-    
+
+    public Utility() {
+    }
+
     @EventHandler
-    public void Utility(InventoryClickEvent event) {
+    public void handleInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null || event.getCurrentItem() == null) return;
 
         Player player = (Player) event.getWhoClicked();
@@ -36,6 +39,7 @@ public class Utility implements Listener {
             case "メニュー" -> handleUtilityBox(player, clickedItem, event);
             case "ゴミ箱" -> handleTrashBox(player, clickedItem, event);
             case "本当に捨てますか？" -> TrashConfirm(player, clickedItem, event);
+            default -> player.sendMessage(NamedTextColor.RED + "無効なインベントリタイトルです。");
         }
     }
 
@@ -47,19 +51,34 @@ public class Utility implements Listener {
 
         // アイテムに応じた動作
         switch (clickedItem.getType()) {
+            case ARMOR_STAND -> {
+                if (player.getLastDeathLocation() != null) {
+                    var deathLocation = player.getLastDeathLocation();
+                    if (deathLocation.getBlock().getType() == Material.WATER || deathLocation.getBlock().getType() == Material.LAVA) {
+                        var safeLocation = deathLocation.add(0, 2, 0); // Teleport to a safe spot above
+                        player.teleportAsync(safeLocation);
+                        player.sendMessage(NamedTextColor.YELLOW + "溺れや溶岩遊泳を避け、安全な場所にワープしました。");
+                    } else {
+                        player.teleportAsync(deathLocation);
+                        player.sendMessage(NamedTextColor.GREEN + "死亡地点にワープしました。");
+                    }
+                } else {
+                    player.sendMessage(NamedTextColor.RED + "死亡地点が見つからないためテレポートできません。");
+                }
+            }
             case ENDER_CHEST -> player.openInventory(player.getEnderChest());
             case CRAFTING_TABLE -> player.openWorkbench(null, true);
             case DROPPER -> openTrashBox(player);
             case NAME_TAG -> {
-               UtilityGUI.openNicknameMenu(player);
+                UtilityGUI.openNicknameMenu(player);
             }
             case CREEPER_HEAD -> {
                 creeperProtectionEnabled = !creeperProtectionEnabled; // 切り替え
                 String status = creeperProtectionEnabled ? "有効" : "無効";
-                player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
+                player.sendMessage(NamedTextColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
                 player.closeInventory();
             }
-            default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
+            default -> player.sendMessage(NamedTextColor.RED + "このアイテムにはアクションが設定されていません。");
         }
     }
 
@@ -96,13 +115,13 @@ public class Utility implements Listener {
         switch (clickedItem.getType()) {
             case GREEN_STAINED_GLASS_PANE -> {
                 player.closeInventory();
-                player.sendMessage(ChatColor.RED + "アイテムを削除しました。");
+                player.sendMessage(NamedTextColor.RED + "アイテムを削除しました。");
             }
             case RED_STAINED_GLASS_PANE -> {
                 player.closeInventory();
-                player.sendMessage(ChatColor.YELLOW + "削除をキャンセルしました。");
+                player.sendMessage(NamedTextColor.YELLOW + "削除をキャンセルしました。");
             }
-            default -> player.sendMessage(ChatColor.RED + "無効な選択です。");
+            default -> player.sendMessage(NamedTextColor.RED + "無効な選択です。");
         }
     }
 
@@ -110,7 +129,7 @@ public class Utility implements Listener {
         ItemStack item = new ItemStack(material);
         var meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(Component.text(ChatColor.YELLOW + name));
+            meta.displayName(Component.text(NamedTextColor.YELLOW + name));
             item.setItemMeta(meta);
         }
         return item;
@@ -125,33 +144,30 @@ public class Utility implements Listener {
 
     @EventHandler
     public void setNickname(InventoryClickEvent event) {
-        if (event.getView().title().equals(Component.text("ニックネーム"))) {
-            event.setCancelled(true);
-            Player player = (Player) event.getWhoClicked();
-            ItemStack clickedItem = event.getCurrentItem();
-            if (clickedItem == null || clickedItem.getType().isAir()) return;
+        if (!PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("ニックネーム")) return;
 
-            switch (clickedItem.getType()) {
-                case PAPER -> {
-                    // ニックネームを変更
-                    player.sendMessage(ChatColor.YELLOW + "新しいニックネームをチャットに入力してください。");
-                    // チャット入力待機状態にする
-                    Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
-                    Chat.setWaitingForNickname(player, true);
-                    player.closeInventory();
-                }
-                case BARRIER -> {
-                    // ニックネームをリセット
-                    NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
-                    NicknameManager.applyFormattedDisplayName(player);
-                    player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
-                    player.closeInventory();
-                }
-                default -> {
-                    // それ以外は何もしない
+        event.setCancelled(true);
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clickedItem = event.getCurrentItem();
 
-                }
+        if (clickedItem == null || clickedItem.getType().isAir()) return;
+
+        switch (clickedItem.getType()) {
+            case PAPER -> {
+                // ニックネームを変更
+                player.sendMessage(NamedTextColor.YELLOW + "新しいニックネームをチャットに入力してください。");
+                // チャット入力待機状態にする
+                Chat.setWaitingForNickname(player, true);
+                player.closeInventory();
             }
+            case BARRIER -> {
+                // ニックネームをリセット
+                NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
+                NicknameManager.applyFormattedDisplayName(player);
+                player.sendMessage(NamedTextColor.GREEN + "ニックネームをリセットしました。");
+                player.closeInventory();
+            }
+            default -> player.sendMessage(NamedTextColor.RED + "無効な選択です。");
         }
     }
 

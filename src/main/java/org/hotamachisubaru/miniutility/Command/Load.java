@@ -13,16 +13,16 @@ public class Load implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String string, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text(NamedTextColor.RED + "このコマンドはプレイヤーのみ実行出来ます。"));
+            sender.sendMessage(Component.text("このコマンドはプレイヤーのみ実行出来ます。").color(NamedTextColor.RED));
             return true;
         }
 
         String nickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
         if (nickname == null || nickname.isEmpty()) {
             nickname = player.getName();
-            player.sendMessage(Component.text(NamedTextColor.YELLOW + "ニックネームが設定されていないため、プレイヤー名を使用します。"));
+            player.sendMessage(Component.text("ニックネームが設定されていないため、プレイヤー名を使用します。").color(NamedTextColor.YELLOW));
         } else {
-            player.sendMessage(Component.text(NamedTextColor.GREEN + "データベースからニックネームを読み込みました。"));
+            player.sendMessage(Component.text("データベースからニックネームを読み込みました。").color(NamedTextColor.GREEN));
         }
         Chat.updateDisplayNamePrefix(player, nickname);
         return true;

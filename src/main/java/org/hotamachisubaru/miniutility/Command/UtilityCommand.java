@@ -16,7 +16,7 @@ public class UtilityCommand implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text(NamedTextColor.RED + "このコマンドはプレイヤーのみが使用できます。"));
+            sender.sendMessage(Component.text("このコマンドはプレイヤーのみが使用できます。").color(NamedTextColor.RED));
             return true;
         }
 

@@ -4,7 +4,7 @@ main: org.hotamachisubaru.miniutility.Miniutility
 api-version: '1.21'
 author: hotamachisubaru
 load: STARTUP
-depend:
+softdepend:
   - LuckPerms
 description: copyright 2024-2025 hotamachisubaru all rights reserved.
 commands:

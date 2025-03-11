@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 public class NicknameMigration {
-
     private final File yamlFile;
     private final String dbPath;
     private final Logger logger;
@@ -56,7 +55,7 @@ public class NicknameMigration {
             }
         } catch (SQLException e) {
             logger.severe("データベースへのニックネームの統合に失敗しました: " + e.getMessage());
-            e.printStackTrace();
+
         }
     }
 }

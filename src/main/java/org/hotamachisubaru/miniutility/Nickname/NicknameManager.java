@@ -2,6 +2,7 @@ package org.hotamachisubaru.miniutility.Nickname;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
@@ -12,6 +13,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,6 +22,16 @@ import java.util.regex.Pattern;
 public class NicknameManager implements Listener {
 
     private static final Logger logger = Logger.getLogger("Miniutility");
+
+    private static final Map<Player, Boolean> waitingForNickname = new HashMap<>();
+
+    public static void setWaitingForNickname(Player player, boolean b) {
+        if (b) {
+            waitingForNickname.put(player, true);
+        } else {
+            waitingForNickname.remove(player);
+        }
+    }
 
     @EventHandler
     public void loadNickname(PlayerJoinEvent event) {
@@ -36,7 +49,7 @@ public class NicknameManager implements Listener {
 
         NicknameDatabase.saveNickname(player.getUniqueId().toString(), nickname);
         applyFormattedDisplayName(player);
-        player.sendMessage(Component.text(ChatColor.GREEN + "ニックネームが設定されました: " + nickname));
+        player.sendMessage(Component.text("ニックネームが設定されました: " + nickname, NamedTextColor.GREEN));
     }
 
     public static void applyFormattedDisplayName(Player player) {

@@ -33,15 +33,23 @@ public class Chat implements Listener {
     }
 
     public static void setWaitingForNickname(Player player, boolean waiting) {
-        waitingForNickname.put(player.getUniqueId(), waiting);
+        if (waiting) {
+            waitingForNickname.put(player.getUniqueId(), true);
+        } else {
+            waitingForNickname.remove(player.getUniqueId());
+        }
+    }
+
+    public static boolean isWaitingForNickname(Player player) {
+        return waitingForNickname.getOrDefault(player.getUniqueId(), false);
     }
 
     public static void setWaitingForColorInput(Player player, boolean waiting) {
-        waitingForColorInput.put(player.getUniqueId(), waiting);
-    }
-
-    public boolean isWaitingForNickname(Player player) {
-        return waitingForNickname.getOrDefault(player.getUniqueId(), false);
+        if (waiting) {
+            waitingForColorInput.put(player.getUniqueId(), true);
+        } else {
+            waitingForColorInput.remove(player.getUniqueId());
+        }
     }
 
     public boolean isWaitingForColorInput(Player player) {
@@ -53,10 +61,10 @@ public class Chat implements Listener {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
-        if (waitingForNickname.getOrDefault(playerUUID, false)) {
+        if (isWaitingForNickname(player)) {
             event.setCancelled(true);
             NicknameInput(player, event.originalMessage());
-        } else if (waitingForColorInput.getOrDefault(playerUUID, false)) {
+        } else if (isWaitingForColorInput(player)) {
             event.setCancelled(true);
             ColorInput(player, event.originalMessage());
         }
@@ -66,20 +74,22 @@ public class Chat implements Listener {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         if (message.isEmpty() || message.length() > 16) { // ニックネームの長さチェック
-            player.sendMessage(Component.text(NamedTextColor.RED + "無効なニックネームです。16文字以内の有効なニックネームを入力してください。"));
-            waitingForNickname.put(player.getUniqueId(), false);
+            player.sendMessage(Component.text("無効なニックネームです。16文字以内の有効なニックネームを入力してください。").color(NamedTextColor.RED));
+            setWaitingForNickname(player, false);
             return;
         }
 
-        Bukkit.getGlobalRegionScheduler().execute(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             // ニックネームをデータベースに保存
             NicknameDatabase.saveNickname(player.getUniqueId().toString(), message);
 
             // 表示名を更新
             updateDisplayNamePrefix(player, message);
 
-            player.sendMessage(Component.text(NamedTextColor.GREEN + "ニックネームを設定しました: " + message));
-            waitingForNickname.put(player.getUniqueId(), false);
+            player.sendMessage(Component.text("ニックネームを設定しました: ").color(NamedTextColor.GREEN)
+                    .append(Component.text(message).color(NamedTextColor.AQUA)));
+
+            setWaitingForNickname(player, false);
         });
     }
 
@@ -87,8 +97,8 @@ public class Chat implements Listener {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
 
         if (message.isEmpty() || message.length() > 16) { // 入力のバリデーション
-            player.sendMessage(Component.text(NamedTextColor.RED + "無効な入力です。有効なカラーコードを16文字以内で指定してください。"));
-            waitingForColorInput.put(player.getUniqueId(), false);
+            player.sendMessage(Component.text("無効な入力です。有効なカラーコードを16文字以内で指定してください。").color(NamedTextColor.RED));
+            setWaitingForColorInput(player, false);
             return;
         }
 
@@ -99,37 +109,35 @@ public class Chat implements Listener {
             if (currentNickname == null || currentNickname.isEmpty()) {
                 currentNickname = player.getName();
             }
+
             String updatedNickname = coloredName;
-
             NicknameDatabase.saveNickname(player.getUniqueId().toString(), updatedNickname);
-
             updateDisplayNamePrefix(player, updatedNickname);
 
-            player.sendMessage(Component.text(NamedTextColor.GREEN + "名前の色を変更しました！: " + updatedNickname));
+            player.sendMessage(Component.text("名前の色を変更しました！: ").color(NamedTextColor.GREEN)
+                    .append(Component.text(updatedNickname).color(NamedTextColor.AQUA)));
         } else {
-            player.sendMessage(Component.text(NamedTextColor.RED + "無効なカラーコードです。例: &6Hello"));
+            player.sendMessage(Component.text("無効なカラーコードです。例: &6 設定したいニックネーム").color(NamedTextColor.RED));
         }
 
-        waitingForColorInput.put(player.getUniqueId(), false);
+        setWaitingForColorInput(player, false);
     }
 
     public static void updateDisplayNamePrefix(Player player, String nickname) {
         CachedMetaData metaData = LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
-
-        // LuckPermsのPrefixを取得
         String prefix = metaData.getPrefix() != null ? metaData.getPrefix() : "";
 
-        // Prefixとニックネームを結合
-        String formattedName = prefix + nickname;
+        // プレフィックス + ニックネームを正しくカラー適用
+        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
 
-        // レガシーカラーコード対応でComponentに変換
-        Component coloredComponent = LegacyComponentSerializer.legacy('&').deserialize(formattedName);
+        // LegacyComponentSerializer を適用
+        Component formattedComponent = LegacyComponentSerializer.legacy('&').deserialize(formattedName);
 
-        // 表示名とTabリストの名前を更新
-        player.displayName(coloredComponent);
-        player.playerListName(coloredComponent);
+        // プレイヤーの表示名を適用
+        player.displayName(formattedComponent);
+        player.playerListName(formattedComponent);
 
-        logger.info("ニックネームが更新されました プレイヤー: " + player.getName() + ": " + formattedName);
+        // デバッグログを適切に変更
+        logger.info("ニックネーム更新: " + ChatColor.stripColor(formattedName));
     }
-
 }

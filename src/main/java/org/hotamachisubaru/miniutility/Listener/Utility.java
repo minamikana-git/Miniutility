@@ -4,12 +4,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -18,67 +17,143 @@ import org.hotamachisubaru.miniutility.Miniutility;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 public class Utility implements Listener {
 
-    private boolean creeperProtectionEnabled = false;
-
-    public Utility() {
-    }
+    private final boolean creeperProtectionEnabled = false;
+    private static final Set<UUID> recentlyTeleported = new HashSet<>();
 
     @EventHandler
     public void handleInventoryClick(InventoryClickEvent event) {
-        if (event.getClickedInventory() == null || event.getCurrentItem() == null) return;
-
         Player player = (Player) event.getWhoClicked();
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
+
+        if (event.getClickedInventory() == null) return;
+
+        // **ゴミ箱ではアイテム移動を許可**
+        if (title.equalsIgnoreCase("ゴミ箱")) {
+            event.setCancelled(false);
+            return;
+        }
+
+        // **プレイヤーのインベントリでアイテム移動を許可**
+        if (event.getClickedInventory().equals(player.getInventory())) {
+            event.setCancelled(false);
+            return;
+        }
+
+        // **それ以外のケースではキャンセル**
+        event.setCancelled(true);
+
         ItemStack clickedItem = event.getCurrentItem();
+        if (clickedItem == null || clickedItem.getType().isAir()) return;
 
-        // インベントリタイトルを取得
-        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        switch (title.toLowerCase()) {
 
-        switch (title) {
-            case "メニュー" -> handleUtilityBox(player, clickedItem, event);
-            case "ゴミ箱" -> handleTrashBox(player, clickedItem, event);
-            case "本当に捨てますか？" -> TrashConfirm(player, clickedItem, event);
-            default -> player.sendMessage(NamedTextColor.RED + "無効なインベントリタイトルです。");
+            case "メニュー" -> {
+                handleUtilityBox(player, clickedItem, event);
+            }
+
+            case "ゴミ箱" -> {
+                handleTrashBox(player, clickedItem, event);
+            }
+
+            case "本当に捨てますか？" -> {
+                TrashConfirm(player, clickedItem, event);
+            }
+
+            case "ニックネームを変更" -> {
+                handleNicknameMenu(player, clickedItem, event);
+            }
+
+        }
+    }
+
+    private void handleNicknameMenu(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+        event.setCancelled(true);
+
+        if (clickedItem == null || clickedItem.getType().isAir()) return;
+
+        switch (clickedItem.getType()) {
+            case PAPER -> {
+                player.sendMessage(Component.text("新しいニックネームをチャットに入力してください。").color(NamedTextColor.AQUA));
+                Chat.setWaitingForNickname(player, true);
+                player.closeInventory();
+            }
+            case BARRIER -> {
+                NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
+                NicknameManager.applyFormattedDisplayName(player);
+                player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
+                player.closeInventory();
+            }
+            default -> player.sendMessage(Component.text("無効な選択です。").color(NamedTextColor.RED));
         }
     }
 
     private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        event.setCancelled(true); // アイテムの移動を防ぐ
+        event.setCancelled(true);
         if (clickedItem == null || clickedItem.getType().isAir()) return;
 
         Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
 
-        // アイテムに応じた動作
         switch (clickedItem.getType()) {
             case ARMOR_STAND -> {
-                if (player.getLastDeathLocation() != null) {
-                    var deathLocation = player.getLastDeathLocation();
-                    if (deathLocation.getBlock().getType() == Material.WATER || deathLocation.getBlock().getType() == Material.LAVA) {
-                        var safeLocation = deathLocation.add(0, 2, 0); // Teleport to a safe spot above
-                        player.teleportAsync(safeLocation);
-                        player.sendMessage(NamedTextColor.YELLOW + "溺れや溶岩遊泳を避け、安全な場所にワープしました。");
-                    } else {
-                        player.teleportAsync(deathLocation);
-                        player.sendMessage(NamedTextColor.GREEN + "死亡地点にワープしました。");
-                    }
-                } else {
-                    player.sendMessage(NamedTextColor.RED + "死亡地点が見つからないためテレポートできません。");
-                }
+                // 死亡地点へワープ
+                teleportToDeathLocation(player);
             }
-            case ENDER_CHEST -> player.openInventory(player.getEnderChest());
-            case CRAFTING_TABLE -> player.openWorkbench(null, true);
-            case DROPPER -> openTrashBox(player);
+            case ENDER_CHEST -> {
+                // エンダーチェストを開く
+                player.openInventory(player.getEnderChest());
+            }
+            case CRAFTING_TABLE -> {
+                // 作業台を開く
+                player.openWorkbench(null, true);
+            }
+            case DROPPER -> {
+                // ゴミ箱を開く
+                openTrashBox(player);
+            }
             case NAME_TAG -> {
+                // ニックネーム変更GUIを開く
                 UtilityGUI.openNicknameMenu(player);
             }
             case CREEPER_HEAD -> {
-                creeperProtectionEnabled = !creeperProtectionEnabled; // 切り替え
-                String status = creeperProtectionEnabled ? "有効" : "無効";
-                player.sendMessage(NamedTextColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
+
+                CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
+
+                // クリーパーの爆破防止をトグルする
+                creeperProtection.toggleCreeperProtection();
+                String status = creeperProtection.isCreeperProtectionEnabled() ? "有効" : "無効";
+                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }
-            default -> player.sendMessage(NamedTextColor.RED + "このアイテムにはアクションが設定されていません。");
+
+// `default` の処理を削除
+
+        }
+    }
+
+    public static void teleportToDeathLocation(Player player) {
+        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
+        if (plugin == null) {
+            player.sendMessage(Component.text("プラグインが読み込まれていません。").color(NamedTextColor.RED));
+            return;
+        }
+
+        var deathLocation = plugin.getDeathLocation(player.getUniqueId());
+        if (deathLocation == null) {
+            player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
+            return;
+        }
+
+        player.teleport((Location) deathLocation);
+        if (!recentlyTeleported.contains(player.getUniqueId())) {
+            player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
+            recentlyTeleported.add(player.getUniqueId());
+            Bukkit.getScheduler().runTaskLater(plugin, () -> recentlyTeleported.remove(player.getUniqueId()), 20L);
         }
     }
 
@@ -90,18 +165,20 @@ public class Utility implements Listener {
     }
 
     private void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        if (event.getRawSlot() < event.getClickedInventory().getSize()) {
-            if (clickedItem != null && clickedItem.getType() != Material.GREEN_STAINED_GLASS_PANE) {
-                return; // ゴミ箱に移動を許可
-            }
-        }
+        // ゴミ箱のタイトルが一致しない場合は処理しない
+        if (!PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("ゴミ箱")) return;
 
-        if (event.getRawSlot() == 53 && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
-            Confirm(player);
+        int clickedSlot = event.getRawSlot();
+        if (clickedSlot == 53 && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
+            event.setCancelled(true);
+            confirm(player);
+        } else {
+            event.setCancelled(false); // 通常のスロットはアイテム移動を許可
         }
     }
 
-    private void Confirm(Player player) {
+
+    private void confirm(Player player) {
         Inventory confirmInventory = Bukkit.createInventory(player, 27, Component.text("本当に捨てますか？"));
         confirmInventory.setItem(11, createMenuItem(Material.GREEN_STAINED_GLASS_PANE, "はい"));
         confirmInventory.setItem(15, createMenuItem(Material.RED_STAINED_GLASS_PANE, "いいえ"));
@@ -113,15 +190,17 @@ public class Utility implements Listener {
         if (clickedItem == null) return;
 
         switch (clickedItem.getType()) {
-            case GREEN_STAINED_GLASS_PANE -> {
+            case LIME_CONCRETE -> {
                 player.closeInventory();
-                player.sendMessage(NamedTextColor.RED + "アイテムを削除しました。");
+                // ここで削除メッセージを送らない
             }
-            case RED_STAINED_GLASS_PANE -> {
+            case RED_CONCRETE -> {
                 player.closeInventory();
-                player.sendMessage(NamedTextColor.YELLOW + "削除をキャンセルしました。");
+                player.sendMessage(Component.text("削除をキャンセルしました").color(NamedTextColor.YELLOW));
             }
-            default -> player.sendMessage(NamedTextColor.RED + "無効な選択です。");
+            default -> {
+                player.sendMessage(Component.text("無効な選択です。").color(NamedTextColor.RED));
+            }
         }
     }
 
@@ -129,47 +208,10 @@ public class Utility implements Listener {
         ItemStack item = new ItemStack(material);
         var meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(Component.text(NamedTextColor.YELLOW + name));
+            meta.displayName(Component.text(name).color(NamedTextColor.YELLOW));
             item.setItemMeta(meta);
         }
         return item;
     }
-
-    @EventHandler
-    public void CreeperExplodeCancel(EntityExplodeEvent event) {
-        if (creeperProtectionEnabled && event.getEntity() instanceof Creeper) {
-            event.blockList().clear(); // クリーパー爆発のブロック破壊のみを防ぐ
-        }
-    }
-
-    @EventHandler
-    public void setNickname(InventoryClickEvent event) {
-        if (!PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("ニックネーム")) return;
-
-        event.setCancelled(true);
-        Player player = (Player) event.getWhoClicked();
-        ItemStack clickedItem = event.getCurrentItem();
-
-        if (clickedItem == null || clickedItem.getType().isAir()) return;
-
-        switch (clickedItem.getType()) {
-            case PAPER -> {
-                // ニックネームを変更
-                player.sendMessage(NamedTextColor.YELLOW + "新しいニックネームをチャットに入力してください。");
-                // チャット入力待機状態にする
-                Chat.setWaitingForNickname(player, true);
-                player.closeInventory();
-            }
-            case BARRIER -> {
-                // ニックネームをリセット
-                NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
-                NicknameManager.applyFormattedDisplayName(player);
-                player.sendMessage(NamedTextColor.GREEN + "ニックネームをリセットしました。");
-                player.closeInventory();
-            }
-            default -> player.sendMessage(NamedTextColor.RED + "無効な選択です。");
-        }
-    }
-
 }
         

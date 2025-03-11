@@ -7,12 +7,13 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.Load;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
-import org.hotamachisubaru.miniutility.Listener.Chat;
-import org.hotamachisubaru.miniutility.Listener.Utility;
+import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 public class Miniutility extends JavaPlugin {
@@ -20,11 +21,13 @@ public class Miniutility extends JavaPlugin {
     private NicknameManager nicknameManager;
     private final Logger logger = getLogger();
     private final PluginManager pm = getServer().getPluginManager();
+    private CreeperProtectionListener creeperProtectionListener;
 
     @Override
     public void onEnable() {
         chatListener = new Chat(this); // チャットリスナー
         nicknameManager = new NicknameManager(); // ニックネーム管理
+        creeperProtectionListener = new CreeperProtectionListener();
         saveResource("nickname.db", false); // デフォルトリソースを保存
         saveDefaultConfig(); // config.ymlの作成
         checkLuckPerms(); // LuckPermsがあるかチェック
@@ -32,7 +35,7 @@ public class Miniutility extends JavaPlugin {
         migration(); // データ移行処理を実行
         setupDatabase(); // データベースセットアップ
         registerCommands(); // コマンド登録
-        logger.info("copyright 2024 hotamachisubaru all rights reserved.");
+        logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
     }
 
@@ -46,7 +49,7 @@ public class Miniutility extends JavaPlugin {
         try {
             File migrationFlag = new File(getDataFolder(), "migrationCompleted.flag");
             if (migrationFlag.exists()) {
-                logger.info("ニックネームの統合は既に完了しています。スキップします。");
+                logger.warning("ニックネームの統合は既に完了しています。スキップします。");
                 return;
             }
 
@@ -70,7 +73,7 @@ public class Miniutility extends JavaPlugin {
             if (oldFile.renameTo(new File(getDataFolder(), "nickname.yml.bak"))) {
                 logger.info("古いnickname.ymlは、nickname.yml.bakとしてバックアップされました。");
             } else {
-                logger.warning("nickname.ymlのバックアップに失敗しました。");
+                logger.severe("nickname.ymlのバックアップに失敗しました。");
             }
 
             // 統合完了フラグを作成
@@ -100,14 +103,18 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void registerCommands() {
-       getCommand("menu").setExecutor(new UtilityCommand());
-       getCommand("load").setExecutor(new Load());
+        getCommand("menu").setExecutor(new UtilityCommand());
+        getCommand("load").setExecutor(new Load());
     }
 
     private void registerListeners() {
         pm.registerEvents(new Chat(this), this);
+        pm.registerEvents(new CreeperProtectionListener(), this);
+        pm.registerEvents(new Menu(), this);
+        pm.registerEvents(new NicknameClickListener(), this);
+        pm.registerEvents(new TrashClickListener(this), this);
         pm.registerEvents(new Utility(), this);
-        pm.registerEvents(nicknameManager, this);
+        pm.registerEvents(new NicknameManager(), this);
     }
 
     public NicknameManager getNicknameManager() {
@@ -116,5 +123,20 @@ public class Miniutility extends JavaPlugin {
 
     public Chat getChatListener() {
         return chatListener;
+    }
+
+    @Override
+    public void onDisable() {
+        logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
+        logger.info("developed by hotamachisubaru");
+    }
+
+    public CreeperProtectionListener getCreeperProtectionListener() {
+        return creeperProtectionListener;
+    }
+
+    public Object getDeathLocation(@NotNull UUID uniqueId) {
+        // Simulating death location retrieval (replace with actual implementation as needed)
+        return getServer().getOfflinePlayer(uniqueId).getLastDeathLocation();
     }
 }

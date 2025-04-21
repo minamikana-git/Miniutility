@@ -23,6 +23,7 @@ public class Miniutility extends JavaPlugin {
     private final PluginManager pm = getServer().getPluginManager();
     private CreeperProtectionListener creeperProtectionListener;
 
+
     @Override
     public void onEnable() {
         chatListener = new Chat(this); // チャットリスナー
@@ -105,6 +106,7 @@ public class Miniutility extends JavaPlugin {
     private void registerCommands() {
         getCommand("menu").setExecutor(new UtilityCommand());
         getCommand("load").setExecutor(new Load());
+
     }
 
     private void registerListeners() {
@@ -115,6 +117,7 @@ public class Miniutility extends JavaPlugin {
         pm.registerEvents(new TrashClickListener(this), this);
         pm.registerEvents(new Utility(), this);
         pm.registerEvents(new NicknameManager(), this);
+
     }
 
     public NicknameManager getNicknameManager() {
@@ -134,6 +137,8 @@ public class Miniutility extends JavaPlugin {
     public CreeperProtectionListener getCreeperProtectionListener() {
         return creeperProtectionListener;
     }
+
+
 
     public Object getDeathLocation(@NotNull UUID uniqueId) {
         // Simulating death location retrieval (replace with actual implementation as needed)

@@ -36,6 +36,9 @@ public class UtilityGUI {
         // 作業台アイテム
         utilityMenu.setItem(17, createMenuItem(Material.CRAFTING_TABLE, "どこでも作業台", "クリックして作業台を開く"));
 
+        // メンテナンス機能
+        utilityMenu.setItem(5,createMenuItem(Material.PAPER,"オペレーションモード","デバッグモードに入ります。管理者専用。"));
+
         // プレイヤーにメニューを開かせる
         player.openInventory(utilityMenu);
     }

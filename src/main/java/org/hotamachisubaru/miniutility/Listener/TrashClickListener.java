@@ -36,23 +36,25 @@ public class TrashClickListener implements Listener {
      * ゴミ箱インベントリ内のクリックイベントを処理します。
      * 「ゴミ箱」インベントリでは、通常のアイテム移動を許可し、削除ボタンのみを制限します。
      */
+
+
     @EventHandler
     public void onTrashBoxClick(InventoryClickEvent event) {
-        if (!PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("ゴミ箱")) return;
-        if (event.getClickedInventory() == null) return;
-
-        Player player = (Player) event.getWhoClicked();
-        ItemStack clickedItem = event.getCurrentItem();
-
-        if (clickedItem == null || clickedItem.getType().isAir()) return;
-
-        if (event.getSlot() == 53 && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
-            event.setCancelled(true);
-            UtilityGUI.openTrashConfirm(player);
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (title.equals("ゴミ箱")) {
+            // ゴミ箱インベントリ内でのみキャンセル
+            if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.GREEN_STAINED_GLASS_PANE) {
+                event.setCancelled(true);
+                UtilityGUI.openTrashConfirm((Player) event.getWhoClicked());
+            } else {
+                event.setCancelled(false);  // 他のアイテムは移動可能
+            }
         } else {
-            event.setCancelled(false);
+            event.setCancelled(false);  // 他のインベントリではキャンセルしない
         }
     }
+
+
 
 
     /**
@@ -62,10 +64,10 @@ public class TrashClickListener implements Listener {
 
     @EventHandler
     public void onTrashConfirm(InventoryClickEvent event) {
-        event.setCancelled(true); // **イベントのキャンセルを最初に実行**
-
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (!title.equalsIgnoreCase("本当に捨てますか？")) return;
+
+        event.setCancelled(true);
 
         Player player = (Player) event.getWhoClicked();
         ItemStack clickedItem = event.getCurrentItem();

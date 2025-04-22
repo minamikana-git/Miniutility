@@ -33,41 +33,40 @@ public class Miniutility extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // --- 0. 起動ログ ---
-        logger.info("Enabling Miniutility v" + getDescription().getVersion());
-
-        // --- 1. nickname.db を初回のみ保存 ---
-        File dbFile = new File(getDataFolder(), "nickname.db");
+        // --- 1. リソースと設定 ---
+        File dbFile = new File(getDataFolder(),"nickname.db");
         if (!dbFile.exists()) {
             saveResource("nickname.db", false);
-            logger.info("デフォルト nickname.db を保存しました。");
+        } else {
+            logger.info("nickname.dbが既に存在するため、保存をスキップします。");
         }
-
-        // --- 2. コンフィグと依存チェック ---
         saveDefaultConfig();
+        // --- 2. 依存チェック ---
         checkLuckPerms();
-
-        // --- 3. マイグレーション処理 ---
-        migration();
-
-        // --- 4. データベースセットアップ ---
+        // --- 3. データベースセットアップ（テーブル作成は一度だけ） ---
         setupDatabase();
-
-        // --- 5. リスナー登録 ---
+        // --- 4. マイグレーション処理 ---
+        migration();
+        // --- 5. インスタンス生成 ---
+        chatListener = new Chat(this);
+        creeperProtectionListener = new CreeperProtectionListener();
+        nicknameManager = new NicknameManager();
+        // --- 6. リスナー登録 ---
         registerListeners();
-
-        // --- 6. コマンド登録 ---
+        // --- 7. コマンド登録 ---
         registerCommands();
-
-        // --- 7. アップデートチェック（非同期） ---
+        // --- 8. アップデートチェック（非同期のみ） ---
         Bukkit.getScheduler().runTaskAsynchronously(this, this::checkUpdates);
-
-        // --- 8. 開発者情報 ---
+        // --- 9. 開発者情報 ---
         logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
     }
 
-    /** GitHub リリースから最新バージョンを取得し、OP に通知します */
+    @Override
+    public void onDisable() {
+        logger.info("Miniutility を無効化しました。");
+    }
+
     private void checkUpdates() {
         String owner = "minamikana-git";
         String repo  = "Miniutility";
@@ -100,22 +99,18 @@ public class Miniutility extends JavaPlugin {
                         if (p.isOp()) p.sendMessage(msg);
                     }
                 });
-            } else {
-                logger.fine("Miniutility は最新バージョン(" + currentVersion + ")です。");
             }
         } catch (IOException | InterruptedException e) {
             logger.warning("アップデートチェック中にエラー: " + e.getMessage());
         }
     }
 
-    /** LuckPerms の有無を確認し、なければ警告ログを出します */
     private void checkLuckPerms() {
         if (pm.getPlugin("LuckPerms") == null) {
-            logger.warning("LuckPermsが見つかりません。デフォルト設定でPrefixなしで続行します。");
+            logger.warning("LuckPermsが見つかりません。Prefixなしで続行します。");
         }
     }
 
-    /** 古い nickname.yml から DB へのマイグレーションを行い、完全済みなら以降スキップ */
     private void migration() {
         File flag = new File(getDataFolder(), "migrationCompleted.flag");
         if (flag.exists()) return;
@@ -125,13 +120,10 @@ public class Miniutility extends JavaPlugin {
 
         try {
             YamlConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldFile);
-            NicknameDatabase database = new NicknameDatabase(getDataFolder().getAbsolutePath());
+            NicknameDatabase db = new NicknameDatabase(getDataFolder().getAbsolutePath());
             for (String key : oldConfig.getKeys(false)) {
                 String name = oldConfig.getString(key);
-                if (name != null) {
-                    NicknameDatabase.saveNickname(key, name);
-                    logger.info("ニックネーム移行: " + key);
-                }
+                if (name != null) NicknameDatabase.saveNickname(key, name);
             }
             oldFile.renameTo(new File(getDataFolder(), "nickname.yml.bak"));
             flag.createNewFile();
@@ -140,37 +132,29 @@ public class Miniutility extends JavaPlugin {
         }
     }
 
-    /** SQLite DB を初期化し、テーブルを作成します */
     private void setupDatabase() {
         try {
             NicknameDatabase db = new NicknameDatabase(getDataFolder().getAbsolutePath());
             db.setupDatabase();
-            logger.info("データベースの設定が完了しました。");
+            logger.info("[Database] データベースの設定が完了しました。");
         } catch (Exception e) {
             logger.severe("データベースセットアップ失敗: " + e.getMessage());
         }
     }
 
-    /** リスナーをまとめて登録 */
     private void registerListeners() {
-        pm.registerEvents(chatListener = new Chat(this), this);
-        pm.registerEvents(creeperProtectionListener = new CreeperProtectionListener(), this);
+        pm.registerEvents(chatListener, this);
+        pm.registerEvents(creeperProtectionListener, this);
         pm.registerEvents(new Menu(), this);
         pm.registerEvents(new NicknameClickListener(), this);
         pm.registerEvents(new TrashClickListener(this), this);
         pm.registerEvents(new Utility(), this);
-        pm.registerEvents(new NicknameManager(), this);
+        pm.registerEvents(nicknameManager, this);
     }
 
-    /** コマンドを登録 */
     private void registerCommands() {
         getCommand("menu").setExecutor(new UtilityCommand());
         getCommand("load").setExecutor(new Load());
-    }
-
-    @Override
-    public void onDisable() {
-        logger.info("Miniutility を無効化しました。");
     }
 
     public CreeperProtectionListener getCreeperProtectionListener() {

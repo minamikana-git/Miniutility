@@ -129,7 +129,7 @@ public class Utility implements Listener {
                 player.closeInventory();
             }
 
-// `default` の処理を削除
+
 
         }
     }

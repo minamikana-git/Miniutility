@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -26,51 +27,48 @@ public class Utility implements Listener {
     private final boolean creeperProtectionEnabled = false;
     private static final Set<UUID> recentlyTeleported = new HashSet<>();
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void handleInventoryClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
-        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
-
         if (event.getClickedInventory() == null) return;
 
-        // **ゴミ箱ではアイテム移動を許可**
-        if (title.equalsIgnoreCase("ゴミ箱")) {
-            event.setCancelled(false);
+        // プレイヤー以外は無視
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        // 表示タイトルを取得
+        String title = PlainTextComponentSerializer.plainText()
+                .serialize(event.getView().title()).trim();
+
+        // ★ここで自作 GUI タイトル以外は何もしない★
+        // 「メニュー」「ゴミ箱」「本当に捨てますか？」「ニックネームを変更」
+        if (!title.equals("メニュー")
+                && !title.equals("ゴミ箱")
+                && !title.equals("本当に捨てますか？")
+                && !title.equals("ニックネームを変更")) {
+            // チェストやエンダーチェストなどは何もせず、通常の動作のまま
             return;
         }
 
-        // **プレイヤーのインベントリでアイテム移動を許可**
-        if (event.getClickedInventory().equals(player.getInventory())) {
-            event.setCancelled(false);
+        // 以下、自作 GUI 内のクリック処理
+        // ——————
+        // ゴミ箱はアイテム移動を許可するだけ
+        if (title.equals("ゴミ箱")) {
+            // event.setCancelled(false) はデフォルトなので不要
             return;
         }
 
-        // **それ以外のケースではキャンセル**
+        // その他の自作 GUI はクリックごと完全キャンセルしてからハンドラへ流す
         event.setCancelled(true);
 
-        ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null || clickedItem.getType().isAir()) return;
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getType().isAir()) return;
 
-        switch (title.toLowerCase()) {
-
-            case "メニュー" -> {
-                handleUtilityBox(player, clickedItem, event);
-            }
-
-            case "ゴミ箱" -> {
-                handleTrashBox(player, clickedItem, event);
-            }
-
-            case "本当に捨てますか？" -> {
-                TrashConfirm(player, clickedItem, event);
-            }
-
-            case "ニックネームを変更" -> {
-                handleNicknameMenu(player, clickedItem, event);
-            }
-
+        switch (title) {
+            case "メニュー" -> handleUtilityBox(player, clicked, event);
+            case "本当に捨てますか？" -> TrashConfirm(player, clicked, event);
+            case "ニックネームを変更" -> handleNicknameMenu(player, clicked, event);
         }
     }
+
 
     private void handleNicknameMenu(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         event.setCancelled(true);

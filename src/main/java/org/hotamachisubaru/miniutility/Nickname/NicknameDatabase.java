@@ -1,4 +1,3 @@
-
 package org.hotamachisubaru.miniutility.Nickname;
 
 import org.bukkit.ChatColor;
@@ -11,7 +10,7 @@ public class NicknameDatabase {
     private Connection connection;
     private static String path;
     private static final String DB_URL = "jdbc:sqlite:plugins/Miniutility/nickname.db";
-    private static final Logger logger = Logger.getLogger("Database");
+    private static final Logger logger = Logger.getLogger("Miniutility");
 
     /**
      * コンストラクタ
@@ -27,10 +26,9 @@ public class NicknameDatabase {
     public void setupDatabase() {
         try {
             openConnection();
-            logger.info("データベースのセットアップが正常に完了しました。");
+            // 完了ログはメインプラグイン側で出力
         } catch (SQLException e) {
             logger.severe("データベースのセットアップに失敗しました: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

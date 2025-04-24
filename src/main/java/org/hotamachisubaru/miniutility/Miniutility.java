@@ -100,7 +100,7 @@ public class Miniutility extends JavaPlugin {
                 });
             }
         } catch (IOException | InterruptedException e) {
-            logger.warning("アップデートチェック中にエラー: " + e.getMessage());
+            logger.warning("アップデートのチェック中にエラーが発生しました: " + e.getMessage());
         }
     }
 

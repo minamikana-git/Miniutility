@@ -137,7 +137,6 @@ public class Chat implements Listener {
         player.displayName(formattedComponent);
         player.playerListName(formattedComponent);
 
-        // デバッグログを適切に変更
-        logger.info("ニックネーム更新: " + ChatColor.stripColor(formattedName));
+
     }
 }

@@ -136,7 +136,7 @@ public class Miniutility extends JavaPlugin {
         try {
             NicknameDatabase db = new NicknameDatabase(getDataFolder().getAbsolutePath());
             db.setupDatabase();
-            logger.info("[Database] データベースの設定が完了しました。");
+            logger.info("データベースの設定が完了しました。");
         } catch (Exception e) {
             logger.severe("データベースセットアップ失敗: " + e.getMessage());
         }

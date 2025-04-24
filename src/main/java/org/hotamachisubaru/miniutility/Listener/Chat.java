@@ -114,7 +114,7 @@ public class Chat implements Listener {
             NicknameDatabase.saveNickname(player.getUniqueId().toString(), updatedNickname);
             updateDisplayNamePrefix(player, updatedNickname);
 
-            player.sendMessage(Component.text("名前の色を変更しました！: ").color(NamedTextColor.GREEN)
+            player.sendMessage(Component.text("名前の色を変更しました: ").color(NamedTextColor.GREEN)
                     .append(Component.text(updatedNickname).color(NamedTextColor.AQUA)));
         } else {
             player.sendMessage(Component.text("無効なカラーコードです。例: &6 設定したいニックネーム").color(NamedTextColor.RED));

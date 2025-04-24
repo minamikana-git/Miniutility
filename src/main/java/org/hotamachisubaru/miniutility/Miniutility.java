@@ -63,7 +63,8 @@ public class Miniutility extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        logger.info("Miniutility を無効化しました。");
+        logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
+        logger.info("developed by hotamachisubaru");
     }
 
     private void checkUpdates() {
@@ -82,7 +83,7 @@ public class Miniutility extends JavaPlugin {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                logger.warning("アップデートチェック失敗: HTTP " + response.statusCode());
+                logger.warning("アップデートのチェックに失敗しました: HTTP " + response.statusCode());
                 return;
             }
             JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();

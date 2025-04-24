@@ -2,7 +2,6 @@ package org.hotamachisubaru.miniutility;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -91,7 +90,7 @@ public class Miniutility extends JavaPlugin {
             String currentVersion = getDescription().getVersion();
             if (!currentVersion.equals(latestTag)) {
                 String url = json.get("html_url").getAsString();
-                String msg = NamedTextColor.AQUA + "[Miniutility] 新しいバージョン "
+                String msg = "新しいバージョン "
                         + latestTag + " が利用可能です！ ダウンロード: " + url;
                 logger.info(msg);
                 Bukkit.getScheduler().runTask(this, () -> {

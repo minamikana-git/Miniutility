@@ -6,6 +6,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -141,17 +142,25 @@ public class Utility implements Listener {
             return;
         }
 
-        var deathLocation = plugin.getDeathLocation(player.getUniqueId());
-        if (deathLocation == null) {
+       Location deathLoc = plugin.getDeathLocation(player.getUniqueId());
+        if (deathLoc == null) {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
         }
 
-        player.teleport((Location) deathLocation);
+        World world = deathLoc.getWorld();
+        int x = deathLoc.getBlockX();
+        int z = deathLoc.getBlockZ();
+
+        int safeY = world.getHighestBlockYAt(x,z) + 1;
+        Location safeLoc = new Location(world, x + 0.5,safeY,z + 0.5);
+
+        player.teleport(safeLoc);
         if (!recentlyTeleported.contains(player.getUniqueId())) {
-            player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
+            player.sendMessage(Component.text("近くの安全な場所にテレポートしました。").color(NamedTextColor.GREEN));
             recentlyTeleported.add(player.getUniqueId());
-            Bukkit.getScheduler().runTaskLater(plugin, () -> recentlyTeleported.remove(player.getUniqueId()), 20L);
+            Bukkit.getScheduler().runTaskLater(plugin,() -> recentlyTeleported.remove(player.getUniqueId()),20L);
+
         }
     }
 

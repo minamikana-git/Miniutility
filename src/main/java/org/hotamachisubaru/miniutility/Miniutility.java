@@ -3,6 +3,7 @@ package org.hotamachisubaru.miniutility;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
@@ -12,7 +13,7 @@ import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +21,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class Miniutility extends JavaPlugin {
@@ -29,6 +32,7 @@ public class Miniutility extends JavaPlugin {
     private CreeperProtectionListener creeperProtectionListener;
     private final Logger logger = getLogger();
     private final PluginManager pm = getServer().getPluginManager();
+    private final Map<UUID, Location> deathLocations = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -52,6 +56,7 @@ public class Miniutility extends JavaPlugin {
         nicknameManager = new NicknameManager();
         // --- 6. リスナー登録 ---
         registerListeners();
+        getServer().getPluginManager().registerEvents(new DeathListener(this),this);
         // --- 7. コマンド登録 ---
         registerCommands();
         // --- 8. アップデートチェック（非同期のみ） ---
@@ -66,6 +71,8 @@ public class Miniutility extends JavaPlugin {
         logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
     }
+
+
 
     private void checkUpdates() {
         String owner = "minamikana-git";
@@ -161,7 +168,14 @@ public class Miniutility extends JavaPlugin {
         return creeperProtectionListener;
     }
 
-    public Object getDeathLocation(@NotNull UUID uniqueId) {
-        return getServer().getOfflinePlayer(uniqueId).getLastDeathLocation();
+    public void setDeathLocation(UUID uuid, Location loc) {
+        deathLocations.put(uuid,loc);
     }
+
+    @Nullable
+    public Location getDeathLocation(UUID uuid) {
+        return deathLocations.get(uuid);
+    }
+
+
 }

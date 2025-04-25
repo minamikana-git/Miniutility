@@ -199,7 +199,7 @@ public class Utility implements Listener {
         switch (clickedItem.getType()) {
             case LIME_CONCRETE -> {
                 player.closeInventory();
-                // ここで削除メッセージを送らない
+                player.sendMessage(Component.text("削除しました").color(NamedTextColor.BLUE));
             }
             case RED_CONCRETE -> {
                 player.closeInventory();

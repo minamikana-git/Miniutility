@@ -101,7 +101,7 @@ public class Utility implements Listener {
         switch (clickedItem.getType()) {
             case ARMOR_STAND -> {
                 // 死亡地点へワープ
-                teleportToDeathLocation(player);
+                teleportDeathLocation(player);
             }
             case ENDER_CHEST -> {
                 // エンダーチェストを開く
@@ -135,7 +135,7 @@ public class Utility implements Listener {
         }
     }
 
-    public static void teleportToDeathLocation(Player player) {
+    public static void teleportDeathLocation(Player player) {
         Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
         if (plugin == null) {
             player.sendMessage(Component.text("プラグインが読み込まれていません。").color(NamedTextColor.RED));

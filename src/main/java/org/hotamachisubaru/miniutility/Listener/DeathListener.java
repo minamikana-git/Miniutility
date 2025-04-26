@@ -22,7 +22,7 @@ public class DeathListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
+    public void saveDeathLocation(PlayerDeathEvent event) {
         Player player = event.getEntity();
         Location deathLoc = player.getLocation().getBlock().getLocation().add(0,1,0);
         plugin.setDeathLocation(player.getUniqueId(),deathLoc);

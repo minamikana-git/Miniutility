@@ -56,7 +56,7 @@ public class Miniutility extends JavaPlugin {
         nicknameManager = new NicknameManager();
         // --- 6. リスナー登録 ---
         registerListeners();
-        getServer().getPluginManager().registerEvents(new DeathListener(this),this);
+       pm.registerEvents(new DeathListener(this),this);
         // --- 7. コマンド登録 ---
         registerCommands();
         // --- 8. アップデートチェック（非同期のみ） ---

@@ -15,7 +15,6 @@ commands:
     description: データベースからニックネームをロードします。
     usage: /load
     permission: miniutility.load
-
 permissions:
   load:
     description: データベースからニックネームをロードします。

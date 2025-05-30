@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
@@ -56,7 +57,7 @@ public class Chat implements Listener {
         return waitingForColorInput.getOrDefault(player.getUniqueId(), false);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void Nickname(AsyncChatEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
@@ -69,6 +70,7 @@ public class Chat implements Listener {
             ColorInput(player, event.originalMessage());
         }
     }
+
 
     private void NicknameInput(Player player, Component messageComponent) {
         String message = PlainTextComponentSerializer.plainText().serialize(messageComponent).trim();
@@ -139,4 +141,6 @@ public class Chat implements Listener {
 
 
     }
+
+
 }

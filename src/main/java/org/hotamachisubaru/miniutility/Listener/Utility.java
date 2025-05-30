@@ -66,7 +66,9 @@ public class Utility implements Listener {
         switch (title) {
             case "メニュー" -> handleUtilityBox(player, clicked, event);
             case "本当に捨てますか？" -> TrashConfirm(player, clicked, event);
-            case "ニックネームを変更" -> handleNicknameMenu(player, clicked, event);
+            case "ニックネーム変更", "ニックネームを変更" -> {
+                handleNicknameMenu(player, clicked, event);
+            }
         }
     }
 

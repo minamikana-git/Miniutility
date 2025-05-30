@@ -17,9 +17,9 @@ public class NicknameClickListener implements Listener {
     public void onNicknameMenuClick(InventoryClickEvent event) {
         // インベントリタイトルを取得
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
-        if (!title.equals("ニックネーム変更")) return; // ニックネームメニュー以外なら処理しない
-
-        event.setCancelled(true); // インベントリのアイテム移動を防止
+                // 「を」あり・なし両方を許容
+        if (!title.equals("ニックネーム変更") && !title.equals("ニックネームを変更")) return;
+        event.setCancelled(true);
         Player player = (Player) event.getWhoClicked();
         ItemStack clickedItem = event.getCurrentItem();
 
@@ -27,10 +27,10 @@ public class NicknameClickListener implements Listener {
 
         switch (clickedItem.getType()) {
             case PAPER -> {
-                // チャットでニックネームを入力
-                player.sendMessage(Component.text("新しいニックネームをチャットで入力してください。").color(NamedTextColor.AQUA));
-                NicknameManager.setWaitingForNickname(player, true);
-                player.closeInventory(); // GUIを閉じる
+             player.sendMessage(Component.text("新しいニックネームをチャットで入力してください。").color(NamedTextColor.AQUA));
+             // Chat クラスのフラグを使う
+                Chat.setWaitingForNickname(player, true);
+                player.closeInventory();
             }
             case BARRIER -> {
                 // ニックネームをリセット

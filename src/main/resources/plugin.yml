@@ -15,6 +15,10 @@ commands:
     description: データベースからニックネームをロードします。
     usage: /load
     permission: miniutility.load
+  prefixtoggle: # /prefixtoggle で ON/OFF 切り替え
+      description: Prefix とニックネームの結合を ON/OFF 切り替えします
+      usage: /prefixtoggle
+      permission: miniutility.toggleprefix
 permissions:
   load:
     description: データベースからニックネームをロードします。

@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.Load;
+import org.hotamachisubaru.miniutility.Command.TogglePrefixCommand;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
@@ -162,6 +163,7 @@ public class Miniutility extends JavaPlugin {
     private void registerCommands() {
         getCommand("menu").setExecutor(new UtilityCommand());
         getCommand("load").setExecutor(new Load());
+        getCommand("prefixtoggle").setExecutor(new TogglePrefixCommand(this));
     }
 
     public CreeperProtectionListener getCreeperProtectionListener() {

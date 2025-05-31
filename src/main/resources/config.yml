@@ -1,3 +1,4 @@
 database:
   path: "nickname.db"
   autoCreate: true
+combine-prefix: true   # true=Prefix＋ニックネームを結合 / false=ニックネームのみ表示

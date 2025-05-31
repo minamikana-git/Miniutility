@@ -96,6 +96,7 @@ public class Chat implements Listener {
 
     /**
      * DisplayName および PlayerListName のプレフィックス更新
+     * config.yml の "combine-prefix" 設定に応じて Prefix を結合するか切り替える
      */
     public static void updateDisplayNamePrefix(Player player, String nickname) {
         // 1. LuckPerms からプレフィックスを取得
@@ -112,20 +113,36 @@ public class Chat implements Listener {
             prefix = "";
         }
 
-        // 2. プレフィックス + ニックネーム文字列を結合
-        String combined = prefix + nickname;
+        // 2. config.yml の combine-prefix を参照
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("Miniutility");
+        boolean combine = true;  // デフォルト値は true
+        if (plugin != null) {
+            combine = plugin.getConfig().getBoolean("combine-prefix", true);
+        }
 
-        // 3. Legacy 形式の色コード（&）を Adventure Component に変換
+        // 3. combine の値に応じて表示名を生成
+        String formatted;
+        if (combine) {
+            // Prefix + ニックネームを結合し、色コードを適用
+            formatted = prefix + nickname;
+        } else {
+            // ニックネームのみ
+            formatted = nickname;
+        }
+
+        // 4. Legacy 形式の色コード（&）を Adventure Component に変換
         Component formattedComponent;
         try {
-            formattedComponent = LegacyComponentSerializer.legacy('&').deserialize(combined);
+            formattedComponent = LegacyComponentSerializer.legacy('&').deserialize(
+                    ChatColor.translateAlternateColorCodes('&', formatted)
+            );
         } catch (Exception ex) {
-            Bukkit.getLogger().warning("色コードの変換に失敗しました。combined=" + combined
+            Bukkit.getLogger().warning("色コードの変換に失敗しました。combined=" + formatted
                     + " / error=" + ex.getMessage());
             formattedComponent = Component.text(prefix + nickname);
         }
 
-        // 4. プレイヤーの表示名とリスト名を更新
+        // 5. プレイヤーの表示名とリスト名を更新
         try {
             player.displayName(formattedComponent);
             player.playerListName(formattedComponent);
@@ -165,6 +182,7 @@ public class Chat implements Listener {
 
                 // 2) メインスレッドに戻してプレイヤー表示名を更新
                 Bukkit.getScheduler().runTask(plugin, () -> {
+                    // NicknameManager 内で updateDisplayNamePrefix を呼び出す実装を想定
                     NicknameManager.applyFormattedDisplayName(player);
                 });
             });
@@ -265,5 +283,4 @@ public class Chat implements Listener {
         // ----------------------------------------------------------------
         // event.setCancelled(false) のままにしておけば、以降のプラグイン（LunaChat 等）がチャットを処理します。
     }
-
 }

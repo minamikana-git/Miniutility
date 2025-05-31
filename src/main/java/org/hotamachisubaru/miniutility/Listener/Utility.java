@@ -3,10 +3,7 @@ package org.hotamachisubaru.miniutility.Listener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -83,6 +80,7 @@ public class Utility implements Listener {
                 player.sendMessage(Component.text("新しいニックネームをチャットに入力してください。").color(NamedTextColor.AQUA));
                 Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
+
             }
             case BARRIER -> {
                 NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
@@ -122,20 +120,41 @@ public class Utility implements Listener {
                 UtilityGUI.openNicknameMenu(player);
             }
             case CREEPER_HEAD -> {
-
                 CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
-
                 // クリーパーの爆破防止をトグルする
                 creeperProtection.toggleCreeperProtection();
                 String status = creeperProtection.isCreeperProtectionEnabled() ? "有効" : "無効";
                 player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }
+            case EXPERIENCE_BOTTLE -> {
+                player.closeInventory();
+                Chat.setWaitingForExpInput(player, true);
+                player.sendMessage(Component.text("経験値を増減する数値をチャットに入力してください。")
+                        .color(NamedTextColor.AQUA)
+                        .append(Component.text(" 例: \"10\" で +10レベル, \"-5\" で -5レベル").color(NamedTextColor.GRAY)));
+            }
 
+            case COMPASS -> {
+                // ゲームモード切り替え：サバイバル⇔クリエイティブ
+                GameMode current = player.getGameMode();
+                if (current == GameMode.SURVIVAL) {
+                    player.setGameMode(GameMode.CREATIVE);
+                    player.sendMessage(Component.text("ゲームモードをクリエイティブに変更しました。").color(NamedTextColor.GREEN));
+                } else {
+                    player.setGameMode(GameMode.SURVIVAL);
+                    player.sendMessage(Component.text("ゲームモードをサバイバルに変更しました。").color(NamedTextColor.GREEN));
+                }
+                player.closeInventory();
+            }
 
-
+            default -> {
+                player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
+                player.closeInventory();
+            }
         }
     }
+
 
     public static void teleportDeathLocation(Player player) {
         Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
@@ -144,7 +163,7 @@ public class Utility implements Listener {
             return;
         }
 
-       Location deathLoc = plugin.getDeathLocation(player.getUniqueId());
+        Location deathLoc = plugin.getDeathLocation(player.getUniqueId());
         if (deathLoc == null) {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
@@ -154,14 +173,14 @@ public class Utility implements Listener {
         int x = deathLoc.getBlockX();
         int z = deathLoc.getBlockZ();
 
-        int safeY = world.getHighestBlockYAt(x,z) + 1;
-        Location safeLoc = new Location(world, x + 0.5,safeY,z + 0.5);
+        int safeY = world.getHighestBlockYAt(x, z) + 1;
+        Location safeLoc = new Location(world, x + 0.5, safeY, z + 0.5);
 
         player.teleport(safeLoc);
         if (!recentlyTeleported.contains(player.getUniqueId())) {
             player.sendMessage(Component.text("近くの安全な場所にテレポートしました。").color(NamedTextColor.GREEN));
             recentlyTeleported.add(player.getUniqueId());
-            Bukkit.getScheduler().runTaskLater(plugin,() -> recentlyTeleported.remove(player.getUniqueId()),20L);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> recentlyTeleported.remove(player.getUniqueId()), 20L);
 
         }
     }
@@ -223,4 +242,6 @@ public class Utility implements Listener {
         return item;
     }
 }
+
+
         

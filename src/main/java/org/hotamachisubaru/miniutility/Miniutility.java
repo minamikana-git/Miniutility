@@ -56,7 +56,6 @@ public class Miniutility extends JavaPlugin {
         nicknameManager = new NicknameManager();
         // --- 6. リスナー登録 ---
         registerListeners();
-       pm.registerEvents(new DeathListener(this),this);
         // --- 7. コマンド登録 ---
         registerCommands();
         // --- 8. アップデートチェック（非同期のみ） ---
@@ -150,6 +149,7 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void registerListeners() {
+        pm.registerEvents(new DeathListener(this),this);
         pm.registerEvents(chatListener, this);
         pm.registerEvents(creeperProtectionListener, this);
         pm.registerEvents(new Menu(), this);

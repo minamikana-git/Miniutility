@@ -1,15 +1,14 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.sql.SQLException;
@@ -22,6 +21,8 @@ import java.util.regex.Pattern;
 public class NicknameManager implements Listener {
 
     private static final Logger logger = Logger.getLogger("Miniutility");
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacy('&');
+
 
     private static final Map<Player, Boolean> waitingForNickname = new HashMap<>();
 
@@ -53,15 +54,22 @@ public class NicknameManager implements Listener {
     }
 
     public static void applyFormattedDisplayName(Player player) {
-        String prefix = getLuckPermsPrefix(player);
-        String nickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
-        if (nickname == null || nickname.isEmpty()) {
-            nickname = player.getName();
+        // 1) データベースからニックネーム（色コード付き文字列）を取り出す
+        String uuid = player.getUniqueId().toString();
+        String storedNick = NicknameDatabase.getNickname(uuid);
+        if (storedNick == null || storedNick.isBlank()) {
+            storedNick = player.getName();  // DBにない場合は素の名前を使う
         }
 
-        String formattedName = ChatColor.translateAlternateColorCodes('&', prefix + nickname);
-        player.displayName(LegacyComponentSerializer.legacy('&').deserialize(formattedName));
-        player.playerListName(LegacyComponentSerializer.legacy('&').deserialize(formattedName));
+        // 2) 色コードだけ LegacyConverter して Component に変換
+        //    ここでは「プレフィックスは付与しない」ため、データベースの文字列(storedNick)に
+        //    もし「&6ほたまち」 が入っていれば、色付き名前として正しく扱われる。
+        Component compName = LEGACY.deserialize(storedNick);
+
+        // 3) この時点では「プレフィックスなしのニックネーム Component」ができているので、
+        //    プレイヤーの表示名（TABリスト含む）を更新
+        player.displayName(compName);
+        player.playerListName(compName);
     }
 
     private static String getLuckPermsPrefix(Player player) {
@@ -85,10 +93,9 @@ public class NicknameManager implements Listener {
     }
 
     @EventHandler
-    public void applyNickname(AsyncChatEvent event) {
+    public void applyNickname(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        event.renderer((sender, displayName, message, viewers) ->
-                Component.text(player.displayName() + ": ").append(message));
+        event.setFormat(player.displayName() + ": " + event.getMessage());
     }
 }
 

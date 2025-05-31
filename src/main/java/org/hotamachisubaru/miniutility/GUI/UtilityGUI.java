@@ -21,6 +21,13 @@ public class UtilityGUI {
 
         //死亡地点にワープ
         utilityMenu.setItem(0,createMenuItem(Material.ARMOR_STAND,"死亡地点にワープ","死亡地点にワープします。溺れたり、溶岩遊泳した場合は安全な場所にテレポートします。"));
+
+        //経験値制御器
+        utilityMenu.setItem(2,createMenuItem(Material.EXPERIENCE_BOTTLE,"経験値制御器","経験値を制御します"));
+
+        //GM制御器
+        utilityMenu.setItem(4,createMenuItem(Material.COMPASS,"GM制御器","GMを制御します."));
+
         //クリーパーのブロック破壊を防ぐ
         utilityMenu.setItem(9, createMenuItem(Material.CREEPER_HEAD, "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 
@@ -35,7 +42,6 @@ public class UtilityGUI {
 
         // 作業台アイテム
         utilityMenu.setItem(17, createMenuItem(Material.CRAFTING_TABLE, "どこでも作業台", "クリックして作業台を開く"));
-
 
         // プレイヤーにメニューを開かせる
         player.openInventory(utilityMenu);

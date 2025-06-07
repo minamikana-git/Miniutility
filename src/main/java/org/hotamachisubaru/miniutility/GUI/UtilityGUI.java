@@ -28,6 +28,8 @@ public class UtilityGUI {
         //GM制御器
         utilityMenu.setItem(4,createMenuItem(Material.COMPASS,"GM制御器","GMを制御します."));
 
+        utilityMenu.setItem(6,createMenuItem(Material.SMITHING_TABLE,"鍛冶台を探す","最寄りのネザライトテンプレを探す。"));
+
         //クリーパーのブロック破壊を防ぐ
         utilityMenu.setItem(9, createMenuItem(Material.CREEPER_HEAD, "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
 

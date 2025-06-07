@@ -148,6 +148,7 @@ public class Utility implements Listener {
                 player.closeInventory();
             }
 
+
             default -> {
                 player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
                 player.closeInventory();
@@ -244,4 +245,4 @@ public class Utility implements Listener {
 }
 
 
-        
+

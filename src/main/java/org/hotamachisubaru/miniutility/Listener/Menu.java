@@ -114,12 +114,20 @@ public class Menu implements Listener {
 
 
     private void teleportToDeathLocation(Player player) {
-        if (player.getLastDeathLocation() != null) {
-            player.teleportAsync(player.getLastDeathLocation());
-        } else {
-            player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
+        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
+        if (plugin == null) {
+            player.sendMessage(Component.text("プラグインが読み込まれていません。").color(NamedTextColor.RED));
+            return;
         }
+        Location loc = plugin.getDeathLocation(player.getUniqueId());
+        if (loc == null) {
+            player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
+            return;
+        }
+        player.teleportAsync(loc);
+        player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
     }
+
 
     private Location findNearestSmithingTable(Location center, int radius) {
         World world = center.getWorld();

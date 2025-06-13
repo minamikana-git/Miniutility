@@ -43,7 +43,7 @@ public class TrashClickListener implements Listener {
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (title.equals("ゴミ箱")) {
             // ゴミ箱インベントリ内でのみキャンセル
-            if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.GREEN_STAINED_GLASS_PANE) {
+            if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.LIME_CONCRETE) {
                 event.setCancelled(true);
                 UtilityGUI.openTrashConfirm((Player) event.getWhoClicked());
             } else {

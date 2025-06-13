@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -85,12 +84,13 @@ public class Utility implements Listener {
             case CREEPER_HEAD -> {
                 CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
 
-                // クリーパー爆破防止トグル
-                creeperProtection.toggleCreeperProtection();
-                String status = creeperProtection.isCreeperProtectionEnabled() ? "有効" : "無効";
+                // toggleで新しい状態を受け取る
+                boolean enabled = creeperProtection.toggleCreeperProtection();
+                String status = enabled ? "有効" : "無効";
                 player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }
+
         }
     }
 
@@ -111,8 +111,8 @@ public class Utility implements Listener {
     // ゴミ箱→確認画面
     private void confirm(Player player) {
         Inventory confirmInventory = Bukkit.createInventory(player, 27, Component.text("本当に捨てますか？"));
-        confirmInventory.setItem(11, createMenuItem(Material.GREEN_STAINED_GLASS_PANE, "はい"));
-        confirmInventory.setItem(15, createMenuItem(Material.RED_STAINED_GLASS_PANE, "いいえ"));
+        confirmInventory.setItem(11, createMenuItem(Material.LIME_CONCRETE, "はい"));
+        confirmInventory.setItem(15, createMenuItem(Material.RED_CONCRETE, "いいえ"));
         player.openInventory(confirmInventory);
     }
 

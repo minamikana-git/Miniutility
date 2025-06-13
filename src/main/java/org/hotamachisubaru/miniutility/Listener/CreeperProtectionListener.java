@@ -14,8 +14,9 @@ public class CreeperProtectionListener implements Listener {
 
     public boolean toggleCreeperProtection() {
         this.isCreeperProtectionEnabled = !this.isCreeperProtectionEnabled;
-        return false;
+        return this.isCreeperProtectionEnabled;
     }
+
 
     @EventHandler
     public void onCreeperExplode(EntityExplodeEvent event) {

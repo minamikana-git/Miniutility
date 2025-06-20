@@ -60,7 +60,7 @@ public class Utility implements Listener {
 
         Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
 
-        switch (clickedItem.getType()) {
+        switch (clickedItem.getType()) { //選択
             case ARMOR_STAND -> {
                 // 死亡地点へワープ
                 teleportToDeathLocation(player);

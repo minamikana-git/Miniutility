@@ -64,6 +64,7 @@ public class Miniutility extends JavaPlugin {
         // --- 9. 開発者情報 ---
         logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
+
     }
 
     @Override

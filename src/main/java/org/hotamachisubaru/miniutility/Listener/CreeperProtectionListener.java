@@ -18,6 +18,7 @@ public class CreeperProtectionListener implements Listener {
     }
 
 
+
     @EventHandler
     public void onCreeperExplode(EntityExplodeEvent event) {
         if (this.isCreeperProtectionEnabled && event.getEntity() instanceof Creeper) {

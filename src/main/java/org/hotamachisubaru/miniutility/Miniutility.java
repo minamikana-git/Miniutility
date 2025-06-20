@@ -153,7 +153,6 @@ public class Miniutility extends JavaPlugin {
         pm.registerEvents(new DeathListener(this),this);
         pm.registerEvents(chatListener, this);
         pm.registerEvents(creeperProtectionListener, this);
-        pm.registerEvents(new Menu(), this);
         pm.registerEvents(new NicknameClickListener(), this);
         pm.registerEvents(new TrashClickListener(this), this);
         pm.registerEvents(new Utility(), this);

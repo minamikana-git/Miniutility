@@ -74,16 +74,6 @@ public class Menu implements Listener {
                 }
                 break;
 
-            case CREEPER_HEAD:
-                // クリーパーの爆破防止トグル
-                Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
-                CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
-                creeperProtection.toggleCreeperProtection();
-                String status = creeperProtection.isCreeperProtectionEnabled() ? "有効" : "無効";
-                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
-                player.closeInventory();
-                break;
-
             case ENDER_CHEST:
                 // エンダーチェスト
                 player.openInventory(player.getEnderChest());

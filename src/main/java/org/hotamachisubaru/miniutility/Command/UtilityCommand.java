@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.hotamachisubaru.miniutility.GUI.UtilityGUI;
+import org.hotamachisubaru.miniutility.GUI.GUI;
 
 public class UtilityCommand implements CommandExecutor {
     @Override
@@ -20,7 +20,7 @@ public class UtilityCommand implements CommandExecutor {
         }
 
         // メニューを開く
-        UtilityGUI.openUtilityMenu(player);
+        GUI.openUtilityMenu(player);
         return true;
     }
 

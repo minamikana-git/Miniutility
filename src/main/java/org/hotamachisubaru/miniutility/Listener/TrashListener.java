@@ -12,23 +12,23 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.hotamachisubaru.miniutility.GUI.UtilityGUI;
+import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.Miniutility;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class TrashClickListener implements Listener {
+public class TrashListener implements Listener {
 
-    private static final Component TRASH_BOX_TITLE = Component.text("ゴミ箱");
+    private static final Component TRASH_TITLE = Component.text("ゴミ箱");
     private static final Component TRASH_CONFIRM_TITLE = Component.text("本当に捨てますか？");
 
 
     private final Set<UUID> deletedPlayers = new HashSet<>();
     private final Plugin plugin;
 
-    public TrashClickListener(Plugin plugin) {
+    public TrashListener(Plugin plugin) {
         this.plugin = plugin;
     }
 
@@ -45,7 +45,7 @@ public class TrashClickListener implements Listener {
             // ゴミ箱インベントリ内でのみキャンセル
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.LIME_CONCRETE) {
                 event.setCancelled(true);
-                UtilityGUI.openTrashConfirm((Player) event.getWhoClicked());
+                GUI.TrashConfirm((Player) event.getWhoClicked());
             } else {
                 event.setCancelled(false);  // 他のアイテムは移動可能
             }

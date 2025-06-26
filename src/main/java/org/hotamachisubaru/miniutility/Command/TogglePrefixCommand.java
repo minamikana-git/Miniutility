@@ -1,6 +1,7 @@
 package org.hotamachisubaru.miniutility.Command;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,13 +23,13 @@ public class TogglePrefixCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         // プレイヤー専用コマンドにしたい場合
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "このコマンドはプレイヤーのみ使用できます。");
+            sender.sendMessage(Component.text("このコマンドはプレイヤーのみ使用できます。").color(NamedTextColor.RED));
             return true;
         }
 
         // 必要に応じて権限チェックを行ってください
         if (!sender.hasPermission("miniutility.toggleprefix")) {
-            sender.sendMessage(ChatColor.RED + "権限がありません。");
+            sender.sendMessage(Component.text("権限がありません。").color(NamedTextColor.RED));
             return true;
         }
 
@@ -39,7 +40,7 @@ public class TogglePrefixCommand implements CommandExecutor {
         plugin.saveConfig();
 
         String status = next ? "ON" : "OFF";
-        sender.sendMessage(ChatColor.GREEN + "Prefix とニックネームの結合を " + status + " にしました。");
+        sender.sendMessage(Component.text("Prefix とニックネームの結合を " + status + " にしました。").color(NamedTextColor.GREEN));
         return true;
     }
 }

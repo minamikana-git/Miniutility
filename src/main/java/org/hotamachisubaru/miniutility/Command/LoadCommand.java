@@ -6,10 +6,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.hotamachisubaru.miniutility.Listener.Chat;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
+import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
-public class Load implements CommandExecutor {
+public class LoadCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String string, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -24,7 +24,7 @@ public class Load implements CommandExecutor {
         } else {
             player.sendMessage(Component.text("データベースからニックネームを読み込みました。").color(NamedTextColor.GREEN));
         }
-        Chat.updateDisplayNamePrefix(player, nickname);
+        NicknameManager.applyFormattedDisplayName(player);
         return true;
     }
 }

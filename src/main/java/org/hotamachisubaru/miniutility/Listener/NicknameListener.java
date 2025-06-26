@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
-public class NicknameClickListener implements Listener {
+public class NicknameListener implements Listener {
 
     @EventHandler
     public void onNicknameMenuClick(InventoryClickEvent event) {
@@ -36,7 +36,7 @@ public class NicknameClickListener implements Listener {
                 // ニックネームをリセット
                 NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
                 NicknameManager.applyFormattedDisplayName(player);
-                player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
+                player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.YELLOW));
                 player.closeInventory();
             }
             default -> {

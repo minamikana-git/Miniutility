@@ -8,7 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.hotamachisubaru.miniutility.Command.Load;
+import org.hotamachisubaru.miniutility.Command.LoadCommand;
 import org.hotamachisubaru.miniutility.Command.TogglePrefixCommand;
 import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.*;
@@ -154,15 +154,15 @@ public class Miniutility extends JavaPlugin {
         pm.registerEvents(new DeathListener(this),this);
         pm.registerEvents(chatListener, this);
         pm.registerEvents(creeperProtectionListener, this);
-        pm.registerEvents(new NicknameClickListener(), this);
-        pm.registerEvents(new TrashClickListener(this), this);
-        pm.registerEvents(new Utility(), this);
+        pm.registerEvents(new NicknameListener(), this);
+        pm.registerEvents(new TrashListener(this), this);
+        pm.registerEvents(new Utilitys(), this);
         pm.registerEvents(nicknameManager, this);
     }
 
     private void registerCommands() {
         getCommand("menu").setExecutor(new UtilityCommand());
-        getCommand("load").setExecutor(new Load());
+        getCommand("load").setExecutor(new LoadCommand());
         getCommand("prefixtoggle").setExecutor(new TogglePrefixCommand(this));
     }
 

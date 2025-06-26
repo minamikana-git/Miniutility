@@ -12,7 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Collections;
 
-public class UtilityGUI {
+public class GUI {
 
     public static void openUtilityMenu(Player player) {
         // ユーティリティメニューを作成
@@ -50,7 +50,7 @@ public class UtilityGUI {
 
 
 
-    public static void openNicknameMenu(Player player){
+    public static void NicknameMenu(Player player){
         Inventory nicknameMenu =  Bukkit.createInventory(player,9,Component.text("ニックネーム変更"));
 
         nicknameMenu.setItem(3,createMenuItem(
@@ -92,7 +92,7 @@ public class UtilityGUI {
 
 
 
-    public static void openTrashBox(Player player) {
+    public static void TrashBox(Player player) {
         Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
         // 捨てるボタン（例: 53番スロット）
         ItemStack confirmButton = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
@@ -106,7 +106,7 @@ public class UtilityGUI {
     }
 
 
-    public static void openTrashConfirm(Player player) {
+    public static void TrashConfirm(Player player) {
         Inventory confirmMenu = Bukkit.createInventory(player, 9, Component.text("本当に捨てますか？"));
 
         confirmMenu.setItem(3, createMenuItem(
@@ -123,7 +123,5 @@ public class UtilityGUI {
 
         player.openInventory(confirmMenu);
     }
-
-
 
 }

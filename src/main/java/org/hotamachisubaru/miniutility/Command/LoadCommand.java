@@ -1,30 +1,23 @@
 package org.hotamachisubaru.miniutility.Command;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
-import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+import org.hotamachisubaru.miniutility.Miniutility;
 
 public class LoadCommand implements CommandExecutor {
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String string, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("このコマンドはプレイヤーのみ実行出来ます。").color(NamedTextColor.RED));
-            return true;
-        }
 
-        String nickname = NicknameDatabase.getNickname(player.getUniqueId().toString());
-        if (nickname == null || nickname.isEmpty()) {
-            nickname = player.getName();
-            player.sendMessage(Component.text("ニックネームが設定されていないため、プレイヤー名を使用します。").color(NamedTextColor.YELLOW));
-        } else {
-            player.sendMessage(Component.text("データベースからニックネームを読み込みました。").color(NamedTextColor.GREEN));
-        }
-        NicknameManager.applyFormattedDisplayName(player);
+    private final Miniutility plugin;
+
+    public LoadCommand(Miniutility plugin) {
+        this.plugin = plugin;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // 例：データ再読み込み処理
+        plugin.getNicknameDatabase().reload();
+        sender.sendMessage("ニックネームデータを再読み込みしました。");
         return true;
     }
 }

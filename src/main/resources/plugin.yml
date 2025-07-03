@@ -4,6 +4,7 @@ main: org.hotamachisubaru.miniutility.Miniutility
 api-version: '1.21'
 author: hotamachisubaru
 load: STARTUP
+folia-supported: true
 softdepend:
   - LuckPerms
 description: copyright 2024-2025 hotamachisubaru all rights reserved.
@@ -18,7 +19,7 @@ commands:
   prefixtoggle: # /prefixtoggle で ON/OFF 切り替え
       description: Prefix とニックネームの結合を ON/OFF 切り替えします
       usage: /prefixtoggle
-      permission: miniutility.toggleprefix
+      permission: miniutility.prefixtoggle
 permissions:
   load:
     description: データベースからニックネームをロードします。

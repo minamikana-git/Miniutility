@@ -2,142 +2,117 @@ package org.hotamachisubaru.miniutility.Listener;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.Miniutility;
-import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-import static org.hotamachisubaru.miniutility.GUI.GUI.createMenuItem;
-
 public class TrashListener implements Listener {
-    private static final Map<UUID, Inventory> lastTrashBox = new HashMap<>();
-    private final Miniutility plugin;
-    private static final Map<UUID, ItemStack[]> trashBoxCache = new HashMap<>();
 
-    public TrashListener(Miniutility plugin) {
+    private static final Component TRASH_TITLE = Component.text("ゴミ箱");
+    private static final Component TRASH_CONFIRM_TITLE = Component.text("本当に捨てますか？");
+
+
+    private final Set<UUID> deletedPlayers = new HashSet<>();
+    private final Plugin plugin;
+
+    public TrashListener(Plugin plugin) {
         this.plugin = plugin;
     }
 
-    // ゴミ箱GUIを開く
-    public static void openTrashBox(Player player) {
-        Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
-        ItemStack confirmButton = new ItemStack(Material.LIME_CONCRETE);
-        var meta = confirmButton.getItemMeta();
-        if (meta != null) {
-            meta.displayName(Component.text("捨てる").color(NamedTextColor.RED));
-            confirmButton.setItemMeta(meta);
-        }
-        trashInventory.setItem(53, confirmButton);
-        lastTrashBox.put(player.getUniqueId(), trashInventory);
-        player.openInventory(trashInventory);
-    }
-
-    // 確認画面を開く
-    private static void openTrashConfirm(Player player) {
-        // ゴミ箱内容を一時保存
-        Inventory last = lastTrashBox.get(player.getUniqueId());
-        if (last != null) {
-            trashBoxCache.put(player.getUniqueId(), last.getContents());
-        }
-
-        Inventory confirmMenu = Bukkit.createInventory(player, 9, Component.text("本当に捨てますか？"));
-        confirmMenu.setItem(3, createMenuItem(Material.LIME_CONCRETE, "はい", "クリックしてゴミ箱を空にする"));
-        confirmMenu.setItem(5, createMenuItem(Material.RED_CONCRETE, "いいえ", "クリックしてキャンセル"));
-        player.openInventory(confirmMenu);
-    }
+    /**
+     * ゴミ箱インベントリ内のクリックイベントを処理します。
+     * 「ゴミ箱」インベントリでは、通常のアイテム移動を許可し、削除ボタンのみを制限します。
+     */
 
 
     @EventHandler
     public void onTrashBoxClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
-
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (title.equals("ゴミ箱")) {
-            int rawSlot = event.getRawSlot();
-            ItemStack item = event.getCurrentItem();
-            if (item == null) return;
-
-            // 捨てるボタンは絶対キャンセル
-            if (rawSlot == 53 && item.getType() == Material.LIME_CONCRETE) {
+            // ゴミ箱インベントリ内でのみキャンセル
+            if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.LIME_CONCRETE) {
                 event.setCancelled(true);
-                openTrashConfirm(player);
-                return;
+                GUI.TrashConfirm((Player) event.getWhoClicked());
+            } else {
+                event.setCancelled(false);  // 他のアイテムは移動可能
             }
+        } else {
+            event.setCancelled(false);  // 他のインベントリではキャンセルしない
+        }
+    }
 
-            // ゴミ箱上段スロット (0-53) かつ「捨てるボタン以外」
-            if (rawSlot >= 0 && rawSlot < 53) {
-                event.setCancelled(false);
-                return;
-            }
 
-            // プレイヤーのインベントリ側（下段）
-            // getRawSlot()が54以上なら必ず下段
-            if (rawSlot >= 54) {
-                event.setCancelled(false);
-                return;
-            }
 
-            // その他（想定外）はキャンセル
-            event.setCancelled(true);
+
+    /**
+     * ゴミ箱確認インベントリ内のクリックイベントを処理します。
+     */
+
+
+    @EventHandler
+    public void onTrashConfirm(InventoryClickEvent event) {
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (!title.equalsIgnoreCase("本当に捨てますか？")) return;
+
+        event.setCancelled(true);
+
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clickedItem = event.getCurrentItem();
+        if (clickedItem == null) return;
+
+        // **すでに削除済みの場合は処理しない**
+        if (player.hasMetadata("trash_deleted")) {
             return;
         }
 
+        switch (clickedItem.getType()) {
+            case LIME_CONCRETE -> {
+                // **削除フラグを設定**
+                player.setMetadata("trash_deleted", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
 
-        // --- 確認画面 ---
-        if (title.equals("本当に捨てますか？")) {
-            event.setCancelled(true);
-            ItemStack item = event.getCurrentItem();
-            if (item == null) return;
-            if (item.getType() == Material.LIME_CONCRETE) {
-                // 削除（前回通り）
-                Inventory prev = lastTrashBox.get(player.getUniqueId());
-                if (prev != null) {
-                    FoliaUtil.runAtPlayer(plugin, player, () -> {
-                        for (int i = 0; i < 53; i++) prev.setItem(i, null);
-                        player.closeInventory();
-                        player.sendMessage(Component.text("ゴミ箱のアイテムをすべて削除しました。").color(NamedTextColor.GREEN));
-                    });
-                    lastTrashBox.remove(player.getUniqueId());
-                    trashBoxCache.remove(player.getUniqueId());
-                }
-            } else if (item.getType() == Material.RED_CONCRETE) {
-                // 復元処理
-                ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
-                if (cache != null) {
-                    Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
-                    // アイテムを復元（0-52のみ！）
-                    for (int i = 0; i < 53; i++) {
-                        trashInventory.setItem(i, (i < cache.length) ? cache[i] : null);
-                    }
-                    // 53番は必ず「捨てる」ボタン
-                    ItemStack confirmButton = new ItemStack(Material.LIME_CONCRETE);
-                    var meta = confirmButton.getItemMeta();
-                    if (meta != null) {
-                        meta.displayName(Component.text("捨てる").color(NamedTextColor.RED));
-                        confirmButton.setItemMeta(meta);
-                    }
-                    trashInventory.setItem(53, confirmButton);
+                // **削除メッセージを1回だけ送信**
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    player.sendMessage(Component.text("アイテムを削除しました。", NamedTextColor.RED));
+                });
 
-                    lastTrashBox.put(player.getUniqueId(), trashInventory);
-                    player.openInventory(trashInventory);
-                } else {
-                    player.closeInventory();
-                }
-                trashBoxCache.remove(player.getUniqueId());
-                player.sendMessage(Component.text("削除をキャンセルしました。").color(NamedTextColor.YELLOW));
+                // **1 tick 後にインベントリを閉じる**
+                Bukkit.getScheduler().runTaskLater(plugin, () -> player.closeInventory(), 1L);
             }
 
+            case RED_CONCRETE -> {
+                player.sendMessage(Component.text("削除をキャンセルしました。", NamedTextColor.YELLOW));
+                player.closeInventory();
+            }
+            default -> {
+                player.sendMessage(Component.text("無効な選択です。", NamedTextColor.RED));
+            }
         }
     }
-}
 
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        Player player = (Player) event.getPlayer();
+        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
+
+        if (plugin == null) return;
+
+        // **削除フラグのリセット**
+        if (player.hasMetadata("trash_deleted")) {
+            player.removeMetadata("trash_deleted", plugin);
+        }
+    }
+
+}

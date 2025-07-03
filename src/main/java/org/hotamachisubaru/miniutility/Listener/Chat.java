@@ -11,7 +11,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
-import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
 import java.util.Map;
 import java.util.UUID;
@@ -19,19 +18,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Chat implements Listener {
 
-    private final NicknameDatabase nicknameDatabase;
-    private final NicknameManager nicknameManager;
     private final Plugin plugin;
-
+    // 入力待機マップ
     private static final Map<UUID, Boolean> waitingForNickname = new ConcurrentHashMap<>();
     private static final Map<UUID, Boolean> waitingForColorInput = new ConcurrentHashMap<>();
     private static final Map<UUID, Boolean> waitingForExpInput = new ConcurrentHashMap<>();
-
-    public Chat(Plugin plugin, NicknameDatabase nicknameDatabase, NicknameManager nicknameManager) {
-        this.plugin = plugin;
-        this.nicknameDatabase = nicknameDatabase;
-        this.nicknameManager = nicknameManager;
-    }
 
     // --- Setter/Getter ---
     public static void setWaitingForNickname(Player player, boolean flag) {
@@ -58,35 +49,42 @@ public class Chat implements Listener {
         return waitingForExpInput.containsKey(player.getUniqueId());
     }
 
+
+
+
+    public Chat(Plugin plugin) {
+        this.plugin = plugin;
+    }
+
     @EventHandler
     public void onPlayerChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         String msg = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.message());
 
-        // ニックネーム入力待機
+        // -------------------- ニックネーム入力待機 --------------------
         if (isWaitingForNickname(player)) {
             event.setCancelled(true);
-            String nickname = msg;
-            if (nickname.isEmpty()) {
+            if (msg.isEmpty()) {
                 player.sendMessage(Component.text("ニックネームが空です。もう一度入力してください。", NamedTextColor.RED));
                 return;
             }
-            if (nickname.length() > 16) {
+            if (msg.length() > 16) {
                 player.sendMessage(Component.text("ニックネームは16文字以内にしてください。", NamedTextColor.RED));
                 setWaitingForNickname(player, false);
                 return;
             }
-            FoliaUtil.runAsync(plugin, () -> {
-                nicknameDatabase.setNickname(uuid.toString(), nickname);
-                FoliaUtil.runAtPlayer(plugin, player, () -> nicknameManager.applyFormattedDisplayName(player));
+            Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("Miniutility"), () -> {
+                NicknameDatabase.saveNickname(uuid.toString(), msg);
+                Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("Miniutility"),
+                        () -> NicknameManager.applyFormattedDisplayName(player));
             });
-            player.sendMessage(Component.text("✅ ニックネームを「" + nickname + "」に設定しました。", NamedTextColor.GREEN));
             setWaitingForNickname(player, false);
+            player.sendMessage(Component.text("✅ ニックネームを「" + msg + "」に設定しました。", NamedTextColor.GREEN));
             return;
         }
 
-        // 色コード入力待機
+        // -------------------- 色コード入力待機 --------------------
         if (isWaitingForColorInput(player)) {
             event.setCancelled(true);
             if (msg.isEmpty() || msg.length() > 16) {
@@ -95,9 +93,10 @@ public class Chat implements Listener {
                 return;
             }
             String translated = msg; // 例: &6ほたまち
-            FoliaUtil.runAsync(plugin, () -> {
-                nicknameDatabase.setNickname(uuid.toString(), translated);
-                FoliaUtil.runAtPlayer(plugin, player, () -> nicknameManager.applyFormattedDisplayName(player));
+            Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("Miniutility"), () -> {
+                NicknameDatabase.saveNickname(uuid.toString(), translated);
+                Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("Miniutility"),
+                        () -> NicknameManager.applyFormattedDisplayName(player));
             });
             setWaitingForColorInput(player, false);
             player.sendMessage(Component.text("✅ ニックネームの色を変更しました: ")
@@ -106,7 +105,7 @@ public class Chat implements Listener {
             return;
         }
 
-        // 経験値入力待機
+        // -------------------- 経験値入力待機 --------------------
         if (isWaitingForExpInput(player)) {
             event.setCancelled(true);
             try {
@@ -127,16 +126,17 @@ public class Chat implements Listener {
             return;
         }
 
-        // 通常チャット（独自Prefix+Nicknameフォーマット）
+        // -------------------- 通常チャット（独自フォーマット） --------------------
+        // Prefix + Nickname + > + 本文
         String prefix = "";
         try {
             prefix = NicknameManager.getLuckPermsPrefix(player);
         } catch (Exception ignored) {}
-        String displayNick = nicknameManager.getNickname(player);
+        String displayNick = NicknameManager.getNickname(player);
 
         Component chat = Component.empty()
-                .append(LegacyComponentSerializer.legacyAmpersand().deserialize(prefix == null ? "" : prefix))
-                .append(LegacyComponentSerializer.legacyAmpersand().deserialize((displayNick == null || displayNick.isEmpty()) ? player.getName() : displayNick))
+                .append(LegacyComponentSerializer.legacyAmpersand().deserialize(prefix))
+                .append(LegacyComponentSerializer.legacyAmpersand().deserialize(displayNick))
                 .append(Component.text(" > ", NamedTextColor.GRAY))
                 .append(event.message());
 

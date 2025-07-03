@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.hotamachisubaru.miniutility.Command.LoadCommand;
@@ -13,8 +14,7 @@ import org.hotamachisubaru.miniutility.Command.UtilityCommand;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
-import org.hotamachisubaru.miniutility.Nickname.NicknameMigration;
-import org.hotamachisubaru.miniutility.util.FoliaUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,54 +27,54 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-/**
- * Miniutility メインクラス (Paper/Folia完全両対応・1.21.7最適化)
- */
 public class Miniutility extends JavaPlugin {
-
-    // UUID→死亡地点（ディメンション込みで管理）
-    private final Map<UUID, Location> deathLocations = new ConcurrentHashMap<>();
-    private final Logger logger = getLogger();
-    private NicknameDatabase nicknameDatabase;
+    private Chat chatListener;
     private NicknameManager nicknameManager;
     private CreeperProtectionListener creeperProtectionListener;
-    private Chat chatListener;
+    private final Logger logger = getLogger();
     private final PluginManager pm = getServer().getPluginManager();
+    private final Map<UUID, Location> deathLocations = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
+        // --- 1. リソースと設定 ---
+        File dbFile = new File(getDataFolder(),"nickname.db");
+        if (!dbFile.exists()) {
+            saveResource("nickname.db", false);
+        } else {
+            logger.info("nickname.dbが既に存在するため、保存をスキップします。");
+        }
         saveDefaultConfig();
-        setupDatabase();
-        // DB, マネージャ初期化
-        nicknameDatabase = new NicknameDatabase(this);
-        nicknameManager = new NicknameManager(this, nicknameDatabase);
-        creeperProtectionListener = new CreeperProtectionListener(this);
-        chatListener = new Chat(this,nicknameDatabase,nicknameManager);
-        // イベント登録
-        registerListeners();
-        // コマンド登録
-        registerCommands();
+        // --- 2. 依存チェック ---
         checkLuckPerms();
-        // マイグレーション
-        NicknameMigration migration = new NicknameMigration(this);
-        migration.migrateToDatabase();
-        checkUpdates();
+        // --- 3. データベースセットアップ（テーブル作成は一度だけ） ---
+        setupDatabase();
+        // --- 4. マイグレーション処理 ---
+        migration();
+        // --- 5. インスタンス生成 ---
+        chatListener = new Chat(this);
+        creeperProtectionListener = new CreeperProtectionListener();
+        nicknameManager = new NicknameManager();
+        // --- 6. リスナー登録 ---
+        registerListeners();
+        // --- 7. コマンド登録 ---
+        registerCommands();
+        // --- 8. アップデートチェック（非同期のみ） ---
+        Bukkit.getScheduler().runTaskAsynchronously(this, this::checkUpdates);
+        // --- 9. 開発者情報 ---
+        logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
+        logger.info("developed by hotamachisubaru");
+
+    }
+
+    @Override
+    public void onDisable() {
         logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
     }
-    private void registerCommands() {
-        getCommand("menu").setExecutor(new UtilityCommand(this));
-        getCommand("load").setExecutor(new LoadCommand(this));
-        getCommand("prefixtoggle").setExecutor(new TogglePrefixCommand(this));
-    }
-    private void registerListeners() {
-        pm.registerEvents(new DeathListener(this), this);
-        pm.registerEvents(chatListener, this);
-        pm.registerEvents(creeperProtectionListener, this);
-        pm.registerEvents(new Menu(this), this);
-        pm.registerEvents(new NicknameListener(this,nicknameManager), this);
-        pm.registerEvents(new TrashListener(this), this);
-    }
+
+
+
     private void checkUpdates() {
         String owner = "minamikana-git";
         String repo  = "Miniutility";
@@ -102,11 +102,9 @@ public class Miniutility extends JavaPlugin {
                 String msg = "新しいバージョン "
                         + latestTag + " が利用可能です！ ダウンロード: " + url;
                 logger.info(msg);
-
-                // Folia/Paper両対応で安全に全プレイヤーに通知
-                Bukkit.getOnlinePlayers().forEach(p -> {
-                    if (p.isOp()) {
-                        FoliaUtil.runAtPlayer(this, p, () -> p.sendMessage(msg));
+                Bukkit.getScheduler().runTask(this, () -> {
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (p.isOp()) p.sendMessage(msg);
                     }
                 });
             }
@@ -120,6 +118,7 @@ public class Miniutility extends JavaPlugin {
             logger.warning("LuckPermsが見つかりません。Prefixなしで続行します。");
         }
     }
+
     private void migration() {
         File flag = new File(getDataFolder(), "migrationCompleted.flag");
         if (flag.exists()) return;
@@ -129,10 +128,10 @@ public class Miniutility extends JavaPlugin {
 
         try {
             YamlConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldFile);
-            NicknameDatabase db = new NicknameDatabase(this);
+            NicknameDatabase db = new NicknameDatabase(getDataFolder().getAbsolutePath());
             for (String key : oldConfig.getKeys(false)) {
                 String name = oldConfig.getString(key);
-                if (name != null) db.setNickname(key,name);
+                if (name != null) NicknameDatabase.saveNickname(key, name);
             }
             oldFile.renameTo(new File(getDataFolder(), "nickname.yml.bak"));
             flag.createNewFile();
@@ -142,54 +141,43 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void setupDatabase() {
-        File dbFile = new File(getDataFolder(), "nickname.db");
-        if (dbFile.exists()) {
-            logger.info("nickname.dbが既に存在します。初期セットアップをスキップします。");
-            return;
-        }
         try {
-            String dbUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
-            try (java.sql.Connection connection = java.sql.DriverManager.getConnection(dbUrl)) {
-                try (java.sql.Statement stmt = connection.createStatement()) {
-                    stmt.executeUpdate("CREATE TABLE IF NOT EXISTS nicknames (uuid TEXT PRIMARY KEY, nickname TEXT)");
-                }
-            }
-            logger.info("nickname.dbを新規作成し、テーブルをセットアップしました。");
+            NicknameDatabase db = new NicknameDatabase(getDataFolder().getAbsolutePath());
+            db.setupDatabase();
+            logger.info("データベースの設定が完了しました。");
         } catch (Exception e) {
-            logger.severe("nickname.db初期セットアップに失敗: " + e.getMessage());
+            logger.severe("データベースセットアップ失敗: " + e.getMessage());
         }
     }
 
-    @Override
-    public void onDisable() {
-        if (nicknameDatabase != null) {
-            nicknameDatabase.saveAll();
-        }
+    private void registerListeners() {
+        pm.registerEvents(new DeathListener(this),this);
+        pm.registerEvents(chatListener, this);
+        pm.registerEvents(creeperProtectionListener, this);
+        pm.registerEvents(new NicknameListener(), this);
+        pm.registerEvents(new TrashListener(this), this);
+        pm.registerEvents(new Utilitys(), this);
+        pm.registerEvents(nicknameManager, this);
     }
 
-    // 死亡地点管理
-    public void setDeathLocation(UUID uuid, Location loc) {
-        deathLocations.put(uuid, loc);
-    }
-
-    public Location getDeathLocation(UUID uuid) {
-        return deathLocations.get(uuid);
-    }
-
-    // サブシステム取得
-    public NicknameDatabase getNicknameDatabase() {
-        return nicknameDatabase;
-    }
-
-    public NicknameManager getNicknameManager() {
-        return nicknameManager;
+    private void registerCommands() {
+        getCommand("menu").setExecutor(new UtilityCommand());
+        getCommand("load").setExecutor(new LoadCommand());
+        getCommand("prefixtoggle").setExecutor(new TogglePrefixCommand(this));
     }
 
     public CreeperProtectionListener getCreeperProtectionListener() {
         return creeperProtectionListener;
     }
 
-    public Chat getChatListener() {
-        return chatListener;
+    public void setDeathLocation(UUID uuid, Location loc) {
+        deathLocations.put(uuid,loc);
     }
+
+    @Nullable
+    public Location getDeathLocation(UUID uuid) {
+        return deathLocations.get(uuid);
+    }
+
+
 }

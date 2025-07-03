@@ -3,22 +3,16 @@ package org.hotamachisubaru.miniutility.Listener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.Miniutility;
 
 public class Menu implements Listener {
-
-    private final Miniutility plugin;
-
-    public Menu(Miniutility plugin) {
-        this.plugin = plugin;
-    }
 
     @EventHandler
     public void handleInventoryClick(InventoryClickEvent event) {
@@ -28,27 +22,51 @@ public class Menu implements Listener {
 
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
 
+        // ★ Miniutilityが管理するGUIだけをswitchで分岐
         switch (title) {
             case "メニュー" -> {
                 event.setCancelled(true);
-                handleUtilityBox(player, event.getCurrentItem(),event);
+                handleUtilityBox(player, event.getCurrentItem());
+            }
+            case "ゴミ箱" -> {
+                event.setCancelled(true);
+                GUI.TrashBox(player);
+            }
+            case "本当に捨てますか？" -> {
+                event.setCancelled(true);
+                GUI.TrashConfirm(player);
             }
             case "ニックネームを変更" -> {
                 event.setCancelled(true);
-
+                GUI.NicknameMenu(player);
             }
-            default -> { /* 他は何もしない */ }
+            default -> {
+                // それ以外は絶対何もしない
+            }
         }
     }
 
     // --- メニューGUIのクリックアクション処理 ---
-    private void handleUtilityBox(Player player, ItemStack clickedItem,InventoryClickEvent event) {
+    private void handleUtilityBox(Player player, ItemStack clickedItem) {
+        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
+
         switch (clickedItem.getType()) {
-            case ARMOR_STAND -> teleportToDeathLocation(player);
-            case ENDER_CHEST -> player.openInventory(player.getEnderChest());
-            case CRAFTING_TABLE -> player.openWorkbench(null, true);
-            case DROPPER -> TrashListener.openTrashBox(player);
-            case NAME_TAG -> NicknameListener.openNicknameMenu(player);
+            case ARMOR_STAND -> {
+                // 死亡地点ワープ
+                teleportToDeathLocation(player);
+            }
+            case ENDER_CHEST -> {
+                player.openInventory(player.getEnderChest());
+            }
+            case CRAFTING_TABLE -> {
+                player.openWorkbench(null, true);
+            }
+            case DROPPER -> {
+                GUI.TrashBox(player);
+            }
+            case NAME_TAG -> {
+                GUI.NicknameMenu(player);
+            }
             case CREEPER_HEAD -> {
                 CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
                 boolean enabled = creeperProtection.toggleCreeperProtection();
@@ -58,7 +76,7 @@ public class Menu implements Listener {
             }
             case EXPERIENCE_BOTTLE -> {
                 player.closeInventory();
-                org.hotamachisubaru.miniutility.Listener.Chat.setWaitingForExpInput(player, true);
+                Chat.setWaitingForExpInput(player, true);
                 player.sendMessage(
                         Component.text("経験値を増減する数値をチャットに入力してください。").color(NamedTextColor.AQUA)
                                 .append(Component.text(" 例: \"10\" で +10レベル, \"-5\" で -5レベル").color(NamedTextColor.GRAY))
@@ -75,13 +93,27 @@ public class Menu implements Listener {
                 }
                 player.closeInventory();
             }
-
-            default -> player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
+            case SMITHING_TABLE -> {
+                Location found = findNearestSmithingTable(player.getLocation(), 100);
+                if (found != null) {
+                    player.sendMessage(Component.text("最寄りの鍛冶台: ")
+                            .append(Component.text("X: " + found.getBlockX() + ", Y: " + found.getBlockY() + ", Z: " + found.getBlockZ()).color(NamedTextColor.AQUA)));
+                } else {
+                    player.sendMessage(Component.text("近くに鍛冶台は見つかりませんでした。").color(NamedTextColor.RED));
+                }
+            }
+            default -> {
+                player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
+            }
         }
     }
 
-    // 死亡地点ワープ（Folia/Paper両対応）
     private void teleportToDeathLocation(Player player) {
+        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
+        if (plugin == null) {
+            player.sendMessage(Component.text("プラグインが読み込まれていません。").color(NamedTextColor.RED));
+            return;
+        }
         Location loc = plugin.getDeathLocation(player.getUniqueId());
         if (loc == null) {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
@@ -91,4 +123,28 @@ public class Menu implements Listener {
         player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
     }
 
+    private Location findNearestSmithingTable(Location center, int radius) {
+        World world = center.getWorld();
+        double minDist = Double.MAX_VALUE;
+        Location nearest = null;
+
+        int cx = center.getBlockX();
+        int cy = center.getBlockY();
+        int cz = center.getBlockZ();
+
+        for (int x = cx - radius; x <= cx + radius; x++) {
+            for (int y = Math.max(0, cy - 20); y <= Math.min(world.getMaxHeight(), cy + 20); y++) {
+                for (int z = cz - radius; z <= cz + radius; z++) {
+                    if (world.getBlockAt(x, y, z).getType() == Material.SMITHING_TABLE) {
+                        double dist = center.distanceSquared(new Location(world, x, y, z));
+                        if (dist < minDist) {
+                            minDist = dist;
+                            nearest = new Location(world, x, y, z);
+                        }
+                    }
+                }
+            }
+        }
+        return nearest;
+    }
 }

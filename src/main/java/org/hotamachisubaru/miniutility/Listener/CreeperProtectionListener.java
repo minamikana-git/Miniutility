@@ -22,7 +22,6 @@ public class CreeperProtectionListener implements Listener {
             event.setCancelled(true);
         }
     }
-
     // トグル制御
     public boolean toggleCreeperProtection() {
         creeperProtectionEnabled = !creeperProtectionEnabled;

@@ -21,4 +21,6 @@ public class LoadCommand implements CommandExecutor {
         sender.sendMessage(Component.text("ニックネームデータを再読み込みしました。"));
         return true;
     }
+
 }
+

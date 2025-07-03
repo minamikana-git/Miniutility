@@ -3,93 +3,75 @@ package org.hotamachisubaru.miniutility.Listener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.Miniutility;
-import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class Utilitys implements Listener {
+public class Utilitys {
 
-    private final boolean creeperProtectionEnabled = false;
+    // 再ワープ防止
     private static final Set<UUID> recentlyTeleported = new HashSet<>();
+    private final Miniutility plugin;
+    private final NicknameManager nicknameManager;
+
+
+    public Utilitys(Miniutility plugin,NicknameManager nicknameManager) {
+        this.plugin = plugin;
+        this.nicknameManager = nicknameManager;
+    }
 
     @EventHandler
     public void handleInventoryClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (event.getClickedInventory() == null) return;
+        if (event.getCurrentItem() == null || event.getCurrentItem().getType().isAir()) return;
+
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
 
-        if (event.getClickedInventory() == null) return;
-
-        // Miniutilityが管理するGUIだけを処理（それ以外は絶対に何もしない！）
+        // Miniutilityが管理するGUIだけを処理（それ以外は何もしない）
         switch (title) {
             case "メニュー" -> {
                 event.setCancelled(true);
                 handleUtilityBox(player, event.getCurrentItem(), event);
             }
-            case "ゴミ箱" -> {
-                handleTrashBox(player, event.getCurrentItem(), event);
-            }
-            case "本当に捨てますか？" -> {
-                TrashConfirm(player, event.getCurrentItem(), event);
-            }
-            case "ニックネームを変更" -> {
-                handleNicknameMenu(player, event.getCurrentItem(), event);
-            }
-            default -> {
-                // それ以外（通常チェスト等）は何もしない
-            }
+            case "ゴミ箱" -> handleTrashBox(player, event.getCurrentItem(), event);
+            case "本当に捨てますか？" -> TrashConfirm(player, event.getCurrentItem(), event);
+            case "ニックネームを変更" -> handleNicknameMenu(player, event.getCurrentItem(), event);
+            default -> { /* 何もしない */ }
         }
     }
 
     // メニューGUIのアイテムクリック処理
     private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        event.setCancelled(true);
         if (clickedItem == null || clickedItem.getType().isAir()) return;
+        event.setCancelled(true);
 
-        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
-
-        switch (clickedItem.getType()) { //選択
-            case ARMOR_STAND -> {
-                // 死亡地点へワープ
-                teleportToDeathLocation(player);
-            }
-            case ENDER_CHEST -> {
-                // エンダーチェストを開く
-                player.openInventory(player.getEnderChest());
-            }
-            case CRAFTING_TABLE -> {
-                // 作業台を開く
-                player.openWorkbench(null, true);
-            }
-            case DROPPER -> {
-                // ゴミ箱を開く
-                openTrashBox(player);
-            }
-            case NAME_TAG -> {
-                // ニックネーム変更GUIを開く
-                GUI.NicknameMenu(player);
-            }
+        switch (clickedItem.getType()) {
+            case ARMOR_STAND -> teleportToDeathLocation(player);
+            case ENDER_CHEST -> player.openInventory(player.getEnderChest());
+            case CRAFTING_TABLE -> player.openWorkbench(null, true);
+            case DROPPER -> openTrashBox(player);
+            case NAME_TAG -> GUI.NicknameMenu(player);
             case CREEPER_HEAD -> {
                 CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
-
-                // toggleで新しい状態を受け取る
                 boolean enabled = creeperProtection.toggleCreeperProtection();
                 String status = enabled ? "有効" : "無効";
-                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
+                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。", NamedTextColor.GREEN));
                 player.closeInventory();
             }
-
             case EXPERIENCE_BOTTLE -> {
                 player.closeInventory();
                 Chat.setWaitingForExpInput(player, true);
@@ -97,9 +79,7 @@ public class Utilitys implements Listener {
                         Component.text("経験値を増減する数値をチャットに入力してください。").color(NamedTextColor.AQUA)
                                 .append(Component.text(" 例: \"10\" で +10レベル, \"-5\" で -5レベル").color(NamedTextColor.GRAY))
                 );
-                break;
             }
-
             case COMPASS -> {
                 GameMode current = player.getGameMode();
                 if (current == GameMode.SURVIVAL) {
@@ -110,36 +90,22 @@ public class Utilitys implements Listener {
                     player.sendMessage(Component.text("ゲームモードをサバイバルに変更しました。").color(NamedTextColor.GREEN));
                 }
                 player.closeInventory();
-                break;
             }
 
-
-            case SMITHING_TABLE -> {
-                // 鍛冶台座標検索
-                Location found = findNearestSmithingTable(player.getLocation(), 100);
-                if (found != null) {
-                    player.sendMessage(Component.text("最寄りの鍛冶台: ")
-                            .append(Component.text("X: " + found.getBlockX() + ", Y: " + found.getBlockY() + ", Z: " + found.getBlockZ()).color(NamedTextColor.AQUA)));
-                } else {
-                    player.sendMessage(Component.text("近くに鍛冶台は見つかりませんでした。").color(NamedTextColor.RED));
-                }
-                break;
-            }
-
+            default -> player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
         }
     }
 
     // ゴミ箱GUIのアイテムクリック処理
     private void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         if (!PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("ゴミ箱")) return;
-
         int clickedSlot = event.getRawSlot();
         if (clickedItem == null) return;
-        if (clickedSlot == 53 && clickedItem.getType() == Material.LIME_CONCRETE) {
+        if (clickedSlot == 53 && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
             event.setCancelled(true);
             confirm(player);
         } else {
-            event.setCancelled(false); // それ以外は移動許可
+            event.setCancelled(false);
         }
     }
 
@@ -159,33 +125,31 @@ public class Utilitys implements Listener {
         switch (clickedItem.getType()) {
             case LIME_CONCRETE -> {
                 player.closeInventory();
-                // 削除メッセージなどはここで処理
+                player.sendMessage(Component.text("アイテムを削除しました。").color(NamedTextColor.GREEN));
+                // 実際のアイテム削除処理をここに追加する
             }
             case RED_CONCRETE -> {
                 player.closeInventory();
                 player.sendMessage(Component.text("削除をキャンセルしました").color(NamedTextColor.YELLOW));
             }
-            default -> {
-                player.sendMessage(Component.text("無効な選択です。").color(NamedTextColor.RED));
-            }
+            default -> player.sendMessage(Component.text("無効な選択です。").color(NamedTextColor.RED));
         }
     }
 
     // ニックネーム変更GUI
     private void handleNicknameMenu(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         event.setCancelled(true);
-
         if (clickedItem == null || clickedItem.getType().isAir()) return;
 
         switch (clickedItem.getType()) {
             case PAPER -> {
                 player.sendMessage(Component.text("新しいニックネームをチャットに入力してください。").color(NamedTextColor.AQUA));
-                Chat.setWaitingForNickname(player, true); // Chatクラスの実装にあわせて有効化
+                Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
             }
             case BARRIER -> {
-                NicknameDatabase.saveNickname(player.getUniqueId().toString(), "");
-                NicknameManager.applyFormattedDisplayName(player);
+                plugin.getNicknameDatabase().removeNickname(player.getUniqueId().toString());
+                nicknameManager.applyFormattedDisplayName(player);
                 player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }
@@ -193,51 +157,18 @@ public class Utilitys implements Listener {
         }
     }
 
-    // 死亡地点ワープ
-    public static void teleportToDeathLocation(Player player) {
-        Miniutility plugin = (Miniutility) Bukkit.getPluginManager().getPlugin("Miniutility");
-        if (plugin == null) {
-            player.sendMessage(Component.text("プラグインが読み込まれていません。").color(NamedTextColor.RED));
-            return;
-        }
-
-        var deathLocation = plugin.getDeathLocation(player.getUniqueId());
+    // 死亡地点ワープ（Folia対応：teleportAsyncを推奨）
+    private void teleportToDeathLocation(Player player) {
+        Location deathLocation = plugin.getDeathLocation(player.getUniqueId());
         if (deathLocation == null) {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
         }
-
-        player.teleport(deathLocation);
-        if (!recentlyTeleported.contains(player.getUniqueId())) {
+        player.teleportAsync(deathLocation); // 1.20以降は非同期ワープで安全
+        if (recentlyTeleported.add(player.getUniqueId())) {
             player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
-            recentlyTeleported.add(player.getUniqueId());
             Bukkit.getScheduler().runTaskLater(plugin, () -> recentlyTeleported.remove(player.getUniqueId()), 20L);
         }
-    }
-
-    private Location findNearestSmithingTable(Location center, int radius) {
-        World world = center.getWorld();
-        double minDist = Double.MAX_VALUE;
-        Location nearest = null;
-
-        int cx = center.getBlockX();
-        int cy = center.getBlockY();
-        int cz = center.getBlockZ();
-
-        for (int x = cx - radius; x <= cx + radius; x++) {
-            for (int y = Math.max(0, cy - 20); y <= Math.min(world.getMaxHeight(), cy + 20); y++) {
-                for (int z = cz - radius; z <= cz + radius; z++) {
-                    if (world.getBlockAt(x, y, z).getType() == Material.SMITHING_TABLE) {
-                        double dist = center.distanceSquared(new Location(world, x, y, z));
-                        if (dist < minDist) {
-                            minDist = dist;
-                            nearest = new Location(world, x, y, z);
-                        }
-                    }
-                }
-            }
-        }
-        return nearest;
     }
 
     // ゴミ箱を開く

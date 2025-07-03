@@ -1,38 +1,29 @@
 package org.hotamachisubaru.miniutility.Command;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.hotamachisubaru.miniutility.GUI.GUI;
+import org.hotamachisubaru.miniutility.Miniutility;
 
 public class UtilityCommand implements CommandExecutor {
+
+    private final Miniutility plugin;
+
+    public UtilityCommand(Miniutility plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("このコマンドはプレイヤーのみが使用できます。").color(NamedTextColor.RED));
+            sender.sendMessage(Component.text("このコマンドはプレイヤーのみ使用できます。"));
             return true;
         }
-
-        // メニューを開く
-        GUI.openUtilityMenu(player);
+        // ユーティリティメニューを開く
+        GUI.openMenu(player,plugin);
         return true;
-    }
-
-
-    @EventHandler
-    public void openMenu(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
-        if (event.getView().title().equals(Component.text("メニュー"))) {
-            event.setCancelled(true);
-
-            if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
-            }
-        }
     }
 }

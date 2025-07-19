@@ -10,7 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
 import java.util.HashMap;
@@ -21,10 +21,10 @@ import static org.hotamachisubaru.miniutility.GUI.GUI.createMenuItem;
 
 public class TrashListener implements Listener {
     private static final Map<UUID, Inventory> lastTrashBox = new HashMap<>();
-    private final Miniutility plugin;
     private static final Map<UUID, ItemStack[]> trashBoxCache = new HashMap<>();
+    private final MiniutilityLoader plugin;
 
-    public TrashListener(Miniutility plugin) {
+    public TrashListener(MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 
@@ -56,7 +56,6 @@ public class TrashListener implements Listener {
         player.openInventory(confirmMenu);
     }
 
-
     @EventHandler
     public void onTrashBoxClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -81,17 +80,15 @@ public class TrashListener implements Listener {
             }
 
             // プレイヤーのインベントリ側（下段）
-            // getRawSlot()が54以上なら必ず下段
             if (rawSlot >= 54) {
                 event.setCancelled(false);
                 return;
             }
 
-            // その他（想定外）はキャンセル
+            // その他はキャンセル
             event.setCancelled(true);
             return;
         }
-
 
         // --- 確認画面 ---
         if (title.equals("本当に捨てますか？")) {
@@ -99,7 +96,7 @@ public class TrashListener implements Listener {
             ItemStack item = event.getCurrentItem();
             if (item == null) return;
             if (item.getType() == Material.LIME_CONCRETE) {
-                // 削除（前回通り）
+                // 削除
                 Inventory prev = lastTrashBox.get(player.getUniqueId());
                 if (prev != null) {
                     FoliaUtil.runAtPlayer(plugin, player, () -> {
@@ -136,8 +133,6 @@ public class TrashListener implements Listener {
                 trashBoxCache.remove(player.getUniqueId());
                 player.sendMessage(Component.text("削除をキャンセルしました。").color(NamedTextColor.YELLOW));
             }
-
         }
     }
 }
-

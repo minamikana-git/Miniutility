@@ -2,7 +2,7 @@ package org.hotamachisubaru.miniutility.Nickname;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -12,13 +12,13 @@ import java.util.logging.Logger;
 
 /**
  * ニックネームYAML→SQLite移行用
- * データベースパスやログ取得はMiniutilityから
+ * データベースパスやログ取得はMiniutilityLoaderから
  */
 public class NicknameMigration {
 
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
 
-    public NicknameMigration(Miniutility plugin) {
+    public NicknameMigration(MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 

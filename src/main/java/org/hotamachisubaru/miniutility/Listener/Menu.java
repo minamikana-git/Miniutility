@@ -10,13 +10,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.GUI.GUI;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 public class Menu implements Listener {
 
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
 
-    public Menu(Miniutility plugin) {
+    public Menu(MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 
@@ -31,18 +32,18 @@ public class Menu implements Listener {
         switch (title) {
             case "メニュー" -> {
                 event.setCancelled(true);
-                handleUtilityBox(player, event.getCurrentItem(),event);
+                handleUtilityBox(player, event.getCurrentItem(), event);
             }
             case "ニックネームを変更" -> {
                 event.setCancelled(true);
-
+                // 必要ならここに処理を追加
             }
             default -> { /* 他は何もしない */ }
         }
     }
 
     // --- メニューGUIのクリックアクション処理 ---
-    private void handleUtilityBox(Player player, ItemStack clickedItem,InventoryClickEvent event) {
+    private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         switch (clickedItem.getType()) {
             case ARMOR_STAND -> teleportToDeathLocation(player);
             case ENDER_CHEST -> player.openInventory(player.getEnderChest());
@@ -50,10 +51,10 @@ public class Menu implements Listener {
             case DROPPER -> TrashListener.openTrashBox(player);
             case NAME_TAG -> NicknameListener.openNicknameMenu(player);
             case CREEPER_HEAD -> {
-                CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
+                var creeperProtection = plugin.getMiniutility().getCreeperProtectionListener();
                 boolean enabled = creeperProtection.toggleCreeperProtection();
                 String status = enabled ? "有効" : "無効";
-                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。", NamedTextColor.GREEN));
+                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }
             case EXPERIENCE_BOTTLE -> {
@@ -76,13 +77,43 @@ public class Menu implements Listener {
                 player.closeInventory();
             }
 
+            case FEATHER -> {
+                // DoubleJumpListenerインスタンスを取得
+                var doubleJumpListener = plugin.getMiniutility().getDoubleJumpListener();
+
+                // ON/OFFトグルして状態取得
+                boolean enabled = doubleJumpListener.toggleDoubleJump(player.getUniqueId());
+
+                // プレイヤーにフィードバック
+                player.sendMessage(
+                        Component.text("2段ジャンプが " + (enabled ? "有効" : "無効") + " になりました。")
+                                .color(enabled ? NamedTextColor.AQUA : NamedTextColor.RED)
+                );
+
+                // メニュー再表示でON/OFFボタンの状態を即反映（もし不要なら省略OK）
+                GUI.openMenu(player, plugin);
+                player.closeInventory();
+
+
+
+            // メニュー再表示でON/OFFボタンの状態を即反映
+                GUI.openMenu(player, plugin);
+                player.closeInventory();
+            }
+
+
+
             default -> player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
         }
     }
 
     // 死亡地点ワープ（Folia/Paper両対応）
     private void teleportToDeathLocation(Player player) {
-        Location loc = plugin.getDeathLocation(player.getUniqueId());
+        if (plugin.getMiniutility() == null) {
+            player.sendMessage(Component.text("プラグイン初期化中です。").color(NamedTextColor.RED));
+            return;
+        }
+        Location loc = plugin.getMiniutility().getDeathLocation(player.getUniqueId());
         if (loc == null) {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
@@ -90,5 +121,4 @@ public class Menu implements Listener {
         player.teleportAsync(loc);
         player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
     }
-
 }

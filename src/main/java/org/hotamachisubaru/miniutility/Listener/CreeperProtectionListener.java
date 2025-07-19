@@ -4,14 +4,13 @@ import org.bukkit.entity.Creeper;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 public class CreeperProtectionListener implements Listener {
-
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
     private boolean creeperProtectionEnabled = true;
 
-    public CreeperProtectionListener(Miniutility plugin) {
+    public CreeperProtectionListener(MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 
@@ -22,7 +21,7 @@ public class CreeperProtectionListener implements Listener {
             event.setCancelled(true);
         }
     }
-    // トグル制御
+
     public boolean toggleCreeperProtection() {
         creeperProtectionEnabled = !creeperProtectionEnabled;
         return creeperProtectionEnabled;

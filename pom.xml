@@ -6,7 +6,7 @@
 
     <groupId>org.hotamachisubaru</groupId>
     <artifactId>Miniutility</artifactId>
-    <version>1.21.7</version>
+    <version>1.21.8</version>
     <packaging>jar</packaging>
 
     <name>Miniutility</name>
@@ -81,12 +81,11 @@
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
     </repositories>
-
     <dependencies>
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.7-R0.1-SNAPSHOT</version>
+            <version>1.21.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -98,7 +97,12 @@
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.50.1.0</version>
+            <version>3.50.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
         </dependency>
     </dependencies>
 </project>

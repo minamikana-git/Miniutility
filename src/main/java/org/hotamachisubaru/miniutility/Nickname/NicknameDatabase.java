@@ -1,16 +1,16 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NicknameDatabase {
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
     private final Map<String, String> nicknameMap = new ConcurrentHashMap<>();
 
-    public NicknameDatabase(Miniutility plugin) {
+    public NicknameDatabase(MiniutilityLoader plugin) {
         this.plugin = plugin;
         load();
     }

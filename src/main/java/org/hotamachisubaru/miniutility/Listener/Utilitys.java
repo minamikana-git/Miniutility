@@ -13,7 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.GUI;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
 import java.util.HashSet;
@@ -24,11 +24,10 @@ public class Utilitys {
 
     // 再ワープ防止
     private static final Set<UUID> recentlyTeleported = new HashSet<>();
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
     private final NicknameManager nicknameManager;
 
-
-    public Utilitys(Miniutility plugin,NicknameManager nicknameManager) {
+    public Utilitys(MiniutilityLoader plugin, NicknameManager nicknameManager) {
         this.plugin = plugin;
         this.nicknameManager = nicknameManager;
     }
@@ -41,7 +40,7 @@ public class Utilitys {
 
         String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
 
-        // Miniutilityが管理するGUIだけを処理（それ以外は何もしない）
+        // Miniutilityが管理するGUIだけを処理
         switch (title) {
             case "メニュー" -> {
                 event.setCancelled(true);
@@ -66,10 +65,10 @@ public class Utilitys {
             case DROPPER -> openTrashBox(player);
             case NAME_TAG -> GUI.NicknameMenu(player);
             case CREEPER_HEAD -> {
-                CreeperProtectionListener creeperProtection = plugin.getCreeperProtectionListener();
+                var creeperProtection = plugin.getMiniutility().getCreeperProtectionListener();
                 boolean enabled = creeperProtection.toggleCreeperProtection();
                 String status = enabled ? "有効" : "無効";
-                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。", NamedTextColor.GREEN));
+                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }
             case EXPERIENCE_BOTTLE -> {
@@ -91,7 +90,6 @@ public class Utilitys {
                 }
                 player.closeInventory();
             }
-
             default -> player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
         }
     }
@@ -126,7 +124,7 @@ public class Utilitys {
             case LIME_CONCRETE -> {
                 player.closeInventory();
                 player.sendMessage(Component.text("アイテムを削除しました。").color(NamedTextColor.GREEN));
-                // 実際のアイテム削除処理をここに追加する
+                // アイテム削除処理をここに追加
             }
             case RED_CONCRETE -> {
                 player.closeInventory();
@@ -148,7 +146,7 @@ public class Utilitys {
                 player.closeInventory();
             }
             case BARRIER -> {
-                plugin.getNicknameDatabase().removeNickname(player.getUniqueId().toString());
+                plugin.getMiniutility().getNicknameDatabase().removeNickname(player.getUniqueId().toString());
                 nicknameManager.applyFormattedDisplayName(player);
                 player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
@@ -159,12 +157,16 @@ public class Utilitys {
 
     // 死亡地点ワープ（Folia対応：teleportAsyncを推奨）
     private void teleportToDeathLocation(Player player) {
-        Location deathLocation = plugin.getDeathLocation(player.getUniqueId());
+        if (plugin.getMiniutility() == null) {
+            player.sendMessage(Component.text("プラグイン初期化中です。").color(NamedTextColor.RED));
+            return;
+        }
+        Location deathLocation = plugin.getMiniutility().getDeathLocation(player.getUniqueId());
         if (deathLocation == null) {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
         }
-        player.teleportAsync(deathLocation); // 1.20以降は非同期ワープで安全
+        player.teleportAsync(deathLocation);
         if (recentlyTeleported.add(player.getUniqueId())) {
             player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
             Bukkit.getScheduler().runTaskLater(plugin, () -> recentlyTeleported.remove(player.getUniqueId()), 20L);

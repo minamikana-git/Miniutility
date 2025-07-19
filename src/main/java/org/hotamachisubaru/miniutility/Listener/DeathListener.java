@@ -10,14 +10,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
 public class DeathListener implements Listener {
 
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
 
-    public DeathListener(Miniutility plugin) {
+    public DeathListener(MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 
@@ -26,7 +26,10 @@ public class DeathListener implements Listener {
         Player player = event.getEntity();
         // 死亡地点（頭上1ブロック、ディメンション付き）保存
         Location deathLoc = player.getLocation().getBlock().getLocation().add(0, 1, 0);
-        plugin.setDeathLocation(player.getUniqueId(), deathLoc);
+        // Miniutility本体経由で保存
+        if (plugin.getMiniutility() != null) {
+            plugin.getMiniutility().setDeathLocation(player.getUniqueId(), deathLoc);
+        }
 
         // 必要に応じてダブルチェスト設置
         FoliaUtil.runAtLocation(plugin, deathLoc, () -> {

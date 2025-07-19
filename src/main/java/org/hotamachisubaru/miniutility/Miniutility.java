@@ -2,14 +2,16 @@ package org.hotamachisubaru.miniutility;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.hotamachisubaru.miniutility.Command.LoadCommand;
-import org.hotamachisubaru.miniutility.Command.TogglePrefixCommand;
-import org.hotamachisubaru.miniutility.Command.UtilityCommand;
+import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
@@ -28,56 +30,103 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
- * Miniutility メインクラス (Paper/Folia完全両対応・1.21.7最適化)
+ * Miniutility メインクラス (Paper/Folia完全両対応・1.21.8最適化)
  */
-public class Miniutility extends JavaPlugin {
+public class Miniutility {
 
-    // UUID→死亡地点（ディメンション込みで管理）
+    private final MiniutilityLoader plugin; // JavaPlugin参照
     private final Map<UUID, Location> deathLocations = new ConcurrentHashMap<>();
-    private final Logger logger = getLogger();
+    private final Logger logger;
     private NicknameDatabase nicknameDatabase;
     private NicknameManager nicknameManager;
     private CreeperProtectionListener creeperProtectionListener;
     private Chat chatListener;
-    private final PluginManager pm = getServer().getPluginManager();
+    private final PluginManager pm;
 
-    @Override
-    public void onEnable() {
-        saveDefaultConfig();
+    public Miniutility(MiniutilityLoader plugin) {
+        this.plugin = plugin;
+        this.logger = plugin.getLogger();
+        this.pm = plugin.getServer().getPluginManager();
+    }
+
+    public void enable() {
+        plugin.saveDefaultConfig();
         setupDatabase();
-        // DB, マネージャ初期化
-        nicknameDatabase = new NicknameDatabase(this);
-        nicknameManager = new NicknameManager(this, nicknameDatabase);
-        creeperProtectionListener = new CreeperProtectionListener(this);
-        chatListener = new Chat(this,nicknameDatabase,nicknameManager);
-        // イベント登録
+        nicknameDatabase = new NicknameDatabase(plugin);
+        nicknameManager = new NicknameManager(plugin, nicknameDatabase);
+        creeperProtectionListener = new CreeperProtectionListener(plugin);
+        chatListener = new Chat(plugin, nicknameDatabase, nicknameManager);
         registerListeners();
-        // コマンド登録
         registerCommands();
         checkLuckPerms();
         // マイグレーション
-        NicknameMigration migration = new NicknameMigration(this);
+        NicknameMigration migration = new NicknameMigration(plugin);
         migration.migrateToDatabase();
         checkUpdates();
         logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
     }
+
+    public void disable() {
+        if (nicknameDatabase != null) {
+            nicknameDatabase.saveAll();
+        }
+    }
+
     private void registerCommands() {
-        getCommand("menu").setExecutor(new UtilityCommand(this));
-        getCommand("load").setExecutor(new LoadCommand(this));
-        getCommand("prefixtoggle").setExecutor(new TogglePrefixCommand(this));
+        // /menu コマンド
+        plugin.getServer().getCommandMap().register("menu", new Command("menu") {
+            @Override
+            public boolean execute(CommandSender sender, String label, String[] args) {
+                if (sender instanceof Player player) {
+                    // メニューを開く
+                   GUI.openMenu(player, plugin);
+                } else {
+                    sender.sendMessage("プレイヤーのみ使用できます。");
+                }
+                return true;
+            }
+        });
+
+        // /load コマンド
+        plugin.getServer().getCommandMap().register("load", new Command("load") {
+            @Override
+            public boolean execute(CommandSender sender, String label, String[] args) {
+                plugin.getMiniutility().getNicknameDatabase().reload();
+                sender.sendMessage("ニックネームデータを再読み込みしました。");
+                return true;
+            }
+        });
+
+        // /prefixtoggle コマンド
+        plugin.getServer().getCommandMap().register("prefixtoggle", new Command("prefixtoggle") {
+            @Override
+            public boolean execute(CommandSender sender, String label, String[] args) {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("プレイヤーのみ実行可能です。");
+                    return true;
+                }
+                var manager = plugin.getMiniutility().getNicknameManager();
+                boolean enabled = manager.togglePrefix(player.getUniqueId());
+                player.sendMessage(Component.text("Prefixの表示が " + (enabled ? "有効" : "無効") + " になりました。").color(NamedTextColor.GREEN));
+                return true;
+            }
+        });
     }
+
     private void registerListeners() {
-        pm.registerEvents(new DeathListener(this), this);
-        pm.registerEvents(chatListener, this);
-        pm.registerEvents(creeperProtectionListener, this);
-        pm.registerEvents(new Menu(this), this);
-        pm.registerEvents(new NicknameListener(this,nicknameManager), this);
-        pm.registerEvents(new TrashListener(this), this);
+        pm.registerEvents(new DeathListener(plugin), plugin);
+        pm.registerEvents(chatListener, plugin);
+        pm.registerEvents(creeperProtectionListener, plugin);
+        pm.registerEvents(new Menu(plugin), plugin);
+        pm.registerEvents(new NicknameListener(plugin, nicknameManager), plugin);
+        pm.registerEvents(new TrashListener(plugin), plugin);
+        pm.registerEvents(new DoubleJumpListener(plugin), plugin);
     }
+
     private void checkUpdates() {
         String owner = "minamikana-git";
-        String repo  = "Miniutility";
+        String repo = "Miniutility";
         String apiUrl = String.format(
                 "https://api.github.com/repos/%s/%s/releases/latest",
                 owner, repo
@@ -96,17 +145,15 @@ public class Miniutility extends JavaPlugin {
             }
             JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
             String latestTag = json.get("tag_name").getAsString().replaceFirst("^v", "");
-            String currentVersion = getDescription().getVersion();
+            String currentVersion = plugin.getDescription().getVersion();
             if (!currentVersion.equals(latestTag)) {
                 String url = json.get("html_url").getAsString();
                 String msg = "新しいバージョン "
                         + latestTag + " が利用可能です！ ダウンロード: " + url;
                 logger.info(msg);
-
-                // Folia/Paper両対応で安全に全プレイヤーに通知
                 Bukkit.getOnlinePlayers().forEach(p -> {
                     if (p.isOp()) {
-                        FoliaUtil.runAtPlayer(this, p, () -> p.sendMessage(msg));
+                        FoliaUtil.runAtPlayer(plugin, p, () -> p.sendMessage(msg));
                     }
                 });
             }
@@ -120,21 +167,22 @@ public class Miniutility extends JavaPlugin {
             logger.warning("LuckPermsが見つかりません。Prefixなしで続行します。");
         }
     }
+
     private void migration() {
-        File flag = new File(getDataFolder(), "migrationCompleted.flag");
+        File flag = new File(plugin.getDataFolder(), "migrationCompleted.flag");
         if (flag.exists()) return;
 
-        File oldFile = new File(getDataFolder(), "nickname.yml");
+        File oldFile = new File(plugin.getDataFolder(), "nickname.yml");
         if (!oldFile.exists()) return;
 
         try {
             YamlConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldFile);
-            NicknameDatabase db = new NicknameDatabase(this);
+            NicknameDatabase db = new NicknameDatabase(plugin);
             for (String key : oldConfig.getKeys(false)) {
                 String name = oldConfig.getString(key);
-                if (name != null) db.setNickname(key,name);
+                if (name != null) db.setNickname(key, name);
             }
-            oldFile.renameTo(new File(getDataFolder(), "nickname.yml.bak"));
+            oldFile.renameTo(new File(plugin.getDataFolder(), "nickname.yml.bak"));
             flag.createNewFile();
         } catch (Exception e) {
             logger.severe("マイグレーション失敗: " + e.getMessage());
@@ -142,7 +190,7 @@ public class Miniutility extends JavaPlugin {
     }
 
     private void setupDatabase() {
-        File dbFile = new File(getDataFolder(), "nickname.db");
+        File dbFile = new File(plugin.getDataFolder(), "nickname.db");
         if (dbFile.exists()) {
             logger.info("nickname.dbが既に存在します。初期セットアップをスキップします。");
             return;
@@ -157,13 +205,6 @@ public class Miniutility extends JavaPlugin {
             logger.info("nickname.dbを新規作成し、テーブルをセットアップしました。");
         } catch (Exception e) {
             logger.severe("nickname.db初期セットアップに失敗: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void onDisable() {
-        if (nicknameDatabase != null) {
-            nicknameDatabase.saveAll();
         }
     }
 

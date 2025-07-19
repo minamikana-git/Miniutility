@@ -10,14 +10,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
 public class NicknameListener implements Listener {
     private final NicknameManager nicknameManager;
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
 
-    public NicknameListener(Miniutility plugin, NicknameManager nicknameManager) {
+    public NicknameListener(MiniutilityLoader plugin, NicknameManager nicknameManager) {
         this.plugin = plugin;
         this.nicknameManager = nicknameManager;
     }
@@ -27,7 +27,7 @@ public class NicknameListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         Component titleComponent = event.getView().title();
 
-        // ←タイトルを「Component」として完全一致比較！
+        // タイトルを「Component」として完全一致比較！
         if (!titleComponent.equals(Component.text("ニックネームを変更"))) {
             return;
         }
@@ -48,7 +48,7 @@ public class NicknameListener implements Listener {
                 player.closeInventory();
             }
             case BARRIER -> {
-                plugin.getNicknameDatabase().removeNickname(player.getUniqueId().toString());
+                plugin.getMiniutility().getNicknameDatabase().removeNickname(player.getUniqueId().toString());
                 nicknameManager.applyFormattedDisplayName(player);
                 player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
                 player.closeInventory();

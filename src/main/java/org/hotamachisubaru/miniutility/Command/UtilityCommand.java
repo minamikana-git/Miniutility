@@ -6,13 +6,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.hotamachisubaru.miniutility.GUI.GUI;
-import org.hotamachisubaru.miniutility.Miniutility;
+import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 public class UtilityCommand implements CommandExecutor {
 
-    private final Miniutility plugin;
+    private final MiniutilityLoader plugin;
 
-    public UtilityCommand(Miniutility plugin) {
+    public UtilityCommand(MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 
@@ -23,7 +23,7 @@ public class UtilityCommand implements CommandExecutor {
             return true;
         }
         // ユーティリティメニューを開く
-        GUI.openMenu(player,plugin);
+        GUI.openMenu(player, plugin);
         return true;
     }
 }

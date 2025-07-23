@@ -49,19 +49,6 @@ public class CommandManager {
             }
         });
 
-        // /doublejumptoggle
-        plugin.getServer().getCommandMap().register("doublejumptoggle", new Command("doublejumptoggle") {
-            @Override
-            public boolean execute(CommandSender sender, String label, String[] args) {
-                if (!(sender instanceof Player player)) {
-                    sender.sendMessage("プレイヤーのみ実行可能です。");
-                    return true;
-                }
-                var doubleJumpListener = plugin.getMiniutility().getDoubleJumpListener();
-                boolean enabled = doubleJumpListener.toggleDoubleJump(player.getUniqueId(), player);
-                player.sendMessage(Component.text("2段ジャンプが " + (enabled ? "有効" : "無効") + " になりました。").color(NamedTextColor.GREEN));
-                return true;
-            }
-        });
+
     }
 }

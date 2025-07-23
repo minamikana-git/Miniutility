@@ -10,7 +10,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 public class Menu implements Listener {
@@ -77,29 +76,7 @@ public class Menu implements Listener {
                 player.closeInventory();
             }
 
-            case FEATHER -> {
-                // DoubleJumpListenerインスタンスを取得
-                var doubleJumpListener = plugin.getMiniutility().getDoubleJumpListener();
 
-                // ON/OFFトグルして状態取得
-                boolean enabled = doubleJumpListener.toggleDoubleJump(player.getUniqueId(),player);
-
-                // プレイヤーにフィードバック
-                player.sendMessage(
-                        Component.text("2段ジャンプが " + (enabled ? "有効" : "無効") + " になりました。")
-                                .color(enabled ? NamedTextColor.AQUA : NamedTextColor.RED)
-                );
-
-                // メニュー再表示でON/OFFボタンの状態を即反映（もし不要なら省略OK）
-                GUI.openMenu(player, plugin);
-                player.closeInventory();
-
-
-
-            // メニュー再表示でON/OFFボタンの状態を即反映
-                GUI.openMenu(player, plugin);
-                player.closeInventory();
-            }
 
 
 

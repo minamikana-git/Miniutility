@@ -24,8 +24,6 @@ public class GUI {
         utilityMenu.setItem(2, createMenuItem(Material.EXPERIENCE_BOTTLE, "経験値制御器", "経験値を制御します"));
         // ゲームモード制御器
         utilityMenu.setItem(4, createMenuItem(Material.COMPASS, "ゲームモード制御器", "ゲームモードを制御します"));
-        // 2段ジャンプ
-        utilityMenu.setItem(6,createMenuItem(Material.FEATHER,"２段ジャンプ","２段ジャンプを有効/無効します。"));
         // クリーパーのブロック破壊を防ぐ
         utilityMenu.setItem(9, createMenuItem(Material.CREEPER_HEAD, "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
         // エンダーチェスト

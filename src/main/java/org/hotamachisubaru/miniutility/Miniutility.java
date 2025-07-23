@@ -35,7 +35,6 @@ public class Miniutility {
     private NicknameDatabase nicknameDatabase;
     private NicknameManager nicknameManager;
     private CreeperProtectionListener creeperProtectionListener;
-    private DoubleJumpListener doubleJumpListener;
     private Chat chatListener;
     private final PluginManager pm;
 
@@ -52,7 +51,7 @@ public class Miniutility {
         nicknameManager = new NicknameManager(plugin, nicknameDatabase);
         creeperProtectionListener = new CreeperProtectionListener(plugin);
         chatListener = new Chat(plugin, nicknameDatabase, nicknameManager);
-        doubleJumpListener = new DoubleJumpListener(plugin);
+
         registerListeners();
         CommandManager.registerCommands(plugin);
         checkLuckPerms();
@@ -77,7 +76,6 @@ public class Miniutility {
         pm.registerEvents(new Menu(plugin), plugin);
         pm.registerEvents(new NicknameListener(plugin, nicknameManager), plugin);
         pm.registerEvents(new TrashListener(plugin), plugin);
-        pm.registerEvents(new DoubleJumpListener(plugin), plugin);
     }
 
     private void checkUpdates() {
@@ -186,7 +184,7 @@ public class Miniutility {
         return creeperProtectionListener;
     }
 
-    public DoubleJumpListener getDoubleJumpListener() { return doubleJumpListener; }
+
 
     public Chat getChatListener() {
         return chatListener;

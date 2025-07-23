@@ -29,15 +29,28 @@ public class DoubleJumpListener implements Listener {
 
     // 有効判定
     public boolean isDoubleJumpEnabled(UUID uuid) {
-        return doubleJumpEnabledMap.getOrDefault(uuid, true); // デフォルトON
+        return doubleJumpEnabledMap.getOrDefault(uuid, false); // デフォルトON
     }
 
     // ON/OFFトグル
-    public boolean toggleDoubleJump(UUID uuid) {
+    public boolean toggleDoubleJump(UUID uuid, Player player) {
         boolean enabled = !isDoubleJumpEnabled(uuid);
         doubleJumpEnabledMap.put(uuid, enabled);
+
+        if (enabled) {
+            // 今サバイバルで地面にいるなら即allowFlight
+            if (player.isOnGround() && player.getGameMode() == GameMode.SURVIVAL) {
+                player.setAllowFlight(true);
+                canDoubleJump.add(uuid);
+            }
+        } else {
+            // OFF化: 飛行権限OFF, 状態リセット
+            player.setAllowFlight(false);
+            canDoubleJump.remove(uuid);
+        }
         return enabled; // true=ON, false=OFF
     }
+
 
     // 地上に着いたら2段ジャンプを再セット
     @EventHandler

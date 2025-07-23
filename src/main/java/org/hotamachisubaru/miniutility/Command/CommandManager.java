@@ -58,7 +58,7 @@ public class CommandManager {
                     return true;
                 }
                 var doubleJumpListener = plugin.getMiniutility().getDoubleJumpListener();
-                boolean enabled = doubleJumpListener.toggleDoubleJump(player.getUniqueId());
+                boolean enabled = doubleJumpListener.toggleDoubleJump(player.getUniqueId(), player);
                 player.sendMessage(Component.text("2段ジャンプが " + (enabled ? "有効" : "無効") + " になりました。").color(NamedTextColor.GREEN));
                 return true;
             }

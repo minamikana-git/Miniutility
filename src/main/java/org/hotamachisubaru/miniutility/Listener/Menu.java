@@ -82,7 +82,7 @@ public class Menu implements Listener {
                 var doubleJumpListener = plugin.getMiniutility().getDoubleJumpListener();
 
                 // ON/OFFトグルして状態取得
-                boolean enabled = doubleJumpListener.toggleDoubleJump(player.getUniqueId());
+                boolean enabled = doubleJumpListener.toggleDoubleJump(player.getUniqueId(),player);
 
                 // プレイヤーにフィードバック
                 player.sendMessage(

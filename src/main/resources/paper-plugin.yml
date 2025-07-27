@@ -10,3 +10,14 @@ plugin-dependencies:
   - name: LuckPerms
     required: false
     bootstrap: false
+# ここからコマンド定義を追加
+commands:
+  menu:
+    description: 便利機能を開きます。
+    usage: /<command>
+  load:
+    description: データベースからニックネームをロードします。
+    usage: /<command>
+  prefixtoggle:
+    description: Prefix表示を切り替えます。
+    usage: /<command>

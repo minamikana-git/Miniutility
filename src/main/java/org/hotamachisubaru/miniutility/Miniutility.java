@@ -51,9 +51,11 @@ public class Miniutility {
         nicknameManager = new NicknameManager(plugin, nicknameDatabase);
         creeperProtectionListener = new CreeperProtectionListener(plugin);
         chatListener = new Chat(plugin, nicknameDatabase, nicknameManager);
-
         registerListeners();
-        CommandManager.registerCommands(plugin);
+        var cmd = new CommandManager(plugin);
+        plugin.getCommand("menu").setExecutor(cmd);
+        plugin.getCommand("load").setExecutor(cmd);
+        plugin.getCommand("prefixtoggle").setExecutor(cmd);
         checkLuckPerms();
         // マイグレーション
         NicknameMigration migration = new NicknameMigration(plugin);

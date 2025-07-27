@@ -54,8 +54,11 @@ public class Miniutility {
         registerListeners();
         var cmd = new CommandManager(plugin);
         plugin.getCommand("menu").setExecutor(cmd);
+        plugin.getCommand("menu").setTabCompleter(cmd);
         plugin.getCommand("load").setExecutor(cmd);
+        plugin.getCommand("load").setTabCompleter(cmd);
         plugin.getCommand("prefixtoggle").setExecutor(cmd);
+        plugin.getCommand("prefixtoggle").setTabCompleter(cmd);
         checkLuckPerms();
         // マイグレーション
         NicknameMigration migration = new NicknameMigration(plugin);

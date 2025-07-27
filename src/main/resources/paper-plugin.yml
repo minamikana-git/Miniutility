@@ -3,6 +3,8 @@ version: '1.21.8'
 main: org.hotamachisubaru.miniutility.MiniutilityLoader
 bootstrapper: org.hotamachisubaru.miniutility.PluginLoad.MiniutilityBootstrap
 api-version: '1.21'
+authors:
+  - hotamachisubaru
 folia-supported: true
 plugin-dependencies:
   - name: LuckPerms

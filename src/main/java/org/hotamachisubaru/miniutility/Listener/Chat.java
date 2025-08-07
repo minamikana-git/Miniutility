@@ -13,14 +13,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
-/**
- * Chatリスナー: 1.17.1～1.21.x/Paper両対応
- */
 public class Chat implements Listener {
 
-    // --- チャット待機フラグなど ---
+    // --- チャット待機フラグ ---
     private static final Map<UUID, Boolean> waitingForNickname = new ConcurrentHashMap<>();
     private static final Map<UUID, Boolean> waitingForColorInput = new ConcurrentHashMap<>();
     private static final Map<UUID, Boolean> waitingForExpInput = new ConcurrentHashMap<>();
@@ -73,7 +71,7 @@ public class Chat implements Listener {
         try {
             var meta = net.luckperms.api.LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
             prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
-        } catch (Throwable ignored) {
+        } catch (Throwable e) {
             // LuckPerms未導入時はprefix無し
         }
 
@@ -85,7 +83,7 @@ public class Chat implements Listener {
             try {
                 // 新API: 全参加者にComponentチャット送信
                 for (Player viewer : event.getRecipients()) {
-                    viewer.sendMessage(Component.text(displayName + " » " + event.getMessage()).color(NamedTextColor.WHITE));
+                    sendMessageCompat(viewer, displayName + " » " + event.getMessage(), NamedTextColor.WHITE);
                 }
                 event.setCancelled(true);
             } catch (Throwable e) {
@@ -98,7 +96,7 @@ public class Chat implements Listener {
         }
     }
 
-    // すべてのバージョンで動くsendMessageユーティリティ
+    // --- ここから下が「定義式」付きのprivateメソッド ---
     private void sendMessageCompat(Player player, String text, NamedTextColor color) {
         try {
             player.sendMessage(Component.text(text).color(color));
@@ -108,17 +106,13 @@ public class Chat implements Listener {
     }
 
     private String getLegacyColorCode(NamedTextColor color) {
-        return switch (color) {
-            case GREEN -> "a";
-            case RED -> "c";
-            case AQUA -> "b";
-            case YELLOW -> "e";
-            case GRAY -> "7";
-            case WHITE -> "f";
-            default -> "f";
-        };
+        if (color == null) return "f";
+        if (color.equals(NamedTextColor.GREEN)) return "a";
+        if (color.equals(NamedTextColor.RED)) return "c";
+        if (color.equals(NamedTextColor.AQUA)) return "b";
+        if (color.equals(NamedTextColor.YELLOW)) return "e";
+        if (color.equals(NamedTextColor.GRAY)) return "7";
+        if (color.equals(NamedTextColor.WHITE)) return "f";
+        return "f";
     }
 }
-
-
-

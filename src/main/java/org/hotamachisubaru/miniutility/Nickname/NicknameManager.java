@@ -4,76 +4,61 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.hotamachisubaru.miniutility.MiniutilityLoader;
-import org.hotamachisubaru.miniutility.util.FoliaUtil;
-import org.jetbrains.annotations.NotNull;
+import org.hotamachisubaru.miniutility.util.APIVersionUtil;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
+/**
+ * ニックネーム管理（バージョン分岐例付き）
+ */
 public class NicknameManager {
-    private final MiniutilityLoader plugin;
-    private final NicknameDatabase db;
-    private final Map<UUID, Boolean> prefixEnabledMap = new ConcurrentHashMap<>();
+    private static final Logger logger = Bukkit.getLogger();
+    private static final Map<UUID, String> nicknameMap = new ConcurrentHashMap<>();
 
-    public NicknameManager(MiniutilityLoader plugin, NicknameDatabase db) {
-        this.plugin = plugin;
-        this.db = db;
+    public static void setNickname(Player player, String nickname) {
+        nicknameMap.put(player.getUniqueId(), nickname);
+        updateDisplayName(player);
     }
 
-    public String getNickname(Player player) {
-        return db.getNickname(player.getUniqueId().toString());
+    public static void removeNickname(Player player) {
+        nicknameMap.remove(player.getUniqueId());
+        updateDisplayName(player);
     }
 
-    public void setNickname(Player player, String nickname) {
-        db.setNickname(player.getUniqueId().toString(), nickname);
-        applyFormattedDisplayName(player);
+    public static String getDisplayName(Player player) {
+        String nickname = nicknameMap.get(player.getUniqueId());
+        return (nickname != null) ? nickname : player.getName();
     }
 
-    public void clearNickname(Player player) {
-        db.removeNickname(player.getUniqueId().toString());
-        applyFormattedDisplayName(player);
-    }
+    public static void updateDisplayName(Player player) {
+        String nickname = getDisplayName(player);
 
-    public static String getLuckPermsPrefix(Player player) {
+        // Prefix取得（LuckPermsなど）
+        String prefix = "";
         try {
-            if (Bukkit.getPluginManager().getPlugin("LuckPerms") == null) return "";
-            net.luckperms.api.cacheddata.CachedMetaData metaData =
-                    net.luckperms.api.LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
-            return metaData.getPrefix() == null ? "" : metaData.getPrefix();
+            var meta = net.luckperms.api.LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
+            prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
+        } catch (Throwable ignored) {}
+
+        // 新APIならAdventure Componentで、旧APIならsetDisplayName
+        String displayName = prefix + nickname;
+
+        try {
+            if (APIVersionUtil.isAtLeast(19)) {
+                // Adventure APIでカラーコード反映
+                Component comp = LegacyComponentSerializer.legacyAmpersand().deserialize(displayName);
+                player.displayName(comp);
+            } else {
+                // 旧API: そのままsetDisplayName
+                player.setDisplayName(displayName.replace('&', '§'));
+            }
         } catch (Throwable e) {
-            return "";
+            // どちらも失敗した場合の保険
+            player.setDisplayName(displayName.replace('&', '§'));
+            logger.warning("表示名の設定に失敗しました: " + e.getMessage());
         }
-    }
-
-
-    public void applyFormattedDisplayName(Player player) {
-        boolean showPrefix = prefixEnabledMap.getOrDefault(player.getUniqueId(), true);
-        String prefix = showPrefix ? getLuckPermsPrefix(player) : "";
-        String nickname = getNickname(player);
-
-        String display = "";
-        if (prefix != null && !prefix.isEmpty()) display += prefix;
-        if (nickname != null && !nickname.isEmpty()) display += nickname;
-        else display += player.getName();
-
-        // 万一§カラーが混ざっても&に統一
-        display = display.replace('§', '&');
-        Component comp = LegacyComponentSerializer.legacyAmpersand().deserialize(display);
-
-        FoliaUtil.runAtPlayer(plugin, player, () -> {
-            player.displayName(comp);
-            player.playerListName(comp);
-            player.customName(comp);
-            player.setCustomNameVisible(true);
-        });
-    }
-
-
-    public boolean togglePrefix(@NotNull UUID uniqueId) {
-        boolean current = prefixEnabledMap.getOrDefault(uniqueId, true);
-        prefixEnabledMap.put(uniqueId, !current);
-        return !current;
     }
 }

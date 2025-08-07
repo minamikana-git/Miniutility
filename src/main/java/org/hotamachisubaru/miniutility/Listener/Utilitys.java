@@ -14,7 +14,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
+import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+import org.hotamachisubaru.miniutility.util.APIVersionUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -38,7 +40,7 @@ public class Utilitys {
         if (event.getClickedInventory() == null) return;
         if (event.getCurrentItem() == null || event.getCurrentItem().getType().isAir()) return;
 
-        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
+        String title = getTitleSafe(event.getView().title(), event.getView().getTitle());
 
         // Miniutilityが管理するGUIだけを処理
         switch (title) {
@@ -50,6 +52,15 @@ public class Utilitys {
             case "本当に捨てますか？" -> TrashConfirm(player, event.getCurrentItem(), event);
             case "ニックネームを変更" -> handleNicknameMenu(player, event.getCurrentItem(), event);
             default -> { /* 何もしない */ }
+        }
+    }
+
+    // Paper/Spigot全バージョン両対応のタイトル取得
+    private String getTitleSafe(Component componentTitle, String stringTitle) {
+        try {
+            return PlainTextComponentSerializer.plainText().serialize(componentTitle).trim();
+        } catch (Throwable e) {
+            return stringTitle.trim();
         }
     }
 
@@ -96,7 +107,8 @@ public class Utilitys {
 
     // ゴミ箱GUIのアイテムクリック処理
     private void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        if (!PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("ゴミ箱")) return;
+        String title = getTitleSafe(event.getView().title(), event.getView().getTitle());
+        if (!title.equals("ゴミ箱")) return;
         int clickedSlot = event.getRawSlot();
         if (clickedItem == null) return;
         if (clickedSlot == 53 && clickedItem.getType() == Material.GREEN_STAINED_GLASS_PANE) {
@@ -109,7 +121,12 @@ public class Utilitys {
 
     // ゴミ箱→確認画面
     private void confirm(Player player) {
-        Inventory confirmInventory = Bukkit.createInventory(player, 27, Component.text("本当に捨てますか？"));
+        Inventory confirmInventory;
+        try {
+            confirmInventory = Bukkit.createInventory(player, 27, Component.text("本当に捨てますか？"));
+        } catch (Throwable e) {
+            confirmInventory = Bukkit.createInventory(player, 27, "本当に捨てますか？");
+        }
         confirmInventory.setItem(11, createMenuItem(Material.LIME_CONCRETE, "はい"));
         confirmInventory.setItem(15, createMenuItem(Material.RED_CONCRETE, "いいえ"));
         player.openInventory(confirmInventory);
@@ -146,8 +163,8 @@ public class Utilitys {
                 player.closeInventory();
             }
             case BARRIER -> {
-                plugin.getMiniutility().getNicknameDatabase().removeNickname(player.getUniqueId().toString());
-                nicknameManager.applyFormattedDisplayName(player);
+                NicknameDatabase.deleteNickname(player);
+                NicknameManager.updateDisplayName(player);
                 player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }
@@ -155,7 +172,7 @@ public class Utilitys {
         }
     }
 
-    // 死亡地点ワープ（Folia対応：teleportAsyncを推奨）
+    // 死亡地点ワープ（Paper/Folia両対応: teleportAsync/teleport）
     private void teleportToDeathLocation(Player player) {
         if (plugin.getMiniutility() == null) {
             player.sendMessage(Component.text("プラグイン初期化中です。").color(NamedTextColor.RED));
@@ -166,7 +183,15 @@ public class Utilitys {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
         }
-        player.teleportAsync(deathLocation);
+        if (APIVersionUtil.isModern()) {
+            try {
+                Player.class.getMethod("teleportAsync", Location.class).invoke(player, deathLocation);
+            } catch (Throwable e) {
+                player.teleport(deathLocation);
+            }
+        } else {
+            player.teleport(deathLocation);
+        }
         if (recentlyTeleported.add(player.getUniqueId())) {
             player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
             Bukkit.getScheduler().runTaskLater(plugin, () -> recentlyTeleported.remove(player.getUniqueId()), 20L);
@@ -175,7 +200,12 @@ public class Utilitys {
 
     // ゴミ箱を開く
     private void openTrashBox(Player player) {
-        Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
+        Inventory trashInventory;
+        try {
+            trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
+        } catch (Throwable e) {
+            trashInventory = Bukkit.createInventory(player, 54, "ゴミ箱");
+        }
         ItemStack confirmButton = createMenuItem(Material.GREEN_STAINED_GLASS_PANE, "捨てる");
         trashInventory.setItem(53, confirmButton);
         player.openInventory(trashInventory);

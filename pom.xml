@@ -95,5 +95,10 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.18.0</version> <!-- Corrected to a valid version -->
         </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-api</artifactId>
+            <version>4.24.0</version>
+        </dependency>
     </dependencies>
 </project>

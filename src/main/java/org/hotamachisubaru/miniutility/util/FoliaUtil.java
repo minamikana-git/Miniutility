@@ -7,9 +7,9 @@ import org.bukkit.plugin.Plugin;
 
 public class FoliaUtil {
 
-    private static final boolean IS_FOLIA = isFolia();
+    private static final boolean IS_FOLIA = isFolia0();
 
-    private static boolean isFolia() {
+    private static boolean isFolia0() {
         try {
             Server.class.getMethod("getGlobalRegionScheduler");
             return true;
@@ -22,21 +22,23 @@ public class FoliaUtil {
         return IS_FOLIA;
     }
 
-    // Player単位でのスケジューリング（Paper/Folia両対応）
+    // プレイヤー対象のタスク（Paper/Folia両対応）
     public static void runAtPlayer(Player player, Runnable task) {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("Miniutility");
         if (isFolia()) {
-            Bukkit.getGlobalRegionScheduler().run(player.getServer().getPluginManager().getPlugin("Miniutility"), ignored -> task.run(), player);
+            Bukkit.getGlobalRegionScheduler().run(plugin, (ignored) -> task.run());
         } else {
-            Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("Miniutility"), task);
+            Bukkit.getScheduler().runTask(plugin, task);
         }
     }
 
-    // サーバー単位でのスケジューリング
+    // サーバータスク
     public static void runAsync(Runnable task) {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("Miniutility");
         if (isFolia()) {
-            Bukkit.getGlobalRegionScheduler().execute(task);
+            Bukkit.getGlobalRegionScheduler().execute(plugin, task);
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("Miniutility"), task);
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, task);
         }
     }
 }

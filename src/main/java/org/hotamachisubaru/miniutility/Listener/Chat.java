@@ -13,20 +13,40 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static net.kyori.adventure.text.format.NamedTextColor.*;
+
 /**
  * Chatリスナー: 1.17.1～1.21.x/Paper両対応
  */
 public class Chat implements Listener {
 
     // --- チャット待機フラグなど ---
+    private static final Map<UUID, Boolean> waitingForNickname = new ConcurrentHashMap<>();
+    private static final Map<UUID, Boolean> waitingForColorInput = new ConcurrentHashMap<>();
     private static final Map<UUID, Boolean> waitingForExpInput = new ConcurrentHashMap<>();
 
-    public static void setWaitingForExpInput(Player player, boolean waiting) {
-        waitingForExpInput.put(player.getUniqueId(), waiting);
+    public static void setWaitingForNickname(Player player, boolean waiting) {
+        waitingForNickname.put(player.getUniqueId(), waiting);
+    }
+
+    public static boolean isWaitingForNickname(Player player) {
+        return waitingForNickname.getOrDefault(player.getUniqueId(), false);
+    }
+
+    public static void setWaitingForColorInput(Player player, boolean waiting) {
+        waitingForColorInput.put(player.getUniqueId(), waiting);
+    }
+
+    public static boolean isWaitingForColorInput(Player player) {
+        return waitingForColorInput.getOrDefault(player.getUniqueId(), false);
     }
 
     public static boolean isWaitingForExpInput(Player player) {
         return waitingForExpInput.getOrDefault(player.getUniqueId(), false);
+    }
+
+    public static void setWaitingForExpInput(Player player, boolean waiting) {
+        waitingForExpInput.put(player.getUniqueId(), waiting);
     }
 
     @EventHandler
@@ -37,43 +57,68 @@ public class Chat implements Listener {
         if (isWaitingForExpInput(player)) {
             event.setCancelled(true);
             waitingForExpInput.put(player.getUniqueId(), false);
-            // 数値として認識できるか判定し、レベル変更
             try {
                 int change = Integer.parseInt(event.getMessage().trim());
                 int newLevel = Math.max(player.getLevel() + change, 0);
                 player.setLevel(newLevel);
-                player.sendMessage(Component.text("経験値レベルを " + newLevel + " に変更しました。").color(NamedTextColor.GREEN));
+                sendMessageCompat(player, "経験値レベルを " + newLevel + " に変更しました。", GREEN);
             } catch (NumberFormatException e) {
-                player.sendMessage(Component.text("数値を入力してください。").color(NamedTextColor.RED));
+                sendMessageCompat(player, "数値を入力してください。", RED);
             }
             return;
         }
 
-        // --- 通常チャットの表示制御（LuckPermsプレフィックス＋ニックネーム） ---
+        // --- 通常チャットの表示制御 ---
         String prefix = "";
         try {
-            // LuckPerms（v5 API）のプレフィックス取得
             var meta = net.luckperms.api.LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
             prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
-        } catch (Throwable e) {
+        } catch (Throwable ignored) {
             // LuckPerms未導入時はprefix無し
         }
 
         String nickname = NicknameManager.getDisplayName(player);
         String displayName = prefix + nickname;
 
-        // 1.19.1以降のAdventureAPIなら
+        // Paper 1.19+ のみviewers()が使える
         if (APIVersionUtil.isAtLeast(19)) {
-            event.viewers().forEach(viewer -> {
-                viewer.sendMessage(
-                        Component.text(displayName + " » " + event.getMessage())
-                                .color(NamedTextColor.WHITE)
-                );
-            });
-            event.setCancelled(true);
+            try {
+                // 新API: 全参加者にComponentチャット送信
+                for (Player viewer : event.getRecipients()) {
+                    viewer.sendMessage(Component.text(displayName + " » " + event.getMessage()).color(NamedTextColor.WHITE));
+                }
+                event.setCancelled(true);
+            } catch (Throwable e) {
+                // 念のため失敗時も旧式へ
+                event.setFormat(displayName + " » " + event.getMessage());
+            }
         } else {
-            // 旧APIは元のsetFormatで
+            // 旧API（Spigot, 1.17.1等）はsetFormatで一括フォーマット
             event.setFormat(displayName + " » " + event.getMessage());
         }
     }
+
+    // すべてのバージョンで動くsendMessageユーティリティ
+    private void sendMessageCompat(Player player, String text, NamedTextColor color) {
+        try {
+            player.sendMessage(Component.text(text).color(color));
+        } catch (Throwable e) {
+            player.sendMessage("§" + getLegacyColorCode(color) + text);
+        }
+    }
+
+    private String getLegacyColorCode(NamedTextColor color) {
+        return switch (color) {
+            case GREEN -> "a";
+            case RED -> "c";
+            case AQUA -> "b";
+            case YELLOW -> "e";
+            case GRAY -> "7";
+            case WHITE -> "f";
+            default -> "f";
+        };
+    }
 }
+
+
+

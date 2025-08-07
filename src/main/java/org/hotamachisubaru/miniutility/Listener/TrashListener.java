@@ -2,6 +2,7 @@ package org.hotamachisubaru.miniutility.Listener;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -9,9 +10,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +31,29 @@ public class TrashListener implements Listener {
         this.plugin = plugin;
     }
 
+    // タイトル取得（InventoryViewのみ）
+    private static String getTitleSafe(@NotNull InventoryView view) {
+        try {
+            // Paper新API
+            return PlainTextComponentSerializer.plainText().serialize(view.title()).trim();
+        } catch (Throwable e) {
+            // 旧API
+            try {
+                return view.getTitle().trim();
+            } catch (Throwable ignore) {
+                return "";
+            }
+        }
+    }
+
     // ゴミ箱GUIを開く
     public static void openTrashBox(Player player) {
-        Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
+        Inventory trashInventory;
+        try {
+            trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
+        } catch (Throwable e) {
+            trashInventory = Bukkit.createInventory(player, 54, "ゴミ箱");
+        }
         ItemStack confirmButton = new ItemStack(Material.LIME_CONCRETE);
         var meta = confirmButton.getItemMeta();
         if (meta != null) {
@@ -50,7 +73,12 @@ public class TrashListener implements Listener {
             trashBoxCache.put(player.getUniqueId(), last.getContents());
         }
 
-        Inventory confirmMenu = Bukkit.createInventory(player, 9, Component.text("本当に捨てますか？"));
+        Inventory confirmMenu;
+        try {
+            confirmMenu = Bukkit.createInventory(player, 9, Component.text("本当に捨てますか？"));
+        } catch (Throwable e) {
+            confirmMenu = Bukkit.createInventory(player, 9, "本当に捨てますか？");
+        }
         confirmMenu.setItem(3, createMenuItem(Material.LIME_CONCRETE, "はい", "クリックしてゴミ箱を空にする"));
         confirmMenu.setItem(5, createMenuItem(Material.RED_CONCRETE, "いいえ", "クリックしてキャンセル"));
         player.openInventory(confirmMenu);
@@ -59,7 +87,7 @@ public class TrashListener implements Listener {
     @EventHandler
     public void onTrashBoxClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        String title = getTitleSafe(event.getView());
 
         if (title.equals("ゴミ箱")) {
             int rawSlot = event.getRawSlot();
@@ -73,7 +101,7 @@ public class TrashListener implements Listener {
                 return;
             }
 
-            // ゴミ箱上段スロット (0-53) かつ「捨てるボタン以外」
+            // ゴミ箱上段スロット (0-52) かつ「捨てるボタン以外」
             if (rawSlot >= 0 && rawSlot < 53) {
                 event.setCancelled(false);
                 return;
@@ -111,7 +139,12 @@ public class TrashListener implements Listener {
                 // 復元処理
                 ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
                 if (cache != null) {
-                    Inventory trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
+                    Inventory trashInventory;
+                    try {
+                        trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
+                    } catch (Throwable e) {
+                        trashInventory = Bukkit.createInventory(player, 54, "ゴミ箱");
+                    }
                     // アイテムを復元（0-52のみ！）
                     for (int i = 0; i < 53; i++) {
                         trashInventory.setItem(i, (i < cache.length) ? cache[i] : null);

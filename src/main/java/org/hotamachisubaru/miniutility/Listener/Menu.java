@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
+import org.hotamachisubaru.miniutility.util.APIVersionUtil;
 
 public class Menu implements Listener {
 
@@ -26,7 +27,14 @@ public class Menu implements Listener {
         if (event.getClickedInventory() == null) return;
         if (event.getCurrentItem() == null || event.getCurrentItem().getType().isAir()) return;
 
-        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
+        // GUIタイトルの両対応（Component/String）
+        String title;
+        try {
+            // 1.17.x～1.18.xでは通常String、1.19以降はComponentになるケース多い
+            title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
+        } catch (Throwable e) {
+            title = event.getView().getTitle().trim();
+        }
 
         switch (title) {
             case "メニュー" -> {
@@ -41,7 +49,7 @@ public class Menu implements Listener {
         }
     }
 
-    // --- メニューGUIのクリックアクション処理 ---
+    // --- メニューGUIのクリックアクション処理（分岐吸収済み） ---
     private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         switch (clickedItem.getType()) {
             case ARMOR_STAND -> teleportToDeathLocation(player);
@@ -75,16 +83,11 @@ public class Menu implements Listener {
                 }
                 player.closeInventory();
             }
-
-
-
-
-
             default -> player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
         }
     }
 
-    // 死亡地点ワープ（Folia/Paper両対応）
+    // 死亡地点ワープ（API差分両対応）
     private void teleportToDeathLocation(Player player) {
         if (plugin.getMiniutility() == null) {
             player.sendMessage(Component.text("プラグイン初期化中です。").color(NamedTextColor.RED));
@@ -95,7 +98,16 @@ public class Menu implements Listener {
             player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
         }
-        player.teleportAsync(loc);
+        // Paper 1.20.1以降のみteleportAsync対応
+        if (APIVersionUtil.isModern()) {
+            try {
+                Player.class.getMethod("teleportAsync", Location.class).invoke(player, loc);
+            } catch (Throwable e) {
+                player.teleport(loc);
+            }
+        } else {
+            player.teleport(loc);
+        }
         player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
     }
 }

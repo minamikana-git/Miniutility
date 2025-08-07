@@ -8,40 +8,40 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 import java.util.Collections;
 
 public class GUI {
 
-    // ユーティリティメニューを開く
-    public static void openMenu(Player player, MiniutilityLoader plugin) {
+    // ユーティリティメニューを開く（Component/Stringタイトル両対応）
+    public static void openMenu(Player player) {
+        Inventory utilityMenu;
+        try {
+            utilityMenu = Bukkit.createInventory(player, 27, Component.text("メニュー"));
+        } catch (Throwable e) {
+            utilityMenu = Bukkit.createInventory(player, 27, "メニュー");
+        }
 
-        Inventory utilityMenu = Bukkit.createInventory(player, 27, Component.text("メニュー"));
-        // 死亡地点にワープ
         utilityMenu.setItem(0, createMenuItem(Material.ARMOR_STAND, "死亡地点にワープ", "死亡地点にワープします。溺れたり、溶岩遊泳した場合は安全な場所にテレポートします。"));
-        // 経験値制御器
         utilityMenu.setItem(2, createMenuItem(Material.EXPERIENCE_BOTTLE, "経験値制御器", "経験値を制御します"));
-        // ゲームモード制御器
         utilityMenu.setItem(4, createMenuItem(Material.COMPASS, "ゲームモード制御器", "ゲームモードを制御します"));
-        // クリーパーのブロック破壊を防ぐ
         utilityMenu.setItem(9, createMenuItem(Material.CREEPER_HEAD, "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
-        // エンダーチェスト
         utilityMenu.setItem(11, createMenuItem(Material.ENDER_CHEST, "エンダーチェスト", "クリックしてエンダーチェストを開く"));
-        // ゴミ箱
         utilityMenu.setItem(13, createMenuItem(Material.DROPPER, "ゴミ箱", "クリックしてゴミ箱を開く"));
-        // ニックネーム変更アイテム
         utilityMenu.setItem(15, createMenuItem(Material.NAME_TAG, "ニックネームを変更", "クリックしてニックネームを変更"));
-        // 作業台アイテム
         utilityMenu.setItem(17, createMenuItem(Material.CRAFTING_TABLE, "どこでも作業台", "クリックして作業台を開く"));
-
 
         player.openInventory(utilityMenu);
     }
 
-    // ニックネーム変更メニュー
+    // ニックネーム変更メニュー（Component/Stringタイトル両対応）
     public static void NicknameMenu(Player player) {
-        Inventory nicknameMenu = Bukkit.createInventory(player, 9, Component.text("ニックネームを変更"));
+        Inventory nicknameMenu;
+        try {
+            nicknameMenu = Bukkit.createInventory(player, 9, Component.text("ニックネームを変更"));
+        } catch (Throwable e) {
+            nicknameMenu = Bukkit.createInventory(player, 9, "ニックネームを変更");
+        }
 
         nicknameMenu.setItem(2, createMenuItem(
                 Material.PAPER,
@@ -77,7 +77,6 @@ public class GUI {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            // `&` 記法を使って色を適用
             meta.displayName(LegacyComponentSerializer.legacy('&').deserialize("&e" + name));
             meta.lore(Collections.singletonList(LegacyComponentSerializer.legacy('&').deserialize("&7" + lore)));
             item.setItemMeta(meta);

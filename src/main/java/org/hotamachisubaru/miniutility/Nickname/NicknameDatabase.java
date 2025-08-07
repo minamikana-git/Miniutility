@@ -4,7 +4,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
+
+import static org.hotamachisubaru.miniutility.Nickname.NicknameManager.nicknameMap;
 
 /**
  * ニックネームデータベース管理（Paper全バージョン共通設計）
@@ -62,4 +66,36 @@ public class NicknameDatabase {
             logger.warning("ニックネーム削除失敗: " + e.getMessage());
         }
     }
+
+    public static void reload() {
+        nicknameMap.clear();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            String nickname = NicknameDatabase.loadNickname(player);
+            if (nickname != null) {
+                nicknameMap.put(player.getUniqueId(), nickname);
+            }
+        }
+    }
+
+    // プレイヤーUUIDのStringで登録
+    public void setNickname(String uuid, String nickname) {
+        nicknameMap.put(UUID.fromString(uuid), nickname);
+    }
+
+    public void saveAll() {
+        String sql = "INSERT OR REPLACE INTO nickname (uuid, nickname) VALUES (?, ?)";
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Map.Entry<UUID, String> entry : nicknameMap.entrySet()) {
+                    ps.setString(1, entry.getKey().toString());
+                    ps.setString(2, entry.getValue());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+        } catch (SQLException e) {
+            logger.warning("ニックネームの一括保存に失敗しました: " + e.getMessage());
+        }
+    }
+
 }

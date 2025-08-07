@@ -16,6 +16,6 @@ public class APIVersionUtil {
         return getMajorVersion() >= majorVersion;
     }
     public static boolean isModern() {
-        return getMajorVersion() >= 20;
+        return getMajorVersion() >= 20; // 1.20以降
     }
 }

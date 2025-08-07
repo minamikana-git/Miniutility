@@ -47,10 +47,10 @@ public class Miniutility {
     public void enable() {
         plugin.saveDefaultConfig();
         setupDatabase();
-        nicknameDatabase = new NicknameDatabase(plugin);
-        nicknameManager = new NicknameManager(plugin, nicknameDatabase);
-        creeperProtectionListener = new CreeperProtectionListener(plugin);
-        chatListener = new Chat(plugin, nicknameDatabase, nicknameManager);
+        nicknameDatabase = new NicknameDatabase();
+        nicknameManager = new NicknameManager(this.nicknameDatabase);
+        creeperProtectionListener = new CreeperProtectionListener(this);
+        chatListener = new Chat();
         registerListeners();
         var cmd = new CommandManager(plugin);
         plugin.getCommand("menu").setExecutor(cmd);
@@ -75,7 +75,7 @@ public class Miniutility {
     }
 
     private void registerListeners() {
-        pm.registerEvents(new DeathListener(plugin), plugin);
+        pm.registerEvents(new DeathListener(this), plugin);
         pm.registerEvents(chatListener, plugin);
         pm.registerEvents(creeperProtectionListener, plugin);
         pm.registerEvents(new Menu(plugin), plugin);
@@ -112,7 +112,7 @@ public class Miniutility {
                 logger.info(msg);
                 Bukkit.getOnlinePlayers().forEach(p -> {
                     if (p.isOp()) {
-                        FoliaUtil.runAtPlayer(plugin, p, () -> p.sendMessage(msg));
+                        FoliaUtil.runAtPlayer(p, () -> p.sendMessage(msg));
                     }
                 });
             }
@@ -136,7 +136,7 @@ public class Miniutility {
 
         try {
             YamlConfiguration oldConfig = YamlConfiguration.loadConfiguration(oldFile);
-            NicknameDatabase db = new NicknameDatabase(plugin);
+            NicknameDatabase db = new NicknameDatabase();
             for (String key : oldConfig.getKeys(false)) {
                 String name = oldConfig.getString(key);
                 if (name != null) db.setNickname(key, name);

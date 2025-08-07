@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
+import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
 import java.util.Objects;
@@ -56,8 +57,8 @@ public class NicknameListener implements Listener {
                 player.closeInventory();
             }
             case BARRIER -> {
-                plugin.getMiniutility().getNicknameDatabase().removeNickname(player.getUniqueId().toString());
-                nicknameManager.applyFormattedDisplayName(player);
+                NicknameDatabase.deleteNickname(player);
+                NicknameManager.applyFormattedDisplayName(player);
                 player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }

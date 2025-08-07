@@ -58,7 +58,7 @@ public class NicknameListener implements Listener {
             }
             case BARRIER -> {
                 NicknameDatabase.deleteNickname(player);
-                NicknameManager.applyFormattedDisplayName(player);
+                NicknameManager.updateDisplayName(player);
                 player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
             }

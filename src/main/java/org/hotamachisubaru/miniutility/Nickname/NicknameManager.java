@@ -20,12 +20,12 @@ public class NicknameManager {
 
     public static void setNickname(Player player, String nickname) {
         nicknameMap.put(player.getUniqueId(), nickname);
-        applyFormattedDisplayName(player);
+        updateDisplayName(player);
     }
 
     public static void removeNickname(Player player) {
         nicknameMap.remove(player.getUniqueId());
-        applyFormattedDisplayName(player);
+        updateDisplayName(player);
     }
 
     public static String getDisplayName(Player player) {
@@ -33,7 +33,7 @@ public class NicknameManager {
         return (nickname != null) ? nickname : player.getName();
     }
 
-    public static void applyFormattedDisplayName(Player player) {
+    public static void updateDisplayName(Player player) {
         String nickname = getDisplayName(player);
 
         // Prefix取得（LuckPermsなど）

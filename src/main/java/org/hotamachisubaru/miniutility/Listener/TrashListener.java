@@ -127,7 +127,7 @@ public class TrashListener implements Listener {
                 // 削除
                 Inventory prev = lastTrashBox.get(player.getUniqueId());
                 if (prev != null) {
-                    FoliaUtil.runAtPlayer(plugin, player, () -> {
+                    FoliaUtil.runAtPlayer(player, () -> {
                         for (int i = 0; i < 53; i++) prev.setItem(i, null);
                         player.closeInventory();
                         player.sendMessage(Component.text("ゴミ箱のアイテムをすべて削除しました。").color(NamedTextColor.GREEN));

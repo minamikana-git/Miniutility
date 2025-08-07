@@ -2,6 +2,7 @@ package org.hotamachisubaru.miniutility.Listener;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,6 +13,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+
+import java.util.Objects;
 
 public class NicknameListener implements Listener {
     private final NicknameManager nicknameManager;
@@ -25,10 +28,15 @@ public class NicknameListener implements Listener {
     @EventHandler
     public void onNicknameMenuClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        Component titleComponent = event.getView().title();
+        String title;
+        try {
+            // Component形式にもString形式にも対応
+            title = PlainTextComponentSerializer.plainText().serialize(event.getView().title()).trim();
+        } catch (Throwable e) {
+            title = event.getView().getTitle().trim();
+        }
 
-        // タイトルを「Component」として完全一致比較！
-        if (!titleComponent.equals(Component.text("ニックネームを変更"))) {
+        if (!Objects.equals(title, "ニックネームを変更")) {
             return;
         }
         event.setCancelled(true);
@@ -58,7 +66,14 @@ public class NicknameListener implements Listener {
     }
 
     public static void openNicknameMenu(Player player) {
-        Inventory nicknameMenu = Bukkit.createInventory(player, 9, Component.text("ニックネームを変更"));
+        // Componentタイトルに対応（Paper全世代）
+        Inventory nicknameMenu;
+        try {
+            nicknameMenu = Bukkit.createInventory(player, 9, Component.text("ニックネームを変更"));
+        } catch (Throwable e) {
+            // 旧APIはStringタイトル
+            nicknameMenu = Bukkit.createInventory(player, 9, "ニックネームを変更");
+        }
         nicknameMenu.setItem(2, createMenuItem(Material.PAPER, "ニックネームを入力", "クリックして新しいニックネームを入力"));
         nicknameMenu.setItem(4, createMenuItem(Material.NAME_TAG, "カラーコード指定", "クリックして色付きニックネームを入力"));
         nicknameMenu.setItem(6, createMenuItem(Material.BARRIER, "リセット", "ニックネームをリセット"));

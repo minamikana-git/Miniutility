@@ -5,7 +5,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.sql.*;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -42,7 +41,7 @@ public class NicknameMigration {
             return;
         }
 
-        String dbUrl = "jdbc:sqlite:" + Path.of(dbPath).toAbsolutePath();
+        String dbUrl = "jdbc:sqlite:" + new File(dbPath).getAbsolutePath();
         try (Connection connection = DriverManager.getConnection(dbUrl)) {
             // テーブルなければ作成
             try (Statement stmt = connection.createStatement()) {

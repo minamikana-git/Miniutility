@@ -2,6 +2,7 @@ package org.hotamachisubaru.miniutility.Nickname;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.luckperms.api.cacheddata.CachedMetaData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -55,7 +56,7 @@ public class NicknameManager {
         // Prefix取得（LuckPermsなど）
         String prefix = "";
         try {
-            var meta = net.luckperms.api.LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
+            CachedMetaData meta = net.luckperms.api.LuckPermsProvider.get().getPlayerAdapter(Player.class).getMetaData(player);
             prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
         } catch (Throwable ignored) {}
 

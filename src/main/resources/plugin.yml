@@ -3,6 +3,7 @@ version: '1.21.8'
 main: org.hotamachisubaru.miniutility.MiniutilityLoader
 author: hotamachisubaru
 load: STARTUP
+softdepend: [LuckPerms]
 description: copyright 2024-2025 hotamachisubaru all rights reserved.
 commands:
   menu:

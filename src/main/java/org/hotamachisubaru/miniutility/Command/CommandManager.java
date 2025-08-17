@@ -1,7 +1,6 @@
 package org.hotamachisubaru.miniutility.Command;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -25,58 +24,61 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        switch (command.getName().toLowerCase()) {
-            case "menu" -> {
-                if (sender instanceof Player player) {
+        String name = command.getName().toLowerCase();
+
+        switch (name) {
+            case "menu":
+                if (sender instanceof Player) {
+                    Player player = (Player) sender;
                     GUI.openMenu(player);
                 } else {
                     sender.sendMessage("プレイヤーのみ使用できます。");
                 }
                 return true;
-            }
-            case "load" -> {
-                // NicknameDatabaseにreloadが無ければ、データの再初期化や再ロードに相当する処理を呼ぶ
+
+            case "load":
                 try {
                     NicknameDatabase.reload();
-                    sender.sendMessage("ニックネームデータを再読み込みしました。");
+                    sender.sendMessage(ChatColor.GREEN + "ニックネームデータを再読み込みしました。");
                 } catch (Throwable e) {
-                    sender.sendMessage(Component.text("データベース再読み込みに失敗しました: " + e.getMessage()).color(NamedTextColor.RED));
+                    sender.sendMessage(ChatColor.RED + "データベース再読み込みに失敗しました: " + e.getMessage());
                 }
                 return true;
-            }
-            case "prefixtoggle" -> {
-                if (!(sender instanceof Player player)) {
+
+            case "prefixtoggle":
+                if (!(sender instanceof Player)) {
                     sender.sendMessage("プレイヤーのみ実行可能です。");
                     return true;
                 }
-                var manager = plugin.getMiniutility().getNicknameManager();
-                // togglePrefixがbooleanを返す想定
+                Player p = (Player) sender;
                 boolean enabled;
                 try {
-                    enabled = manager.togglePrefix(player.getUniqueId());
+                    enabled = plugin.getMiniutility().getNicknameManager().togglePrefix(p.getUniqueId());
                 } catch (Throwable e) {
-                    sender.sendMessage(Component.text("Prefixの切り替えに失敗しました: " + e.getMessage()).color(NamedTextColor.RED));
+                    sender.sendMessage(ChatColor.RED + "Prefixの切り替えに失敗しました: " + e.getMessage());
                     return true;
                 }
-                player.sendMessage(Component.text("Prefixの表示が " + (enabled ? "有効" : "無効") + " になりました。").color(NamedTextColor.GREEN));
+                p.sendMessage(ChatColor.GREEN + "Prefixの表示が " + (enabled ? "有効" : "無効") + " になりました。");
                 return true;
-            }
-            default -> {
-                sender.sendMessage(Component.text("不明なコマンドです。").color(NamedTextColor.RED));
+
+            default:
+                sender.sendMessage(ChatColor.RED + "不明なコマンドです。");
                 return false;
-            }
         }
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (command.getName().equalsIgnoreCase("prefixtoggle")) {
+        if ("prefixtoggle".equalsIgnoreCase(command.getName())) {
             if (args.length == 1) {
-                List<String> options = new ArrayList<>();
+                List<String> options = new ArrayList<String>();
                 options.add("on");
                 options.add("off");
-                if (!args[0].isEmpty()) {
-                    options.removeIf(opt -> !opt.startsWith(args[0].toLowerCase()));
+                if (args[0] != null && !args[0].isEmpty()) {
+                    String head = args[0].toLowerCase();
+                    List<String> filtered = new ArrayList<String>();
+                    for (String o : options) if (o.startsWith(head)) filtered.add(o);
+                    return filtered;
                 }
                 return options;
             }

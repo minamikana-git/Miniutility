@@ -1,8 +1,11 @@
 package org.hotamachisubaru.miniutility.util;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import org.bukkit.plugin.Plugin;
 
 import java.util.function.Consumer;
+
+import static org.bukkit.Bukkit.*;
 
 public final class FoliaUtil {
     private static final boolean IS_FOLIA = detectFolia();
@@ -17,27 +20,27 @@ public final class FoliaUtil {
         }
     }
 
-    public static void runNow(org.bukkit.plugin.Plugin plugin, Runnable task) {
+    public static void runNow(Plugin plugin, Runnable task) {
         if (IS_FOLIA) {
-            org.bukkit.Bukkit.getGlobalRegionScheduler().execute(plugin, task);
+            getGlobalRegionScheduler().execute(plugin, task);
         } else {
-            org.bukkit.Bukkit.getScheduler().runTask(plugin, task);
+            getScheduler().runTask(plugin, task);
         }
     }
 
-    public static void runLater(org.bukkit.plugin.Plugin plugin, Runnable task, long delayTicks) {
+    public static void runLater(Plugin plugin, Runnable task, long delayTicks) {
         if (IS_FOLIA) {
-            org.bukkit.Bukkit.getGlobalRegionScheduler().runDelayed(plugin, (Consumer<ScheduledTask>) task, delayTicks);
+           getGlobalRegionScheduler().runDelayed(plugin, (Consumer<ScheduledTask>) task, delayTicks);
         } else {
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, task, delayTicks);
+            getScheduler().runTaskLater(plugin, task, delayTicks);
         }
     }
 
-    public static void runAtPlayer(org.bukkit.plugin.Plugin plugin, java.util.UUID uuid, Runnable task) {
+    public static void runAtPlayer(Plugin plugin, java.util.UUID uuid, Runnable task) {
         if (IS_FOLIA) {
-            org.bukkit.Bukkit.getRegionScheduler().execute(plugin, org.bukkit.Bukkit.getPlayer(uuid).getLocation(), task);
+            getRegionScheduler().execute(plugin, getPlayer(uuid).getLocation(), task);
         } else {
-            org.bukkit.Bukkit.getScheduler().runTask(plugin, task);
+            getScheduler().runTask(plugin, task);
         }
     }
 }

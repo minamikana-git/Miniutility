@@ -162,7 +162,6 @@ public final class Chat implements Listener {
         }
     }
 
-
     /** Paper の AsyncChatEvent 存在チェック（反射） */
     private static boolean hasPaperAsyncChat() {
         try {
@@ -173,3 +172,4 @@ public final class Chat implements Listener {
         }
     }
 }
+

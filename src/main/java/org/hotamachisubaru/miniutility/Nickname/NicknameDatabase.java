@@ -36,7 +36,7 @@ public class NicknameDatabase {
             ps.setString(2, nickname);
             ps.executeUpdate();
         } catch (SQLException e) {
-            logger.warning("ニックネーム保存失敗: " + e.getMessage());
+            logger.warning("ニックネームの保存に失敗しました: " + e.getMessage());
         }
     }
 
@@ -51,7 +51,7 @@ public class NicknameDatabase {
                 }
             }
         } catch (SQLException e) {
-            logger.warning("ニックネーム取得失敗: " + e.getMessage());
+            logger.warning("ニックネームの取得に失敗しました: " + e.getMessage());
         }
         return null;
     }
@@ -63,7 +63,7 @@ public class NicknameDatabase {
             ps.setString(1, player.getUniqueId().toString());
             ps.executeUpdate();
         } catch (SQLException e) {
-            logger.warning("ニックネーム削除失敗: " + e.getMessage());
+            logger.warning("ニックネームの削除に失敗しました: " + e.getMessage());
         }
     }
 

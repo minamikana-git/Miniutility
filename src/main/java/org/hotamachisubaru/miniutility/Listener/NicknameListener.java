@@ -27,7 +27,8 @@ public class NicknameListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onNicknameMenuClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(top.getHolder() instanceof GuiHolder)) return;
+        GuiHolder h = (GuiHolder) top.getHolder();
         if (event.getClickedInventory() == null) return;
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 

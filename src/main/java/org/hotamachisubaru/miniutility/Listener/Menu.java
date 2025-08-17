@@ -15,6 +15,8 @@ import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
+import java.lang.reflect.Method;
+
 
 public class Menu implements Listener {
 
@@ -26,19 +28,28 @@ public class Menu implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void handleInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
+        // クリックしたのがプレイヤーか
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        Player player = (Player) event.getWhoClicked();
+
+        // クリック元は必ずトップインベントリのみを対象に
         if (event.getClickedInventory() == null) return;
-        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
-
         Inventory top = event.getView().getTopInventory();
-        if (!(top.getHolder() instanceof GuiHolder h)) return;
-        if (h.getType() != GuiType.MENU) return;   // ★ Holderでメニュー判定
+        if (event.getClickedInventory() != top) return;
 
+        // 自作GUIかどうか（Holderで判定／Java 8 構文）
+        org.bukkit.inventory.InventoryHolder holder = top.getHolder();
+        if (!(holder instanceof GuiHolder)) return;
+        GuiHolder h = (GuiHolder) holder;
+        if (h.getType() != GuiType.MENU) return;
+
+        // ここまで来たらメニューGUI
         event.setCancelled(true);
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || clicked.getType().isAir()) return;
 
-        // ★ そのままメニューのクリック処理へ
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getType() == org.bukkit.Material.AIR) return;
+
+        // メニューのクリック処理へ
         handleUtilityBox(player, clicked, event);
     }
 
@@ -49,26 +60,38 @@ public class Menu implements Listener {
 
         Material type = clickedItem.getType();
         switch (type) {
-            case ARMOR_STAND -> teleportToDeathLocation(player);
-            case ENDER_CHEST   -> player.openInventory(player.getEnderChest());
-            case CRAFTING_TABLE-> player.openWorkbench(null, true);
-            case DROPPER       -> TrashListener.openTrashBox(player);
-            case NAME_TAG      -> NicknameListener.openNicknameMenu(player);
-            case CREEPER_HEAD -> {
-                var cp = plugin.getMiniutility().getCreeperProtectionListener();
+            case ARMOR_STAND:
+                teleportToDeathLocation(player);
+                break;
+            case ENDER_CHEST:
+               player.openInventory(player.getEnderChest());
+               break;
+            case CRAFTING_TABLE:
+                player.openWorkbench(null, true);
+                break;
+            case DROPPER:
+                TrashListener.openTrashBox(player);
+                break;
+            case NAME_TAG:
+                NicknameListener.openNicknameMenu(player);
+                break;
+            case CREEPER_HEAD: {
+                CreeperProtectionListener cp = plugin.getMiniutility().getCreeperProtectionListener();
                 boolean nowEnabled = cp.toggle();
                 player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が "
                         + (nowEnabled ? "有効" : "無効") + " になりました。");
                 player.closeInventory();
+                break;
             }
 
-            case EXPERIENCE_BOTTLE -> {
+            case EXPERIENCE_BOTTLE: {
                 player.closeInventory();
                 Chat.setWaitingForExpInput(player, true);
                 player.sendMessage(ChatColor.AQUA + "経験値を増減する数値をチャットに入力してください。"
                         + ChatColor.GRAY + " 例: \"10\" で +10レベル, \"-5\" で -5レベル");
+                break;
             }
-            case COMPASS -> {
+            case COMPASS: {
                 GameMode current = player.getGameMode();
                 if (current == GameMode.SURVIVAL) {
                     player.setGameMode(GameMode.CREATIVE);
@@ -78,8 +101,10 @@ public class Menu implements Listener {
                     player.sendMessage(ChatColor.GREEN + "ゲームモードをサバイバルに変更しました。");
                 }
                 player.closeInventory();
+                break;
             }
-            default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
+            default:  player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
+            break;
         }
     }
 
@@ -88,7 +113,7 @@ public class Menu implements Listener {
     private static void teleportCompat(Player p, Location loc) {
         try {
             // Paper 1.20.1+ only
-            var m = p.getClass().getMethod("teleportAsync", Location.class);
+            Method m = p.getClass().getMethod("teleportAsync", Location.class);
             m.invoke(p, loc); // CompletableFuture だが待たずにOK
         } catch (Throwable ignore) {
             // 旧APIへフォールバック

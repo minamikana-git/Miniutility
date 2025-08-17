@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.GUI;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
@@ -36,6 +37,8 @@ public class Utilitys {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null) return;
         if (event.getCurrentItem() == null || event.getCurrentItem().getType().isAir()) return;
+        if (!(top.getHolder() instanceof GuiHolder)) return;
+        GuiHolder h = (GuiHolder) top.getHolder();
 
         String title = TitleUtil.getTitle(event.getView().title());
 

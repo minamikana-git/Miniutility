@@ -19,6 +19,7 @@
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
+            <!-- 依存を1jarにまとめる（配布用） -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -28,47 +29,70 @@
                         <phase>package</phase>
                         <goals><goal>shade</goal></goals>
                         <configuration>
+                            <!-- 取り込む依存を限定：Paper/LuckPerms/Adventureはprovidedのまま -->
+                            <artifactSet>
+                                <includes>
+                                    <include>org.xerial:sqlite-jdbc</include>
+                                    <include>org.apache.commons:commons-lang3</include>
+                                </includes>
+                            </artifactSet>
+
+                            <!-- commons-lang3 だけリロケート（名前衝突回避） -->
                             <relocations>
-                                <relocation>
-                                    <pattern>org.sqlite</pattern>
-                                    <shadedPattern>org.hotamachisubaru.miniutility.libs.sqlite</shadedPattern>
-                                </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons.lang3</pattern>
                                     <shadedPattern>org.hotamachisubaru.miniutility.libs.commonslang3</shadedPattern>
                                 </relocation>
+                                <!-- sqlite は ServiceLoader の都合でリロケートしないのが安定 -->
                             </relocations>
-                            <minimizeJar>true</minimizeJar>
+
+                            <!-- ServiceLoader（sqliteのJDBC）を正しくマージ -->
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+
+                            <!-- 署名ファイルは除外（重複/検証エラー回避） -->
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
+                            <minimizeJar>false</minimizeJar>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version> <!-- Updated to a valid version -->
+                <version>3.11.0</version>
                 <executions>
                     <execution>
                         <id>compile</id>
                         <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
+                        <goals><goal>compile</goal></goals>
                     </execution>
                     <execution>
                         <id>testCompile</id>
                         <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
+                        <goals><goal>testCompile</goal></goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <source>${java.version}</source> <!-- Refactored to use property -->
-                    <target>${java.version}</target> <!-- Refactored to use property -->
+
+                    <release>8</release>
                 </configuration>
             </plugin>
         </plugins>
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -76,6 +100,7 @@
             </resource>
         </resources>
     </build>
+
 
     <repositories>
         <repository>
@@ -100,11 +125,13 @@
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.49.1.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.18.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

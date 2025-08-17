@@ -85,42 +85,28 @@ public class NicknameManager {
         return newState;
     }
 
-    // NicknameManager.java の置き換え
+
     public static boolean setColor(Player player, ChatColor color) {
         if (player == null || color == null || !color.isColor()) return false;
-
         UUID uuid = player.getUniqueId();
-        String nickname = nicknameMap.get(uuid);
-        if (nickname == null || nickname.isEmpty()) return false;
-
-        // 先頭に付いている既存の色/装飾コード（§x や &x）を剥がしてから新色を付与
-        String base = stripLeadingLegacyCodes(nickname);
-
+        String nick = nicknameMap.get(uuid);
+        if (nick == null || nick.isEmpty()) return false;
+        String base = stripLeadingLegacyCodes(nick);
         nicknameMap.put(uuid, color + base);
-        // 既に Player を持っているので取り直さず、そのまま更新
         updateDisplayName(player);
         return true;
     }
-
-    /** 先頭に連続する §a / &b / §l などのレガシーコードを剥がす */
-    private static String stripLeadingLegacyCodes(String s) {
-        if (s == null || s.isEmpty()) return s;
-        int idx = 0;
-        while (idx + 1 < s.length()) {
-            char c0 = s.charAt(idx);
-            char c1 = Character.toLowerCase(s.charAt(idx + 1));
-            boolean isMarker = (c0 == '§' || c0 == '&');
-            boolean isCode =
-                    (c1 >= '0' && c1 <= '9') ||
-                            (c1 >= 'a' && c1 <= 'f') || // 色
-                            (c1 == 'k' || c1 == 'l' || c1 == 'm' || c1 == 'n' || c1 == 'o' || c1 == 'r'); // 装飾/リセット
-            if (isMarker && isCode) {
-                idx += 2; // 2文字分スキップ
-            } else {
-                break;
-            }
+    private static String stripLeadingLegacyCodes(String s){
+        if (s == null) return null;
+        int i=0; while (i+1 < s.length()){
+            char c0=s.charAt(i), c1=Character.toLowerCase(s.charAt(i+1));
+            boolean mark=(c0=='§'||c0=='&');
+            boolean code=(c1>='0'&&c1<='9')||(c1>='a'&&c1<='f')||
+                    (c1=='k'||c1=='l'||c1=='m'||c1=='n'||c1=='o'||c1=='r');
+            if (mark && code) i+=2; else break;
         }
-        return s.substring(idx);
+        return s.substring(i);
     }
+
 
 }

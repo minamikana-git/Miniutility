@@ -65,11 +65,13 @@ public class Menu implements Listener {
             case DROPPER       -> TrashListener.openTrashBox(player);
             case NAME_TAG      -> NicknameListener.openNicknameMenu(player);
             case CREEPER_HEAD -> {
+                // 例: Menu.handleUtilityBox の CREEPER_HEAD 分岐内
                 var creeperProtection = plugin.getMiniutility().getCreeperProtectionListener();
-                boolean enabled = creeperProtection.toggleCreeperProtection();
-                String status = enabled ? "有効" : "無効";
+                boolean nowEnabled = creeperProtection.toggle();
+                String status = nowEnabled ? "有効" : "無効";
                 player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
                 player.closeInventory();
+
             }
             case EXPERIENCE_BOTTLE -> {
                 player.closeInventory();

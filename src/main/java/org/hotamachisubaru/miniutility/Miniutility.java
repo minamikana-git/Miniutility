@@ -79,9 +79,18 @@ public class Miniutility {
     }
 
     private void registerListeners() {
-        pm.registerEvents(new Chat(), plugin);
         pm.registerEvents(new ChatBridge(), plugin);
         pm.registerEvents(chatListener, plugin);
+        try {
+            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
+            Object modern = Class.forName("org.hotamachisubaru.miniutility.Bridge.ChatPaperListener")
+                    .getDeclaredConstructor().newInstance();
+            pm.registerEvents((org.bukkit.event.Listener) modern, plugin);
+        } catch (ClassNotFoundException ignore) {
+            // 古い環境（1.17.1など）：旧式だけ動作
+        } catch (ReflectiveOperationException re) {
+            logger.warning("エラーが発生しました。" + re.getMessage());
+        }
         pm.registerEvents(creeperProtectionListener, plugin);
         pm.registerEvents(new DeathListener(this), plugin);
         pm.registerEvents(new Menu(plugin), plugin);

@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.plugin.Plugin;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 import org.hotamachisubaru.miniutility.util.LuckPermsUtil;
@@ -55,26 +56,23 @@ public class Chat implements Listener {
      */
     @EventHandler(ignoreCancelled = true)
     public void onLegacyAsyncChat(AsyncPlayerChatEvent e) {
-        // Paperの新式 AsyncChatEvent が存在するなら、ここは処理しない（ChatBridge側に任せる想定）
+        // Paper新式がある環境では二重送信を避ける
         if (hasPaperAsyncChat()) return;
 
-        final Player player = e.getPlayer();
-        final String msg = e.getMessage();
+        Player player = e.getPlayer();
+        String plain = e.getMessage();
 
-        // 入力待機（例：経験値）
-        if (tryHandleWaitingInput(player, msg)) {
+        if (tryHandleWaitingInput(player, plain)) {
             e.setCancelled(true);
             return;
         }
 
-        // Prefix（LuckPermsが無い環境でも落ちない）
+        // ▼ここから通常チャットの整形
         String prefix = "";
         try {
-            prefix = LuckPermsUtil.safePrefix(player);
-        } catch (Throwable ignored) {
-        }
+            prefix = LuckPermsUtil.safePrefix(player); // LuckPerms無しでも安全
+        } catch (Throwable ignored) {}
 
-        // ニックネーム（未設定ならプレイヤー名）
         String nickname = NicknameManager.getDisplayName(player);
         if (nickname == null || nickname.isEmpty()) nickname = player.getName();
 
@@ -85,10 +83,21 @@ public class Chat implements Listener {
                 ? nickname
                 : (prefix + ChatColor.RESET + " " + nickname);
 
-        // setFormat は %1$s(名前) / %2$s(本文) の2引数フォーマット
-        // → %1$s は使わず固定文字列にし、%2$s だけ使う（安全）
+        // %1$s(名前)/%2$s(本文)。名前は固定文字列にして本文だけ使う
         e.setFormat(display + ChatColor.RESET + " » %2$s");
     }
+
+
+    private static boolean hasPaperAsyncChat() {
+        try {
+            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
+            return true;
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+    }
+
+
 
     /**
      * 共通の“待機フラグ”処理。消費したら true
@@ -115,7 +124,7 @@ public class Chat implements Listener {
             if (validated != null) {
 
                 setWaitingForNickname(player, false);
-                var pl = getPluginManager().getPlugin("Miniutility");
+                Plugin pl = getPluginManager().getPlugin("Miniutility");
                 if (pl != null) {
                     FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
                         NicknameManager.setNickname(player, validated);
@@ -139,7 +148,7 @@ public class Chat implements Listener {
             org.bukkit.ChatColor parsed = parseChatColor(input);
             if (parsed != null && parsed.isColor()) {
                 setWaitingForColorInput(player, false);
-                var pl = getServer().getPluginManager().getPlugin("Miniutility");
+                Plugin pl = getServer().getPluginManager().getPlugin("Miniutility");
                 if (pl != null) {
                    FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
                         NicknameManager.setColor(player, parsed);
@@ -184,17 +193,6 @@ public class Chat implements Listener {
         }
     }
 
-    /**
-     * Paper の AsyncChatEvent 存在チェック（反射）
-     */
-    private static boolean hasPaperAsyncChat() {
-        try {
-            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
 
 
 

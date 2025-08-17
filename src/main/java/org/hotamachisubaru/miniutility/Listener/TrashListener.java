@@ -12,6 +12,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 import org.hotamachisubaru.miniutility.util.TitleUtil;
@@ -49,21 +51,20 @@ public class TrashListener implements Listener {
 
     // ゴミ箱GUIを開く
     public static void openTrashBox(Player player) {
-        Inventory trashInventory;
-        try {
-            trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
-        } catch (Throwable e) {
-            trashInventory = Bukkit.createInventory(player, 54, "ゴミ箱");
-        }
-        ItemStack confirmButton = new ItemStack(Material.LIME_CONCRETE);
+        GuiHolder h = new GuiHolder(GuiType.TRASH, player.getUniqueId());
+        Inventory inv = Bukkit.createInventory(h,54,"ゴミ箱");
+        h.bind(inv);
+        player.openInventory(inv);
+
+        ItemStack confirmButton = new ItemStack(Material.LIME_WOOL);
         var meta = confirmButton.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(ChatColor.RED + "捨てる");
             confirmButton.setItemMeta(meta);
         }
-        trashInventory.setItem(53, confirmButton);
-        lastTrashBox.put(player.getUniqueId(), trashInventory);
-        player.openInventory(trashInventory);
+        inv.setItem(53, confirmButton);
+        lastTrashBox.put(player.getUniqueId(), inv);
+        player.openInventory(inv);
     }
 
     // 確認画面を開く
@@ -74,15 +75,13 @@ public class TrashListener implements Listener {
             trashBoxCache.put(player.getUniqueId(), last.getContents());
         }
 
-        Inventory confirmMenu;
-        try {
-            confirmMenu = Bukkit.createInventory(player, 9, Component.text("本当に捨てますか？"));
-        } catch (Throwable e) {
-            confirmMenu = Bukkit.createInventory(player, 9, "本当に捨てますか？");
-        }
-        confirmMenu.setItem(3, createMenuItem(Material.LIME_CONCRETE, ChatColor.GREEN + "はい", ChatColor.GRAY + "クリックしてゴミ箱を空にする"));
-        confirmMenu.setItem(5, createMenuItem(Material.RED_CONCRETE, ChatColor.RED + "いいえ", ChatColor.GRAY + "クリックしてキャンセル"));
-        player.openInventory(confirmMenu);
+        GuiHolder h = new GuiHolder(GuiType.TRASH_CONFIRM, player.getUniqueId());
+        Inventory inv = Bukkit.createInventory(h,9,"本当に捨てますか？");
+        h.bind(inv);
+
+        inv.setItem(3, createMenuItem(Material.LIME_CONCRETE, ChatColor.GREEN + "はい", ChatColor.GRAY + "クリックしてゴミ箱を空にする"));
+        inv.setItem(5, createMenuItem(Material.RED_CONCRETE, ChatColor.RED + "いいえ", ChatColor.GRAY + "クリックしてキャンセル"));
+        player.openInventory(inv);
     }
 
     @EventHandler

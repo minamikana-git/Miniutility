@@ -11,7 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.GUI;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
-import org.hotamachisubaru.miniutility.util.APIVersionUtil;
+import org.hotamachisubaru.miniutility.util.FoliaUtil;
 import org.hotamachisubaru.miniutility.util.TitleUtil;
 
 public class Menu implements Listener {
@@ -65,14 +65,13 @@ public class Menu implements Listener {
             case DROPPER       -> TrashListener.openTrashBox(player);
             case NAME_TAG      -> NicknameListener.openNicknameMenu(player);
             case CREEPER_HEAD -> {
-                // 例: Menu.handleUtilityBox の CREEPER_HEAD 分岐内
-                var creeperProtection = plugin.getMiniutility().getCreeperProtectionListener();
-                boolean nowEnabled = creeperProtection.toggle();
-                String status = nowEnabled ? "有効" : "無効";
-                player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
+                var cp = plugin.getMiniutility().getCreeperProtectionListener();
+                boolean nowEnabled = cp.toggle();
+                player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が "
+                        + (nowEnabled ? "有効" : "無効") + " になりました。");
                 player.closeInventory();
-
             }
+
             case EXPERIENCE_BOTTLE -> {
                 player.closeInventory();
                 Chat.setWaitingForExpInput(player, true);
@@ -95,6 +94,19 @@ public class Menu implements Listener {
     }
 
     // 死亡地点ワープ（API差分両対応）
+    // 互換テレポート本体（クラス外側に置く：メンバ or static）
+    private static void teleportCompat(Player p, Location loc) {
+        try {
+            // Paper 1.20.1+ only
+            var m = p.getClass().getMethod("teleportAsync", Location.class);
+            m.invoke(p, loc); // CompletableFuture だが待たずにOK
+        } catch (Throwable ignore) {
+            // 旧APIへフォールバック
+            p.teleport(loc);
+        }
+    }
+
+    // 死亡地点ワープ（API差分両対応）
     private void teleportToDeathLocation(Player player) {
         if (plugin.getMiniutility() == null) {
             player.sendMessage(ChatColor.RED + "プラグイン初期化中です。");
@@ -106,16 +118,14 @@ public class Menu implements Listener {
             return;
         }
 
-        // Paper 1.20.1+ の teleportAsync があれば使う（反射）
-        if (APIVersionUtil.isModern()) {
-            try {
-                Player.class.getMethod("teleportAsync", Location.class).invoke(player, loc);
-            } catch (Throwable ignored) {
-                player.teleport(loc);
-            }
-        } else {
-            player.teleport(loc);
-        }
-        player.sendMessage(ChatColor.GREEN + "死亡地点にワープしました。");
+        // Folia/Paper 両対応でプレイヤー領域スレッドで実行（非Foliaなら通常スレッド）
+        FoliaUtil.runAtPlayer(
+                plugin, player.getUniqueId(),
+                () -> {
+                    teleportCompat(player, loc);
+                    player.sendMessage(ChatColor.GREEN + "死亡地点にワープしました。");
+                }
+        );
     }
+
 }

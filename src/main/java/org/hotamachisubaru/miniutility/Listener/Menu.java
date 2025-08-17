@@ -75,7 +75,7 @@ public class Menu implements Listener {
             }
             case EXPERIENCE_BOTTLE -> {
                 player.closeInventory();
-                org.hotamachisubaru.miniutility.Listener.Chat.setWaitingForExpInput(player, true);
+                Chat.setWaitingForExpInput(player, true);
                 player.sendMessage(ChatColor.AQUA + "経験値を増減する数値をチャットに入力してください。"
                         + ChatColor.GRAY + " 例: \"10\" で +10レベル, \"-5\" で -5レベル");
             }

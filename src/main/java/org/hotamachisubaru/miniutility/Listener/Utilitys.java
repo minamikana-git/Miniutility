@@ -13,6 +13,7 @@ import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 import org.hotamachisubaru.miniutility.util.APIVersionUtil;
+import org.hotamachisubaru.miniutility.util.TitleUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,7 +37,7 @@ public class Utilitys {
         if (event.getClickedInventory() == null) return;
         if (event.getCurrentItem() == null || event.getCurrentItem().getType().isAir()) return;
 
-        String title = getTitleSafe(event.getView().title(), event.getView().getTitle());
+        String title = TitleUtil.getTitle(event.getView().title());
 
         // Miniutilityが管理するGUIだけを処理
         switch (title) {
@@ -104,7 +105,7 @@ public class Utilitys {
 
     // ゴミ箱GUIのアイテムクリック処理
     public static void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        String title = getTitleSafe(event.getView().title(), event.getView().getTitle());
+        String title = TitleUtil.getTitle(event.getView().title());
         if (!title.equals("ゴミ箱")) return;
         int clickedSlot = event.getRawSlot();
         if (clickedItem == null) return;

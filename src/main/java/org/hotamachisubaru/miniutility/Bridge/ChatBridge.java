@@ -45,7 +45,7 @@ public final class ChatBridge implements Listener {
         } catch (ClassNotFoundException e) {
             return false;
         } catch (Throwable t) {
-            Bukkit.getLogger().warning("エラーが発生しました。開発者にissueを送ってください。E301");
+            Bukkit.getLogger().warning("エラーが発生しました。開発者にissueを送ってください。");
             return false;
         }
     }

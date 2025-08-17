@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+import org.hotamachisubaru.miniutility.util.TitleUtil;
 
 import java.util.Objects;
 
@@ -28,7 +29,7 @@ public class NicknameListener implements Listener {
     @EventHandler
     public void onNicknameMenuClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        String title = event.getView().getTitle().trim();
+        String title = TitleUtil.getTitle(event.getView());
 
         if (!Objects.equals(title, "ニックネームを変更")) {
             return;

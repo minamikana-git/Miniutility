@@ -14,6 +14,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
+import org.hotamachisubaru.miniutility.util.TitleUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -87,7 +88,7 @@ public class TrashListener implements Listener {
     @EventHandler
     public void onTrashBoxClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        String title = getTitleSafe(event.getView());
+        String title = TitleUtil.getTitle(event.getView());
 
         if (title.equals("ゴミ箱")) {
             int rawSlot = event.getRawSlot();

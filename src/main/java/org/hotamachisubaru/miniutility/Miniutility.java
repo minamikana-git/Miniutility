@@ -7,7 +7,6 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
-import org.hotamachisubaru.miniutility.Bridge.ChatBridge;
 import org.hotamachisubaru.miniutility.Command.CommandManager;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
@@ -79,18 +78,21 @@ public class Miniutility {
     }
 
     private void registerListeners() {
-        pm.registerEvents(new ChatBridge(), plugin);
+        // 旧式チャットは常に
         pm.registerEvents(chatListener, plugin);
+
+        // 新式(Paper 1.19+ の AsyncChatEvent)は存在する時だけ
         try {
             Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
             Object modern = Class.forName("org.hotamachisubaru.miniutility.Bridge.ChatPaperListener")
                     .getDeclaredConstructor().newInstance();
             pm.registerEvents((org.bukkit.event.Listener) modern, plugin);
         } catch (ClassNotFoundException ignore) {
-            // 古い環境（1.17.1など）：旧式だけ動作
+            // 1.17.1 など新式なし
         } catch (ReflectiveOperationException re) {
-            logger.warning("エラーが発生しました。" + re.getMessage());
+            logger.warning("エラーが発生しました: " + re.getMessage());
         }
+
         pm.registerEvents(creeperProtectionListener, plugin);
         pm.registerEvents(new DeathListener(this), plugin);
         pm.registerEvents(new Menu(plugin), plugin);

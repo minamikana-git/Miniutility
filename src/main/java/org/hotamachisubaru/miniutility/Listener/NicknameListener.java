@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
+import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
 public class NicknameListener implements Listener {
@@ -49,26 +50,26 @@ public class NicknameListener implements Listener {
 
         switch (item.getType()) {
             case PAPER:
-                player.sendMessage(org.bukkit.ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
+                player.sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
                 Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
                 break;
 
             case NAME_TAG:
-                player.sendMessage(org.bukkit.ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
+                player.sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
                 Chat.setWaitingForColorInput(player, true);
                 player.closeInventory();
                 break;
 
             case BARRIER:
-                org.hotamachisubaru.miniutility.Nickname.NicknameDatabase.deleteNickname(player);
-                org.hotamachisubaru.miniutility.Nickname.NicknameManager.updateDisplayName(player);
-                player.sendMessage(org.bukkit.ChatColor.GREEN + "ニックネームをリセットしました。");
+                NicknameDatabase.deleteNickname(player);
+                NicknameManager.updateDisplayName(player);
+                player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
                 player.closeInventory();
                 break;
 
             default:
-                player.sendMessage(org.bukkit.ChatColor.RED + "無効な選択です。");
+                player.sendMessage(ChatColor.RED + "無効な選択です。");
                 break;
         }
     }

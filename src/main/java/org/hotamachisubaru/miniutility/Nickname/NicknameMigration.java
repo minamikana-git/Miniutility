@@ -31,14 +31,14 @@ public class NicknameMigration {
         Logger logger = plugin.getLogger();
 
         if (!yamlFile.exists()) {
-            logger.warning("ニックネームの保存ファイルがありません。統合をスキップします。");
+            logger.info("ニックネームの保存ファイルがありません。統合をスキップします。");
             return;
         }
 
         FileConfiguration yamlConfig = YamlConfiguration.loadConfiguration(yamlFile);
         Set<String> keys = yamlConfig.getKeys(false);
         if (keys == null || keys.isEmpty()) {
-            logger.info("ニックネームが存在しません。もしくは壊れています。統合をスキップします。");
+            logger.warning("ニックネームが存在しません。もしくは壊れています。統合をスキップします。");
             return;
         }
 

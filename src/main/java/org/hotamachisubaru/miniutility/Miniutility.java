@@ -79,18 +79,16 @@ public class Miniutility {
 
     private void registerListeners() {
         // 旧式チャットは常に
-        pm.registerEvents(chatListener, plugin);
+        pm.registerEvents(chatListener, plugin); // 旧式
 
-        // 新式(Paper 1.19+ の AsyncChatEvent)は存在する時だけ
         try {
             Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
             Object modern = Class.forName("org.hotamachisubaru.miniutility.Bridge.ChatPaperListener")
                     .getDeclaredConstructor().newInstance();
             pm.registerEvents((org.bukkit.event.Listener) modern, plugin);
         } catch (ClassNotFoundException ignore) {
-            // 1.17.1 など新式なし
         } catch (ReflectiveOperationException re) {
-            logger.warning("エラーが発生しました: " + re.getMessage());
+            logger.warning("エラーが発生しました:" + re.getMessage());
         }
 
         pm.registerEvents(creeperProtectionListener, plugin);

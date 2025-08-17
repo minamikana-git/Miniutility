@@ -38,6 +38,8 @@ public class Miniutility {
     private CreeperProtectionListener creeperProtectionListener;
     private Chat chatListener;
     private final PluginManager pm;
+    private volatile String lastNotifiedVersion = null;
+
 
     public Miniutility(MiniutilityLoader plugin) {
         this.plugin = plugin;
@@ -50,7 +52,7 @@ public class Miniutility {
         setupDatabase();
         nicknameDatabase = new NicknameDatabase();
         nicknameManager = new NicknameManager(this.nicknameDatabase);
-        creeperProtectionListener = new CreeperProtectionListener(this);
+        creeperProtectionListener = new CreeperProtectionListener();
         chatListener = new Chat();
         registerListeners();
         var cmd = new CommandManager(plugin);
@@ -65,6 +67,7 @@ public class Miniutility {
         NicknameMigration migration = new NicknameMigration(plugin);
         migration.migrateToDatabase();
         UpdateCheck();
+        scheduleDailyUpdateCheck();
         logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
     }
@@ -114,6 +117,7 @@ public class Miniutility {
                             String url = json.get("html_url").getAsString();
                             String msg = "新しいバージョン " + latestTag + " が利用可能です！ ダウンロード: " + url;
                             logger.info(msg);
+                            lastNotifiedVersion = latestTag;
 
                             for (Player p : Bukkit.getOnlinePlayers()) {
                                 if (p.isOp()) {
@@ -126,7 +130,7 @@ public class Miniutility {
                     }
                 })
                 .exceptionally(ex -> {
-                    logger.warning("アップデートのチェック中にエラー: " + ex.getMessage());
+                    logger.warning("アップデートのチェック中にエラーが発生しました: " + ex.getMessage());
                     return null;
                 });
     }
@@ -154,7 +158,7 @@ public class Miniutility {
             oldFile.renameTo(new File(plugin.getDataFolder(), "nickname.yml.bak"));
             flag.createNewFile();
         } catch (Exception e) {
-            logger.severe("マイグレーション失敗: " + e.getMessage());
+            logger.severe("マイグレーションに失敗しました: " + e.getMessage());
         }
     }
 
@@ -173,7 +177,32 @@ public class Miniutility {
             }
             logger.info("nickname.dbを新規作成し、テーブルをセットアップしました。");
         } catch (Exception e) {
-            logger.severe("nickname.db初期セットアップに失敗: " + e.getMessage());
+            logger.severe("nickname.db初期セットアップに失敗しました: " + e.getMessage());
+        }
+    }
+
+    private void scheduleDailyUpdateCheck() {
+        // 0.5秒後に初回チェック
+        org.hotamachisubaru.miniutility.util.FoliaUtil.runLater(
+                plugin,
+                this::safeUpdateCheckAndReschedule,
+                10L
+        );
+    }
+
+    private void safeUpdateCheckAndReschedule() {
+        try {
+            UpdateCheck(); // あなたの非同期版/同期版どちらでもOK（非同期版推奨）
+        } catch (Throwable t) {
+            plugin.getLogger().warning("アップデートのチェックに失敗しました：" + t.getMessage());
+        } finally {
+            // 1日後(= 20t * 60s * 60m * 24h)に再チェック
+            long oneDayTicks = 20L * 60L * 60L * 24L;
+            org.hotamachisubaru.miniutility.util.FoliaUtil.runLater(
+                    plugin,
+                    this::safeUpdateCheckAndReschedule,
+                    oneDayTicks
+            );
         }
     }
 

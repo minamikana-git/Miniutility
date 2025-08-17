@@ -1,9 +1,9 @@
 package org.hotamachisubaru.miniutility.Listener;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -57,7 +57,7 @@ public class TrashListener implements Listener {
         ItemStack confirmButton = new ItemStack(Material.LIME_CONCRETE);
         var meta = confirmButton.getItemMeta();
         if (meta != null) {
-            meta.displayName(Component.text("捨てる").color(NamedTextColor.RED));
+            meta.setDisplayName(ChatColor.RED + "捨てる");
             confirmButton.setItemMeta(meta);
         }
         trashInventory.setItem(53, confirmButton);
@@ -79,8 +79,8 @@ public class TrashListener implements Listener {
         } catch (Throwable e) {
             confirmMenu = Bukkit.createInventory(player, 9, "本当に捨てますか？");
         }
-        confirmMenu.setItem(3, createMenuItem(Material.LIME_CONCRETE, "はい", "クリックしてゴミ箱を空にする"));
-        confirmMenu.setItem(5, createMenuItem(Material.RED_CONCRETE, "いいえ", "クリックしてキャンセル"));
+        confirmMenu.setItem(3, createMenuItem(Material.LIME_CONCRETE, ChatColor.GREEN + "はい", ChatColor.GRAY + "クリックしてゴミ箱を空にする"));
+        confirmMenu.setItem(5, createMenuItem(Material.RED_CONCRETE, ChatColor.RED + "いいえ", ChatColor.GRAY + "クリックしてキャンセル"));
         player.openInventory(confirmMenu);
     }
 
@@ -127,10 +127,10 @@ public class TrashListener implements Listener {
                 // 削除
                 Inventory prev = lastTrashBox.get(player.getUniqueId());
                 if (prev != null) {
-                    FoliaUtil.runAtPlayer(player, () -> {
+                    FoliaUtil.runAtPlayer(plugin, player.getUniqueId(), () -> {
                         for (int i = 0; i < 53; i++) prev.setItem(i, null);
                         player.closeInventory();
-                        player.sendMessage(Component.text("ゴミ箱のアイテムをすべて削除しました。").color(NamedTextColor.GREEN));
+                        player.sendMessage(ChatColor.GREEN + "ゴミ箱のアイテムをすべて削除しました。");
                     });
                     lastTrashBox.remove(player.getUniqueId());
                     trashBoxCache.remove(player.getUniqueId());
@@ -153,7 +153,7 @@ public class TrashListener implements Listener {
                     ItemStack confirmButton = new ItemStack(Material.LIME_CONCRETE);
                     var meta = confirmButton.getItemMeta();
                     if (meta != null) {
-                        meta.displayName(Component.text("捨てる").color(NamedTextColor.RED));
+                        meta.setDisplayName(ChatColor.RED + "捨てる");
                         confirmButton.setItemMeta(meta);
                     }
                     trashInventory.setItem(53, confirmButton);
@@ -164,7 +164,7 @@ public class TrashListener implements Listener {
                     player.closeInventory();
                 }
                 trashBoxCache.remove(player.getUniqueId());
-                player.sendMessage(Component.text("削除をキャンセルしました。").color(NamedTextColor.YELLOW));
+                player.sendMessage(ChatColor.YELLOW + "削除をキャンセルしました。");
             }
         }
     }

@@ -6,13 +6,10 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
-import org.hotamachisubaru.miniutility.Command.CommandManager;
+import org.hotamachisubaru.miniutility.Command.*;
 import org.hotamachisubaru.miniutility.Listener.*;
-import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
-import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
-import org.hotamachisubaru.miniutility.Nickname.NicknameMigration;
+import org.hotamachisubaru.miniutility.Nickname.*;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -284,3 +281,4 @@ public class Miniutility {
         return chatListener;
     }
 }
+

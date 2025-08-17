@@ -1,44 +1,43 @@
 package org.hotamachisubaru.miniutility.util;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
-public class FoliaUtil {
+import java.util.function.Consumer;
 
-    private static final boolean IS_FOLIA = isFolia0();
+public final class FoliaUtil {
+    private static final boolean IS_FOLIA = detectFolia();
 
-    private static boolean isFolia0() {
+    private static boolean detectFolia() {
         try {
-            Server.class.getMethod("getGlobalRegionScheduler");
+            // Folia: Server#getGlobalRegionScheduler が存在
+            Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
             return true;
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException e) {
             return false;
         }
     }
 
-    public static boolean isFolia() {
-        return IS_FOLIA;
-    }
-
-    // プレイヤー対象のタスク（Paper/Folia両対応）
-    public static void runAtPlayer(Player player, Runnable task) {
-        Plugin plugin = Bukkit.getPluginManager().getPlugin("Miniutility");
-        if (isFolia()) {
-            Bukkit.getGlobalRegionScheduler().run(plugin, (ignored) -> task.run());
+    public static void runNow(org.bukkit.plugin.Plugin plugin, Runnable task) {
+        if (IS_FOLIA) {
+            org.bukkit.Bukkit.getGlobalRegionScheduler().execute(plugin, task);
         } else {
-            Bukkit.getScheduler().runTask(plugin, task);
+            org.bukkit.Bukkit.getScheduler().runTask(plugin, task);
         }
     }
 
-    // サーバータスク
-    public static void runAsync(Runnable task) {
-        Plugin plugin = Bukkit.getPluginManager().getPlugin("Miniutility");
-        if (isFolia()) {
-            Bukkit.getGlobalRegionScheduler().execute(plugin, task);
+    public static void runLater(org.bukkit.plugin.Plugin plugin, Runnable task, long delayTicks) {
+        if (IS_FOLIA) {
+            org.bukkit.Bukkit.getGlobalRegionScheduler().runDelayed(plugin, (Consumer<ScheduledTask>) task, delayTicks);
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, task);
+            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, task, delayTicks);
+        }
+    }
+
+    public static void runAtPlayer(org.bukkit.plugin.Plugin plugin, java.util.UUID uuid, Runnable task) {
+        if (IS_FOLIA) {
+            org.bukkit.Bukkit.getRegionScheduler().execute(plugin, org.bukkit.Bukkit.getPlayer(uuid).getLocation(), task);
+        } else {
+            org.bukkit.Bukkit.getScheduler().runTask(plugin, task);
         }
     }
 }

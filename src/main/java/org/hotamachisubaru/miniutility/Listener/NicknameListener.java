@@ -10,12 +10,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
-import org.hotamachisubaru.miniutility.util.TitleUtil;
-
-import java.util.Objects;
 
 public class NicknameListener implements Listener {
     private final NicknameManager nicknameManager;
@@ -26,18 +25,20 @@ public class NicknameListener implements Listener {
         this.nicknameManager = nicknameManager;
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onNicknameMenuClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        String title = TitleUtil.getTitle(event.getView());
+        if (event.getClickedInventory() == null) return;
+        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
-        if (!Objects.equals(title, "ニックネームを変更")) {
-            return;
-        }
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof GuiHolder h)) return;
+        if (h.getType() != GuiType.NICKNAME) return; // ★ ニックネームGUIのみ処理
+
         event.setCancelled(true);
 
         ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType() == Material.AIR) return;
+        if (item == null || item.getType().isAir()) return;
 
         switch (item.getType()) {
             case PAPER -> {
@@ -61,11 +62,27 @@ public class NicknameListener implements Listener {
     }
 
     public static void openNicknameMenu(Player player) {
-        Inventory nicknameMenu = Bukkit.createInventory(player, 9, "ニックネームを変更");
-        nicknameMenu.setItem(2, createMenuItem(Material.PAPER, ChatColor.YELLOW + "ニックネームを入力", ChatColor.GRAY + "クリックして新しいニックネームを入力"));
-        nicknameMenu.setItem(4, createMenuItem(Material.NAME_TAG, ChatColor.YELLOW + "カラーコード指定", ChatColor.GRAY + "クリックして色付きニックネームを入力"));
-        nicknameMenu.setItem(6, createMenuItem(Material.BARRIER, ChatColor.YELLOW + "リセット", ChatColor.GRAY + "ニックネームをリセット"));
-        player.openInventory(nicknameMenu);
+        GuiHolder holder = new GuiHolder(GuiType.NICKNAME, player.getUniqueId());
+        Inventory inv = Bukkit.createInventory(holder, 9, "ニックネームを変更");
+        holder.bind(inv);
+
+        inv.setItem(2, createMenuItem(
+                Material.PAPER,
+                ChatColor.YELLOW + "ニックネームを入力",
+                ChatColor.GRAY + "クリックして新しいニックネームを入力"
+        ));
+        inv.setItem(4, createMenuItem(
+                Material.NAME_TAG,
+                ChatColor.YELLOW + "カラーコード指定",
+                ChatColor.GRAY + "クリックして色付きニックネームを入力"
+        ));
+        inv.setItem(6, createMenuItem(
+                Material.BARRIER,
+                ChatColor.YELLOW + "リセット",
+                ChatColor.GRAY + "ニックネームをリセット"
+        ));
+
+        player.openInventory(inv);
     }
 
     private static ItemStack createMenuItem(Material material, String name, String lore) {
@@ -73,7 +90,9 @@ public class NicknameListener implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
-            meta.setLore(java.util.List.of(lore));
+            java.util.List<String> loreList = new java.util.ArrayList<>();
+            loreList.add(lore);
+            meta.setLore(loreList);
             item.setItemMeta(meta);
         }
         return item;

@@ -1,7 +1,5 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -10,14 +8,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
-import org.hotamachisubaru.miniutility.util.TitleUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,97 +29,79 @@ public class TrashListener implements Listener {
         this.plugin = plugin;
     }
 
-    // タイトル取得（InventoryViewのみ）
-    private static String getTitleSafe(@NotNull InventoryView view) {
-        try {
-            // Paper新API
-            return PlainTextComponentSerializer.plainText().serialize(view.title()).trim();
-        } catch (Throwable e) {
-            // 旧API
-            try {
-                return view.getTitle().trim();
-            } catch (Throwable ignore) {
-                return "";
-            }
-        }
-    }
-
     // ゴミ箱GUIを開く
     public static void openTrashBox(Player player) {
         GuiHolder h = new GuiHolder(GuiType.TRASH, player.getUniqueId());
-        Inventory inv = Bukkit.createInventory(h,54,"ゴミ箱");
+        Inventory inv = Bukkit.createInventory(h, 54, "ゴミ箱");
         h.bind(inv);
-        player.openInventory(inv);
 
-        ItemStack confirmButton = new ItemStack(Material.LIME_WOOL);
-        var meta = confirmButton.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(ChatColor.RED + "捨てる");
-            confirmButton.setItemMeta(meta);
-        }
-        inv.setItem(53, confirmButton);
+        // 53番に「捨てる」ボタン
+        ItemStack confirm = createMenuItem(Material.LIME_WOOL,
+                ChatColor.RED + "捨てる",
+                ChatColor.GRAY + "クリックして削除確認へ");
+        inv.setItem(53, confirm);
+
         lastTrashBox.put(player.getUniqueId(), inv);
         player.openInventory(inv);
     }
 
     // 確認画面を開く
     private static void openTrashConfirm(Player player) {
-        // ゴミ箱内容を一時保存
         Inventory last = lastTrashBox.get(player.getUniqueId());
         if (last != null) {
             trashBoxCache.put(player.getUniqueId(), last.getContents());
         }
 
         GuiHolder h = new GuiHolder(GuiType.TRASH_CONFIRM, player.getUniqueId());
-        Inventory inv = Bukkit.createInventory(h,9,"本当に捨てますか？");
+        Inventory inv = Bukkit.createInventory(h, 9, "本当に捨てますか？");
         h.bind(inv);
 
-        inv.setItem(3, createMenuItem(Material.LIME_WOOL, ChatColor.GREEN + "はい", ChatColor.GRAY + "クリックしてゴミ箱を空にする"));
-        inv.setItem(5, createMenuItem(Material.RED_WOOL, ChatColor.RED + "いいえ", ChatColor.GRAY + "クリックしてキャンセル"));
+        inv.setItem(3, createMenuItem(Material.LIME_WOOL, ChatColor.GREEN + "はい", ChatColor.GRAY + "ゴミ箱を空にする"));
+        inv.setItem(5, createMenuItem(Material.RED_WOOL, ChatColor.RED + "いいえ", ChatColor.GRAY + "キャンセル"));
         player.openInventory(inv);
     }
 
-    @EventHandler
-    public void onTrashBoxClick(InventoryClickEvent event) {
+    @EventHandler(ignoreCancelled = true)
+    public void onTrashClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        String title = TitleUtil.getTitle(event.getView());
+        if (event.getClickedInventory() == null) return;
+        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
-        if (title.equals("ゴミ箱")) {
-            int rawSlot = event.getRawSlot();
-            ItemStack item = event.getCurrentItem();
-            if (item == null) return;
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof GuiHolder h)) return;
 
-            // 捨てるボタンは絶対キャンセル
-            if (rawSlot == 53 && item.getType() == Material.LIME_WOOL) {
+        ItemStack item = event.getCurrentItem();
+        int rawSlot = event.getRawSlot();
+
+        // --- ゴミ箱本体 ---
+        if (h.getType() == GuiType.TRASH) {
+            // 53番の「捨てる」ボタンは固定
+            if (rawSlot == 53) {
                 event.setCancelled(true);
-                openTrashConfirm(player);
+                if (item != null && item.getType() == Material.LIME_WOOL) {
+                    openTrashConfirm(player);
+                }
                 return;
             }
 
-            // ゴミ箱上段スロット (0-52) かつ「捨てるボタン以外」
+            // 上段(0-52)は自由に出し入れOK
             if (rawSlot >= 0 && rawSlot < 53) {
                 event.setCancelled(false);
                 return;
             }
 
-            // プレイヤーのインベントリ側（下段）
-            if (rawSlot >= 54) {
-                event.setCancelled(false);
-                return;
-            }
-
-            // その他はキャンセル
-            event.setCancelled(true);
+            // 下段(プレイヤーインベントリ)もそのまま
+            event.setCancelled(false);
             return;
         }
 
         // --- 確認画面 ---
-        if (title.equals("本当に捨てますか？")) {
+        if (h.getType() == GuiType.TRASH_CONFIRM) {
             event.setCancelled(true);
-            ItemStack item = event.getCurrentItem();
-            if (item == null) return;
+            if (item == null || item.getType().isAir()) return;
+
             if (item.getType() == Material.LIME_WOOL) {
-                // 削除
+                // 中身を完全削除
                 Inventory prev = lastTrashBox.get(player.getUniqueId());
                 if (prev != null) {
                     FoliaUtil.runAtPlayer(plugin, player.getUniqueId(), () -> {
@@ -134,35 +111,28 @@ public class TrashListener implements Listener {
                     });
                     lastTrashBox.remove(player.getUniqueId());
                     trashBoxCache.remove(player.getUniqueId());
-                }
-            } else if (item.getType() == Material.RED_WOOL) {
-                // 復元処理
-                ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
-                if (cache != null) {
-                    Inventory trashInventory;
-                    try {
-                        trashInventory = Bukkit.createInventory(player, 54, Component.text("ゴミ箱"));
-                    } catch (Throwable e) {
-                        trashInventory = Bukkit.createInventory(player, 54, "ゴミ箱");
-                    }
-                    // アイテムを復元（0-52のみ！）
-                    for (int i = 0; i < 53; i++) {
-                        trashInventory.setItem(i, (i < cache.length) ? cache[i] : null);
-                    }
-                    // 53番は必ず「捨てる」ボタン
-                    ItemStack confirmButton = new ItemStack(Material.LIME_CONCRETE);
-                    var meta = confirmButton.getItemMeta();
-                    if (meta != null) {
-                        meta.setDisplayName(ChatColor.RED + "捨てる");
-                        confirmButton.setItemMeta(meta);
-                    }
-                    trashInventory.setItem(53, confirmButton);
-
-                    lastTrashBox.put(player.getUniqueId(), trashInventory);
-                    player.openInventory(trashInventory);
                 } else {
                     player.closeInventory();
                 }
+                return;
+            }
+
+            if (item.getType() == Material.RED_WOOL) {
+                // 復元
+                ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
+                GuiHolder nh = new GuiHolder(GuiType.TRASH, player.getUniqueId());
+                Inventory newInv = Bukkit.createInventory(nh, 54, "ゴミ箱");
+                nh.bind(newInv);
+
+                if (cache != null) {
+                    for (int i = 0; i < 53; i++) {
+                        newInv.setItem(i, (i < cache.length) ? cache[i] : null);
+                    }
+                }
+                newInv.setItem(53, createMenuItem(Material.LIME_WOOL, ChatColor.RED + "捨てる", ChatColor.GRAY + "クリックして削除確認へ"));
+
+                lastTrashBox.put(player.getUniqueId(), newInv);
+                player.openInventory(newInv);
                 trashBoxCache.remove(player.getUniqueId());
                 player.sendMessage(ChatColor.YELLOW + "削除をキャンセルしました。");
             }

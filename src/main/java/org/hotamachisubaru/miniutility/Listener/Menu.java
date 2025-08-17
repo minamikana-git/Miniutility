@@ -28,29 +28,20 @@ public class Menu implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void handleInventoryClick(InventoryClickEvent event) {
-        // クリックしたのがプレイヤーか
         if (!(event.getWhoClicked() instanceof Player)) return;
-        Player player = (Player) event.getWhoClicked();
-
-        // クリック元は必ずトップインベントリのみを対象に
         if (event.getClickedInventory() == null) return;
-        Inventory top = event.getView().getTopInventory();
-        if (event.getClickedInventory() != top) return;
 
-        // 自作GUIかどうか（Holderで判定／Java 8 構文）
-        org.bukkit.inventory.InventoryHolder holder = top.getHolder();
+        Inventory clicked = event.getClickedInventory();
+        org.bukkit.inventory.InventoryHolder holder = clicked.getHolder();
         if (!(holder instanceof GuiHolder)) return;
         GuiHolder h = (GuiHolder) holder;
         if (h.getType() != GuiType.MENU) return;
 
-        // ここまで来たらメニューGUI
         event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || clicked.getType() == org.bukkit.Material.AIR) return;
-
-        // メニューのクリック処理へ
-        handleUtilityBox(player, clicked, event);
+        handleUtilityBox((Player) event.getWhoClicked(), clickedItem, event);
     }
 
 

@@ -28,49 +28,41 @@ public class NicknameListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onNicknameMenuClick(InventoryClickEvent event) {
-        // プレイヤー以外は無視（Java 8 構文）
         if (!(event.getWhoClicked() instanceof Player)) return;
-        Player player = (Player) event.getWhoClicked();
-
         if (event.getClickedInventory() == null) return;
 
-        Inventory top = event.getView().getTopInventory();
-        if (event.getClickedInventory() != top) return;
-
-        // 自作GUIか判定（Holderで判断）
-        InventoryHolder holder = top.getHolder();
+        Inventory inv = event.getClickedInventory();
+        InventoryHolder holder = inv.getHolder();
         if (!(holder instanceof GuiHolder)) return;
         GuiHolder h = (GuiHolder) holder;
-        if (h.getType() != GuiType.NICKNAME) return; // ニックネームGUIのみ処理
+        if (h.getType() != GuiType.NICKNAME) return;
 
         event.setCancelled(true);
-
         ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType() == Material.AIR) return; // 1.13互換（isAir()非使用）
+        if (item == null || item.getType() == Material.AIR) return;
 
         switch (item.getType()) {
             case PAPER:
-                player.sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
-                Chat.setWaitingForNickname(player, true);
-                player.closeInventory();
+                event.getWhoClicked().sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
+                Chat.setWaitingForNickname((Player) event.getWhoClicked(), true);
+                event.getWhoClicked().closeInventory();
                 break;
 
             case NAME_TAG:
-                player.sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
-                Chat.setWaitingForColorInput(player, true);
-                player.closeInventory();
+                event.getWhoClicked().sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
+                Chat.setWaitingForColorInput((Player) event.getWhoClicked(), true);
+                event.getWhoClicked().closeInventory();
                 break;
 
             case BARRIER:
-                NicknameDatabase.deleteNickname(player);
-                NicknameManager.updateDisplayName(player);
-                player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
-                player.closeInventory();
+                NicknameDatabase.deleteNickname((Player) event.getWhoClicked());
+                NicknameManager.updateDisplayName((Player) event.getWhoClicked());
+                event.getWhoClicked().sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
+                event.getWhoClicked().closeInventory();
                 break;
 
             default:
-                player.sendMessage(ChatColor.RED + "無効な選択です。");
-                break;
+                event.getWhoClicked().sendMessage(ChatColor.RED + "無効な選択です。");
         }
     }
 

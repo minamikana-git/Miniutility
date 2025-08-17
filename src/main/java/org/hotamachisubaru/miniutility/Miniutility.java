@@ -1,13 +1,17 @@
 package org.hotamachisubaru.miniutility;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.hotamachisubaru.miniutility.Command.CommandManager;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 import org.hotamachisubaru.miniutility.Nickname.NicknameMigration;
+import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +25,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+
+import static org.bukkit.Bukkit.getOnlinePlayers;
 
 /**
  * Miniutility メインクラス (Paper/legacy完全両対応)
@@ -131,7 +137,7 @@ public class Miniutility {
                 return;
             }
             try {
-                com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(resp.body).getAsJsonObject();
+                JsonObject json = JsonParser.parseString(resp.body).getAsJsonObject();
                 String latestTag = json.get("tag_name").getAsString().replaceFirst("^v", "");
                 String url = json.get("html_url").getAsString();
                 String currentVersion = plugin.getDescription().getVersion();
@@ -142,9 +148,9 @@ public class Miniutility {
                     lastNotifiedVersion = latestTag;
 
                     // Folia安全にOPへ通知
-                    for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    for (Player p : getOnlinePlayers()) {
                         if (p.isOp()) {
-                            org.hotamachisubaru.miniutility.util.FoliaUtil.runAtPlayer(
+                            FoliaUtil.runAtPlayer(
                                     plugin, p.getUniqueId(), () -> p.sendMessage(msg)
                             );
                         }
@@ -201,21 +207,27 @@ public class Miniutility {
     }
 
     private void setupDatabase() {
-        File dbFile = new File(plugin.getDataFolder(), "nickname.db");
-        if (dbFile.exists()) {
-            logger.info("nickname.dbが既に存在します。初期セットアップをスキップします。");
-            return;
-        }
-        try {
-            String dbUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
-            try (java.sql.Connection connection = java.sql.DriverManager.getConnection(dbUrl)) {
-                try (java.sql.Statement stmt = connection.createStatement()) {
-                    stmt.executeUpdate("CREATE TABLE IF NOT EXISTS nicknames (uuid TEXT PRIMARY KEY, nickname TEXT)");
-                }
-            }
-            logger.info("nickname.dbを新規作成し、テーブルをセットアップしました。");
+        // data フォルダを必ず作成
+        File dataDir = plugin.getDataFolder();
+        if (!dataDir.exists()) dataDir.mkdirs();
+
+        File dbFile = new File(dataDir, "nickname.db");
+        String dbUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
+
+        try (java.sql.Connection con = java.sql.DriverManager.getConnection(dbUrl);
+             java.sql.Statement st = con.createStatement()) {
+
+            // 既存でも毎回実行してOK
+            st.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS nickname (" +
+                            "uuid TEXT PRIMARY KEY," +
+                            "name TEXT NOT NULL," +           // ニックネーム
+                            "color TEXT," +                   // カラー(任意)
+                            "show_prefix INTEGER DEFAULT 1" + // Prefix表示フラグ(任意)
+                            ")"
+            );
         } catch (Exception e) {
-            logger.severe("nickname.db初期セットアップに失敗しました: " + e.getMessage());
+            logger.severe("nickname.db 初期セットアップに失敗しました: " + e.getMessage());
         }
     }
 

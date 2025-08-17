@@ -8,12 +8,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
-import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 
 public class NicknameListener implements Listener {
@@ -27,40 +27,52 @@ public class NicknameListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onNicknameMenuClick(InventoryClickEvent event) {
-        if (!(top.getHolder() instanceof GuiHolder)) return;
-        GuiHolder h = (GuiHolder) top.getHolder();
+        // プレイヤー以外は無視（Java 8 構文）
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        Player player = (Player) event.getWhoClicked();
+
         if (event.getClickedInventory() == null) return;
-        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
         Inventory top = event.getView().getTopInventory();
-        if (!(top.getHolder() instanceof GuiHolder h)) return;
-        if (h.getType() != GuiType.NICKNAME) return; // ★ ニックネームGUIのみ処理
+        if (event.getClickedInventory() != top) return;
+
+        // 自作GUIか判定（Holderで判断）
+        InventoryHolder holder = top.getHolder();
+        if (!(holder instanceof GuiHolder)) return;
+        GuiHolder h = (GuiHolder) holder;
+        if (h.getType() != GuiType.NICKNAME) return; // ニックネームGUIのみ処理
 
         event.setCancelled(true);
 
         ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType().isAir()) return;
+        if (item == null || item.getType() == Material.AIR) return; // 1.13互換（isAir()非使用）
 
         switch (item.getType()) {
-            case PAPER -> {
-                player.sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
+            case PAPER:
+                player.sendMessage(org.bukkit.ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
                 Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
-            }
-            case NAME_TAG -> {
-                player.sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
+                break;
+
+            case NAME_TAG:
+                player.sendMessage(org.bukkit.ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
                 Chat.setWaitingForColorInput(player, true);
                 player.closeInventory();
-            }
-            case BARRIER -> {
-                NicknameDatabase.deleteNickname(player);
-                NicknameManager.updateDisplayName(player);
-                player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
+                break;
+
+            case BARRIER:
+                org.hotamachisubaru.miniutility.Nickname.NicknameDatabase.deleteNickname(player);
+                org.hotamachisubaru.miniutility.Nickname.NicknameManager.updateDisplayName(player);
+                player.sendMessage(org.bukkit.ChatColor.GREEN + "ニックネームをリセットしました。");
                 player.closeInventory();
-            }
-            default -> player.sendMessage(ChatColor.RED + "無効な選択です。");
+                break;
+
+            default:
+                player.sendMessage(org.bukkit.ChatColor.RED + "無効な選択です。");
+                break;
         }
     }
+
 
     public static void openNicknameMenu(Player player) {
         GuiHolder holder = new GuiHolder(GuiType.NICKNAME, player.getUniqueId());

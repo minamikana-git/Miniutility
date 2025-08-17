@@ -79,8 +79,8 @@ public class TrashListener implements Listener {
         Inventory inv = Bukkit.createInventory(h,9,"本当に捨てますか？");
         h.bind(inv);
 
-        inv.setItem(3, createMenuItem(Material.LIME_CONCRETE, ChatColor.GREEN + "はい", ChatColor.GRAY + "クリックしてゴミ箱を空にする"));
-        inv.setItem(5, createMenuItem(Material.RED_CONCRETE, ChatColor.RED + "いいえ", ChatColor.GRAY + "クリックしてキャンセル"));
+        inv.setItem(3, createMenuItem(Material.LIME_WOOL, ChatColor.GREEN + "はい", ChatColor.GRAY + "クリックしてゴミ箱を空にする"));
+        inv.setItem(5, createMenuItem(Material.RED_WOOL, ChatColor.RED + "いいえ", ChatColor.GRAY + "クリックしてキャンセル"));
         player.openInventory(inv);
     }
 
@@ -95,7 +95,7 @@ public class TrashListener implements Listener {
             if (item == null) return;
 
             // 捨てるボタンは絶対キャンセル
-            if (rawSlot == 53 && item.getType() == Material.LIME_CONCRETE) {
+            if (rawSlot == 53 && item.getType() == Material.LIME_WOOL) {
                 event.setCancelled(true);
                 openTrashConfirm(player);
                 return;
@@ -123,7 +123,7 @@ public class TrashListener implements Listener {
             event.setCancelled(true);
             ItemStack item = event.getCurrentItem();
             if (item == null) return;
-            if (item.getType() == Material.LIME_CONCRETE) {
+            if (item.getType() == Material.LIME_WOOL) {
                 // 削除
                 Inventory prev = lastTrashBox.get(player.getUniqueId());
                 if (prev != null) {
@@ -135,7 +135,7 @@ public class TrashListener implements Listener {
                     lastTrashBox.remove(player.getUniqueId());
                     trashBoxCache.remove(player.getUniqueId());
                 }
-            } else if (item.getType() == Material.RED_CONCRETE) {
+            } else if (item.getType() == Material.RED_WOOL) {
                 // 復元処理
                 ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
                 if (cache != null) {

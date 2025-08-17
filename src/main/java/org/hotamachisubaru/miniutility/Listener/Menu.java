@@ -8,17 +8,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.hotamachisubaru.miniutility.GUI.GUI;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 import org.hotamachisubaru.miniutility.MiniutilityLoader;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
-import org.hotamachisubaru.miniutility.util.TitleUtil;
+
 
 public class Menu implements Listener {
 
     private final MiniutilityLoader plugin;
 
-    public Menu(MiniutilityLoader plugin) {
+    public Menu (MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 
@@ -26,32 +28,20 @@ public class Menu implements Listener {
     public void handleInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null) return;
+        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
-        // GUIタイトル（Component/String 両対応）
-        final String title = TitleUtil.getTitle(event.getView());
-        if (title.isEmpty()) return;
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof GuiHolder h)) return;
+        if (h.getType() != GuiType.MENU) return;   // ★ Holderでメニュー判定
 
-        switch (title) {
-            case "メニュー" -> {
-                event.setCancelled(true);
-                handleUtilityBox(player, event.getCurrentItem(), event);
-            }
-            case "ゴミ箱" -> {
-                // ゴミ箱ではアイテム移動を許可
-                event.setCancelled(false);
-                Utilitys.handleTrashBox(player, event.getCurrentItem(), event);
-            }
-            case "本当に捨てますか？" -> {
-                event.setCancelled(true);
-                Utilitys.TrashConfirm(player, event.getCurrentItem(), event);
-            }
-            case "ニックネームを変更" -> {
-                event.setCancelled(true);
-                GUI.NicknameMenu(player);
-            }
-            default -> { /* 独自GUI以外は何もしない */ }
-        }
+        event.setCancelled(true);
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getType().isAir()) return;
+
+        // ★ そのままメニューのクリック処理へ
+        handleUtilityBox(player, clicked, event);
     }
+
 
     // メニューGUIのクリック処理
     private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {

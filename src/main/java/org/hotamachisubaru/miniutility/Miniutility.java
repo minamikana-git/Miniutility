@@ -53,7 +53,7 @@ public class Miniutility {
         creeperProtectionListener = new CreeperProtectionListener();
         chatListener = new Chat();
         registerListeners();
-        var cmd = new CommandManager(plugin);
+        CommandManager cmd = new CommandManager(plugin);
         plugin.getCommand("menu").setExecutor(cmd);
         plugin.getCommand("menu").setTabCompleter(cmd);
         plugin.getCommand("load").setExecutor(cmd);

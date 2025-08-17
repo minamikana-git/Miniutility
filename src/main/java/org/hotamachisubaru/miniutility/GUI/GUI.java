@@ -8,7 +8,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.hotamachisubaru.miniutility.GUI.holder.MenuHolder;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
+import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
 
 import java.util.Collections;
 
@@ -16,7 +17,7 @@ public class GUI {
 
     // ユーティリティメニューを開く（Holder判定・文字列タイトルで統一）
     public static void openMenu(Player player) {
-        MenuHolder holder = new MenuHolder();
+        GuiHolder holder = new GuiHolder(GuiType.MENU, player.getUniqueId());
         Inventory inv = Bukkit.createInventory(holder, 27, "メニュー"); // ★ holder を必ず使う
         holder.bind(inv);
 
@@ -33,34 +34,36 @@ public class GUI {
     }
 
 
-    // ニックネーム変更メニュー（Component/Stringタイトル両対応）
+    // ニックネーム変更メニュー
     public static void NicknameMenu(Player player) {
-        Inventory nicknameMenu;
+        GuiHolder holder = new GuiHolder(GuiType.NICKNAME,player.getUniqueId());
+        Inventory inv = Bukkit.createInventory(holder,9,"ニックネームを変更");
+        holder.bind(inv);
         try {
-            nicknameMenu = Bukkit.createInventory(player, 9, Component.text("ニックネームを変更"));
+            inv = Bukkit.createInventory(player, 9, Component.text("ニックネームを変更"));
         } catch (Throwable e) {
-            nicknameMenu = Bukkit.createInventory(player, 9, "ニックネームを変更");
+           inv = Bukkit.createInventory(player, 9, "ニックネームを変更");
         }
 
-        nicknameMenu.setItem(2, createMenuItem(
+        inv.setItem(2, createMenuItem(
                 Material.PAPER,
                 "ニックネーム入力",
                 "クリックして新しいニックネームを入力"
         ));
 
-        nicknameMenu.setItem(4, createMenuItem(
+        inv.setItem(4, createMenuItem(
                 Material.NAME_TAG,
                 "カラーコード指定",
                 "クリックして色付きニックネームを入力"
         ));
 
-        nicknameMenu.setItem(6, createMenuItem(
+        inv.setItem(6, createMenuItem(
                 Material.BARRIER,
                 "リセット",
                 "ニックネームをリセット"
         ));
 
-        player.openInventory(nicknameMenu);
+        player.openInventory(inv);
     }
 
     /**

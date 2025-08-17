@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.hotamachisubaru.miniutility.Listener.Chat;
 
 import java.lang.reflect.Method;
 
@@ -16,38 +18,42 @@ public final class ChatBridge implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onAnyChat(Event e) {
-        if (!isPaperAsyncChat(e)) return;
+    public void onLegacyAsyncChat(AsyncPlayerChatEvent e) {
+        // Paper新式がある環境では二重送信を避けるためスキップ
+        if (hasPaperAsyncChat()) return;
 
+        final Player player = e.getPlayer();
+        final String plain = e.getMessage(); // ← 文字列でOK。反射不要
+
+        // 待機フラグの共通処理（消費したらキャンセル）
+        if (Chat.tryHandleWaitingInput(player, plain)) {
+            e.setCancelled(true);
+        }
+
+        // ここで必要なら setFormat(...) などの通常チャット処理
+        // e.setFormat(display + ChatColor.RESET + " » %2$s");
+    }
+
+    /**
+     * Paper の AsyncChatEvent が存在するか
+     */// ここでは通常チャットの加工は行わない（Paper側に任せる）
+
+    private static boolean hasPaperAsyncChat() {
         try {
-            // Player
-            Method getPlayer = e.getClass().getMethod("getPlayer");
-            Player player = (Player) getPlayer.invoke(e);
-
-            // message() → Component → 平文（失敗時は toString）
-            Method msgGetter = e.getClass().getMethod("message");
-            Object component = msgGetter.invoke(e);
-            String plain = toPlainText(component);
-
-            // 待機フラグの共通処理（消費したらキャンセル）
-            boolean consumed = org.hotamachisubaru.miniutility.Listener.Chat.tryHandleWaitingInput(player, plain);
-            if (consumed) {
-                Method setCancelled = e.getClass().getMethod("setCancelled", boolean.class);
-                setCancelled.invoke(e, true);
-            }
-
-            // ここでは通常チャットの加工は行わない（Paper側に任せる）
-            // 必要なら setMessage(Component) を反射で差し替え可能
-
+            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         } catch (Throwable t) {
             Bukkit.getLogger().warning("エラーが発生しました。開発者にissueを送ってください。E301");
+            return false;
         }
     }
 
     private static String toPlainText(Object component) {
         try {
             Class<?> comp = Class.forName("net.kyori.adventure.text.Component");
-            Class<?> ser  = Class.forName("net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer");
+            Class<?> ser = Class.forName("net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer");
             Method plainText = ser.getMethod("plainText");
             Object serializer = plainText.invoke(null);
             Method serialize = ser.getMethod("serialize", comp);
@@ -58,3 +64,10 @@ public final class ChatBridge implements Listener {
         }
     }
 }
+
+
+
+
+
+
+

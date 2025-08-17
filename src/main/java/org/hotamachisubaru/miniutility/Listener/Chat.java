@@ -12,7 +12,11 @@ import org.hotamachisubaru.miniutility.util.LuckPermsUtil;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-public final class Chat implements Listener {
+
+import static org.bukkit.Bukkit.getPluginManager;
+import static org.bukkit.Bukkit.getServer;
+
+public class Chat implements Listener {
 
     // 待機フラグ
     private static final Map<UUID, Boolean> waitingForNickname = new ConcurrentHashMap<>();
@@ -23,6 +27,7 @@ public final class Chat implements Listener {
         if (waiting) waitingForNickname.put(player.getUniqueId(), true);
         else waitingForNickname.remove(player.getUniqueId());
     }
+
     public static boolean isWaitingForNickname(Player player) {
         return waitingForNickname.getOrDefault(player.getUniqueId(), false);
     }
@@ -31,6 +36,7 @@ public final class Chat implements Listener {
         if (waiting) waitingForColorInput.put(player.getUniqueId(), true);
         else waitingForColorInput.remove(player.getUniqueId());
     }
+
     public static boolean isWaitingForColorInput(Player player) {
         return waitingForColorInput.getOrDefault(player.getUniqueId(), false);
     }
@@ -39,11 +45,14 @@ public final class Chat implements Listener {
         if (waiting) waitingForExpInput.put(player.getUniqueId(), true);
         else waitingForExpInput.remove(player.getUniqueId());
     }
+
     public static boolean isWaitingForExpInput(Player player) {
         return waitingForExpInput.getOrDefault(player.getUniqueId(), false);
     }
 
-    /** 旧式(AsyncPlayerChatEvent)専用のハンドラ。Paper新式がある環境では何もしない */
+    /**
+     * 旧式(AsyncPlayerChatEvent)専用のハンドラ。Paper新式がある環境では何もしない
+     */
     @EventHandler(ignoreCancelled = true)
     public void onLegacyAsyncChat(AsyncPlayerChatEvent e) {
         // Paperの新式 AsyncChatEvent が存在するなら、ここは処理しない（ChatBridge側に任せる想定）
@@ -60,7 +69,10 @@ public final class Chat implements Listener {
 
         // Prefix（LuckPermsが無い環境でも落ちない）
         String prefix = "";
-        try { prefix = LuckPermsUtil.safePrefix(player); } catch (Throwable ignored) {}
+        try {
+            prefix = LuckPermsUtil.safePrefix(player);
+        } catch (Throwable ignored) {
+        }
 
         // ニックネーム（未設定ならプレイヤー名）
         String nickname = NicknameManager.getDisplayName(player);
@@ -78,8 +90,11 @@ public final class Chat implements Listener {
         e.setFormat(display + ChatColor.RESET + " » %2$s");
     }
 
-    /** 共通の“待機フラグ”処理。消費したら true */
+    /**
+     * 共通の“待機フラグ”処理。消費したら true
+     */
     public static boolean tryHandleWaitingInput(Player player, String plainMessage) {
+
         if (isWaitingForExpInput(player)) {
             setWaitingForExpInput(player, false);
             try {
@@ -92,49 +107,57 @@ public final class Chat implements Listener {
             }
             return true;
         }
+
         if (isWaitingForNickname(player)) {
-            setWaitingForNickname(player, false);
-            if (!plainMessage.trim().isEmpty()) {
-                NicknameManager.setNickname(player, plainMessage.trim());
-                player.sendMessage(ChatColor.GREEN + "ニックネームを " + plainMessage.trim() + " に設定しました。");
+            final String input = plainMessage == null ? "" : plainMessage.trim();
+
+            String validated = validateNickname(input);
+            if (validated != null) {
+
+                setWaitingForNickname(player, false);
+                var pl = getPluginManager().getPlugin("Miniutility");
+                if (pl != null) {
+                    FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
+                        NicknameManager.setNickname(player, validated);
+                        player.sendMessage(ChatColor.GREEN + "ニックネームを「" + validated + "」に設定しました。");
+                    });
+                } else {
+                    // フォールバック（通常来ない）
+                    NicknameManager.setNickname(player, validated);
+                    player.sendMessage(ChatColor.GREEN + "ニックネームを「" + validated + "」に設定しました。");
+                }
             } else {
-                player.sendMessage(ChatColor.RED + "ニックネームは空にできません。");
+                // 待機は維持（再入力促し）
+                player.sendMessage(ChatColor.RED + "無効なニックネームです。"
+                        + "1〜16文字、記号は _- のみ使用可。空白不可。");
             }
             return true;
         }
 
-        // どこか Chat クラス内（tryHandleWaitingInput の中）に、あなたの追加分を置き換え
         if (isWaitingForColorInput(player)) {
-            // 失敗時は待機を維持して再入力してもらうため、ここでは解除しない
             final String input = plainMessage.trim();
-
-            ChatColor parsed = parseChatColor(input);
+            org.bukkit.ChatColor parsed = parseChatColor(input);
             if (parsed != null && parsed.isColor()) {
-                // 成功時のみ待機解除＋同期実行で安全に反映
                 setWaitingForColorInput(player, false);
-                var pl = org.bukkit.Bukkit.getPluginManager().getPlugin("Miniutility");
+                var pl = getServer().getPluginManager().getPlugin("Miniutility");
                 if (pl != null) {
-                    FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
+                   FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
                         NicknameManager.setColor(player, parsed);
                         player.sendMessage(ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
                     });
                 } else {
-                    // フォールバック（同期保証なし）— ほぼ来ない想定
                     NicknameManager.setColor(player, parsed);
                     player.sendMessage(ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
                 }
             } else {
-                // 待機は継続（再入力を促す）
                 player.sendMessage(ChatColor.RED
                         + "無効なカラーコードです。例: RED, BLUE, GREEN / &a, &b, &c / grey=GRAY, pink=LIGHT_PURPLE");
             }
             return true;
         }
 
-
-        return false;
+        return false; // どれも消費しなかった
     }
-
     // Chat クラスの private メソッドとして追加
     private static ChatColor parseChatColor(String in) {
         if (in == null) return null;
@@ -161,7 +184,9 @@ public final class Chat implements Listener {
         }
     }
 
-    /** Paper の AsyncChatEvent 存在チェック（反射） */
+    /**
+     * Paper の AsyncChatEvent 存在チェック（反射）
+     */
     private static boolean hasPaperAsyncChat() {
         try {
             Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
@@ -169,6 +194,26 @@ public final class Chat implements Listener {
         } catch (ClassNotFoundException e) {
             return false;
         }
+    }
+
+
+
+    private static String validateNickname(String s) {
+        if (s == null) return null;
+        // 全角空白や半角空白を除去（空白を許可したいならこの行を削除）
+        if (s.contains(" ") || s.contains("　")) return null;
+
+        // 文字数チェック（色コードを含めない前提）
+        final int len = s.length();
+        if (len < 1 || len > 16) return null;
+
+        // 許可文字種の一例（日本語・かな漢字も許容。危険記号だけ弾く）
+        // 記号は _ と - のみを許可
+        // ここでは簡易に <>\"'`$\\ を拒否しておく
+        if (s.matches(".*[<>\"'`$\\\\].*")) return null;
+
+        // さらに厳格にしたい場合は Pattern を使ってホワイトリスト方式に
+        return s;
     }
 }
 

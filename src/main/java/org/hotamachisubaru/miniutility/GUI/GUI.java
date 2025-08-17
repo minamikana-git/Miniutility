@@ -8,31 +8,30 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.hotamachisubaru.miniutility.GUI.holder.MenuHolder;
 
 import java.util.Collections;
 
 public class GUI {
 
-    // ユーティリティメニューを開く（Component/Stringタイトル両対応）
+    // ユーティリティメニューを開く（Holder判定・文字列タイトルで統一）
     public static void openMenu(Player player) {
-        Inventory utilityMenu;
-        try {
-            utilityMenu = Bukkit.createInventory(player, 27, Component.text("メニュー"));
-        } catch (Throwable e) {
-            utilityMenu = Bukkit.createInventory(player, 27, "メニュー");
-        }
+        MenuHolder holder = new MenuHolder();
+        Inventory inv = Bukkit.createInventory(holder, 27, "メニュー"); // ★ holder を必ず使う
+        holder.bind(inv);
 
-        utilityMenu.setItem(0, createMenuItem(Material.ARMOR_STAND, "死亡地点にワープ", "死亡地点にワープします。溺れたり、溶岩遊泳した場合は安全な場所にテレポートします。"));
-        utilityMenu.setItem(2, createMenuItem(Material.EXPERIENCE_BOTTLE, "経験値制御器", "経験値を制御します"));
-        utilityMenu.setItem(4, createMenuItem(Material.COMPASS, "ゲームモード制御器", "ゲームモードを制御します"));
-        utilityMenu.setItem(9, createMenuItem(Material.CREEPER_HEAD, "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
-        utilityMenu.setItem(11, createMenuItem(Material.ENDER_CHEST, "エンダーチェスト", "クリックしてエンダーチェストを開く"));
-        utilityMenu.setItem(13, createMenuItem(Material.DROPPER, "ゴミ箱", "クリックしてゴミ箱を開く"));
-        utilityMenu.setItem(15, createMenuItem(Material.NAME_TAG, "ニックネームを変更", "クリックしてニックネームを変更"));
-        utilityMenu.setItem(17, createMenuItem(Material.CRAFTING_TABLE, "どこでも作業台", "クリックして作業台を開く"));
+        inv.setItem(0,  createMenuItem(Material.ARMOR_STAND,   "死亡地点にワープ",   "死亡地点にワープします。溺れたり、溶岩遊泳した場合は安全な場所にテレポートします。"));
+        inv.setItem(2,  createMenuItem(Material.EXPERIENCE_BOTTLE, "経験値制御器",   "経験値を制御します"));
+        inv.setItem(4,  createMenuItem(Material.COMPASS,       "ゲームモード制御器", "ゲームモードを制御します"));
+        inv.setItem(9,  createMenuItem(Material.CREEPER_HEAD,  "クリーパーのブロック破壊を防ぐ", "クリーパーのブロック破壊を防ぎます。ON/OFFができます。"));
+        inv.setItem(11, createMenuItem(Material.ENDER_CHEST,   "エンダーチェスト", "クリックしてエンダーチェストを開く"));
+        inv.setItem(13, createMenuItem(Material.DROPPER,       "ゴミ箱",           "クリックしてゴミ箱を開く"));
+        inv.setItem(15, createMenuItem(Material.NAME_TAG,      "ニックネームを変更", "クリックしてニックネームを変更"));
+        inv.setItem(17, createMenuItem(Material.CRAFTING_TABLE,"どこでも作業台",   "クリックして作業台を開く"));
 
-        player.openInventory(utilityMenu);
+        player.openInventory(inv);
     }
+
 
     // ニックネーム変更メニュー（Component/Stringタイトル両対応）
     public static void NicknameMenu(Player player) {

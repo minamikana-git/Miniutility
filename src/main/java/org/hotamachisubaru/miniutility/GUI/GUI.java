@@ -1,6 +1,5 @@
 package org.hotamachisubaru.miniutility.GUI;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -39,11 +38,6 @@ public class GUI {
         GuiHolder holder = new GuiHolder(GuiType.NICKNAME,player.getUniqueId());
         Inventory inv = Bukkit.createInventory(holder,9,"ニックネームを変更");
         holder.bind(inv);
-        try {
-            inv = Bukkit.createInventory(player, 9, Component.text("ニックネームを変更"));
-        } catch (Throwable e) {
-           inv = Bukkit.createInventory(player, 9, "ニックネームを変更");
-        }
 
         inv.setItem(2, createMenuItem(
                 Material.PAPER,

@@ -12,7 +12,6 @@ import org.hotamachisubaru.miniutility.util.LuckPermsUtil;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 public final class Chat implements Listener {
 
     // 待機フラグ

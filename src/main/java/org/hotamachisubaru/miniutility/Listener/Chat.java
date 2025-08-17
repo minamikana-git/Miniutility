@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+import org.hotamachisubaru.miniutility.util.FoliaUtil;
 import org.hotamachisubaru.miniutility.util.LuckPermsUtil;
 
 import java.util.Map;
@@ -114,18 +115,18 @@ public final class Chat implements Listener {
                 setWaitingForColorInput(player, false);
                 var pl = org.bukkit.Bukkit.getPluginManager().getPlugin("Miniutility");
                 if (pl != null) {
-                    org.hotamachisubaru.miniutility.util.FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
-                        org.hotamachisubaru.miniutility.Nickname.NicknameManager.setColor(player, parsed);
-                        player.sendMessage(org.bukkit.ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
+                    FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
+                        NicknameManager.setColor(player, parsed);
+                        player.sendMessage(ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
                     });
                 } else {
                     // フォールバック（同期保証なし）— ほぼ来ない想定
-                    org.hotamachisubaru.miniutility.Nickname.NicknameManager.setColor(player, parsed);
-                    player.sendMessage(org.bukkit.ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
+                    NicknameManager.setColor(player, parsed);
+                    player.sendMessage(ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
                 }
             } else {
                 // 待機は継続（再入力を促す）
-                player.sendMessage(org.bukkit.ChatColor.RED
+                player.sendMessage(ChatColor.RED
                         + "無効なカラーコードです。例: RED, BLUE, GREEN / &a, &b, &c / grey=GRAY, pink=LIGHT_PURPLE");
             }
             return true;

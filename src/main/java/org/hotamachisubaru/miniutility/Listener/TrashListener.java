@@ -65,40 +65,35 @@ public class TrashListener implements Listener {
     public void onTrashClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
-
         if (event.getClickedInventory() == null) return;
 
-        Inventory top = event.getView().getTopInventory();
-        if (event.getClickedInventory() != top) return;
-
-        org.bukkit.inventory.InventoryHolder holder = top.getHolder();
+        Inventory inv = event.getClickedInventory();
+        org.bukkit.inventory.InventoryHolder holder = inv.getHolder();
         if (!(holder instanceof GuiHolder)) return;
         GuiHolder h = (GuiHolder) holder;
 
-        // ★ ここを修正：TRASH と TRASH_CONFIRM 以外は無視
-        if (h.getType() != GuiType.TRASH && h.getType() != GuiType.TRASH_CONFIRM) return;
-
         ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType() == Material.AIR) return; // 1.13互換
-
-        int rawSlot = event.getRawSlot();
+        if (item == null || item.getType() == Material.AIR) return;
 
         // --- ゴミ箱本体 ---
         if (h.getType() == GuiType.TRASH) {
-            // 必要箇所だけキャンセル
-            // 53番の「捨てる」ボタン
-            if (rawSlot == 53 && item.getType() == Material.LIME_WOOL) {
+            int raw = event.getRawSlot();
+
+            // 53 は「捨てる」ボタンだけ常にキャンセルして処理
+            if (raw == 53) {
                 event.setCancelled(true);
-                openTrashConfirm(player);
+                if (item.getType() == Material.LIME_WOOL) {
+                    openTrashConfirm(player);
+                }
                 return;
             }
 
-            // 上段(0-52)と下段(54-)は自由
+            // 上段(0-52)と下段(>=54)は自由に移動可
             event.setCancelled(false);
         }
 
         // --- 確認画面 ---
-        else { // h.getType() == GuiType.TRASH_CONFIRM
+        else if (h.getType() == GuiType.TRASH_CONFIRM) {
             event.setCancelled(true);
 
             if (item.getType() == Material.LIME_WOOL) {
@@ -128,8 +123,11 @@ public class TrashListener implements Listener {
                 if (cache != null) {
                     for (int i = 0; i < 53; i++) newInv.setItem(i, (i < cache.length) ? cache[i] : null);
                 }
-                newInv.setItem(53, createMenuItem(Material.LIME_WOOL,
-                        ChatColor.RED + "捨てる", ChatColor.GRAY + "クリックして削除確認へ"));
+                newInv.setItem(53, createMenuItem(
+                        Material.LIME_WOOL,
+                        ChatColor.RED + "捨てる",
+                        ChatColor.GRAY + "クリックして削除確認へ"
+                ));
 
                 lastTrashBox.put(player.getUniqueId(), newInv);
                 player.openInventory(newInv);
@@ -139,4 +137,3 @@ public class TrashListener implements Listener {
         }
     }
 }
-

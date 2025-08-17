@@ -148,7 +148,7 @@ public class Miniutility {
 
     private void checkLuckPerms() {
         if (pm.getPlugin("LuckPerms") == null) {
-            logger.warning("LuckPermsが見つかりません。Prefixなしで続行します。");
+            logger.info("LuckPermsが見つかりません。Prefixなしで続行します。");
         }
     }
 
@@ -169,7 +169,7 @@ public class Miniutility {
             oldFile.renameTo(new File(plugin.getDataFolder(), "nickname.yml.bak"));
             flag.createNewFile();
         } catch (Exception e) {
-            logger.severe("マイグレーションに失敗しました: " + e.getMessage());
+            logger.warning("マイグレーションに失敗しました: " + e.getMessage());
         }
     }
 

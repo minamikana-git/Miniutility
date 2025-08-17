@@ -3,6 +3,7 @@ package org.hotamachisubaru.miniutility.Nickname;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.hotamachisubaru.miniutility.util.APIVersionUtil;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class NicknameManager {
         NicknameDatabase.init();
         NicknameDatabase.reload();
     }
-    public void setNickname(Player player, String nickname) {
+    public static void setNickname(Player player, String nickname) {
         // DB保存
         nicknameDatabase.setNickname(player.getUniqueId().toString(), nickname);
         // メモリキャッシュ
@@ -83,4 +84,43 @@ public class NicknameManager {
         prefixEnabled.put(uniqueId, newState);
         return newState;
     }
+
+    // NicknameManager.java の置き換え
+    public static boolean setColor(Player player, ChatColor color) {
+        if (player == null || color == null || !color.isColor()) return false;
+
+        UUID uuid = player.getUniqueId();
+        String nickname = nicknameMap.get(uuid);
+        if (nickname == null || nickname.isEmpty()) return false;
+
+        // 先頭に付いている既存の色/装飾コード（§x や &x）を剥がしてから新色を付与
+        String base = stripLeadingLegacyCodes(nickname);
+
+        nicknameMap.put(uuid, color + base);
+        // 既に Player を持っているので取り直さず、そのまま更新
+        updateDisplayName(player);
+        return true;
+    }
+
+    /** 先頭に連続する §a / &b / §l などのレガシーコードを剥がす */
+    private static String stripLeadingLegacyCodes(String s) {
+        if (s == null || s.isEmpty()) return s;
+        int idx = 0;
+        while (idx + 1 < s.length()) {
+            char c0 = s.charAt(idx);
+            char c1 = Character.toLowerCase(s.charAt(idx + 1));
+            boolean isMarker = (c0 == '§' || c0 == '&');
+            boolean isCode =
+                    (c1 >= '0' && c1 <= '9') ||
+                            (c1 >= 'a' && c1 <= 'f') || // 色
+                            (c1 == 'k' || c1 == 'l' || c1 == 'm' || c1 == 'n' || c1 == 'o' || c1 == 'r'); // 装飾/リセット
+            if (isMarker && isCode) {
+                idx += 2; // 2文字分スキップ
+            } else {
+                break;
+            }
+        }
+        return s.substring(idx);
+    }
+
 }

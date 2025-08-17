@@ -5,7 +5,9 @@ import com.google.gson.JsonParser;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
+import org.hotamachisubaru.miniutility.Bridge.ChatBridge;
 import org.hotamachisubaru.miniutility.Command.CommandManager;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
@@ -14,7 +16,6 @@ import org.hotamachisubaru.miniutility.Nickname.NicknameMigration;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
- * Miniutility メインクラス (Paper/Folia完全両対応・1.21.8最適化)
+ * Miniutility メインクラス (Paper/legacy完全両対応)
  */
 public class Miniutility {
 
@@ -63,7 +64,7 @@ public class Miniutility {
         // マイグレーション
         NicknameMigration migration = new NicknameMigration(plugin);
         migration.migrateToDatabase();
-        checkUpdates();
+        UpdateCheck();
         logger.info("copyright 2024-2025 hotamachisubaru all rights reserved.");
         logger.info("developed by hotamachisubaru");
     }
@@ -75,50 +76,59 @@ public class Miniutility {
     }
 
     private void registerListeners() {
-        pm.registerEvents(new DeathListener(this), plugin);
+        pm.registerEvents(new Chat(), plugin);
+        pm.registerEvents(new ChatBridge(), plugin);
         pm.registerEvents(chatListener, plugin);
         pm.registerEvents(creeperProtectionListener, plugin);
+        pm.registerEvents(new DeathListener(this), plugin);
         pm.registerEvents(new Menu(plugin), plugin);
         pm.registerEvents(new NicknameListener(plugin, nicknameManager), plugin);
         pm.registerEvents(new TrashListener(plugin), plugin);
     }
 
-    private void checkUpdates() {
+    private void UpdateCheck() {
         String owner = "minamikana-git";
-        String repo = "Miniutility";
-        String apiUrl = String.format(
-                "https://api.github.com/repos/%s/%s/releases/latest",
-                owner, repo
-        );
+        String repo  = "Miniutility";
+        String apiUrl = String.format("https://api.github.com/repos/%s/%s/releases/latest", owner, repo);
+
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiUrl))
                 .header("Accept", "application/vnd.github.v3+json")
+                .header("User-Agent", "Miniutility/" + plugin.getDescription().getVersion())
                 .GET()
                 .build();
-        try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                logger.warning("アップデートのチェックに失敗しました: HTTP " + response.statusCode());
-                return;
-            }
-            JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-            String latestTag = json.get("tag_name").getAsString().replaceFirst("^v", "");
-            String currentVersion = plugin.getDescription().getVersion();
-            if (!currentVersion.equals(latestTag)) {
-                String url = json.get("html_url").getAsString();
-                String msg = "新しいバージョン "
-                        + latestTag + " が利用可能です！ ダウンロード: " + url;
-                logger.info(msg);
-                Bukkit.getOnlinePlayers().forEach(p -> {
-                    if (p.isOp()) {
-                        FoliaUtil.runAtPlayer(p, () -> p.sendMessage(msg));
+
+        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenAccept(response -> {
+                    if (response.statusCode() != 200) {
+                        logger.warning("アップデートのチェックに失敗しました: HTTP " + response.statusCode());
+                        return;
                     }
+                    try {
+                        JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+                        String latestTag = json.get("tag_name").getAsString().replaceFirst("^v", "");
+                        String currentVersion = plugin.getDescription().getVersion();
+
+                        if (!currentVersion.equals(latestTag)) {
+                            String url = json.get("html_url").getAsString();
+                            String msg = "新しいバージョン " + latestTag + " が利用可能です！ ダウンロード: " + url;
+                            logger.info(msg);
+
+                            for (Player p : Bukkit.getOnlinePlayers()) {
+                                if (p.isOp()) {
+                                    FoliaUtil.runAtPlayer(plugin, p.getUniqueId(), () -> p.sendMessage(msg));
+                                }
+                            }
+                        }
+                    } catch (Exception ex) {
+                        logger.warning("アップデート情報の解析に失敗しました: " + ex.getMessage());
+                    }
+                })
+                .exceptionally(ex -> {
+                    logger.warning("アップデートのチェック中にエラー: " + ex.getMessage());
+                    return null;
                 });
-            }
-        } catch (IOException | InterruptedException e) {
-            logger.warning("アップデートのチェック中にエラーが発生しました: " + e.getMessage());
-        }
     }
 
     private void checkLuckPerms() {

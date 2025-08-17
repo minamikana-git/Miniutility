@@ -1,26 +1,24 @@
 package org.hotamachisubaru.miniutility;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.hotamachisubaru.miniutility.Command.CommandManager;
 import org.hotamachisubaru.miniutility.Listener.*;
 import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 import org.hotamachisubaru.miniutility.Nickname.NicknameMigration;
-import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -38,6 +36,7 @@ public class Miniutility {
     private Chat chatListener;
     private final PluginManager pm;
     private volatile String lastNotifiedVersion = null;
+    private static final int HTTP_TIMEOUT_MS = 7000;
 
 
     public Miniutility(MiniutilityLoader plugin) {
@@ -99,51 +98,81 @@ public class Miniutility {
     }
 
     private void UpdateCheck() {
-        String owner = "minamikana-git";
-        String repo  = "Miniutility";
-        String apiUrl = String.format("https://api.github.com/repos/%s/%s/releases/latest", owner, repo);
+        final String owner = "minamikana-git";
+        final String repo  = "Miniutility";
+        final String apiUrl = "https://api.github.com/repos/" + owner + "/" + repo + "/releases/latest";
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(apiUrl))
-                .header("Accept", "application/vnd.github.v3+json")
-                .header("User-Agent", "Miniutility/" + plugin.getDescription().getVersion())
-                .GET()
-                .build();
+        CompletableFuture.supplyAsync(() -> {
+            HttpURLConnection conn = null;
+            try {
+                URL url = new URL(apiUrl);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(HTTP_TIMEOUT_MS);
+                conn.setReadTimeout(HTTP_TIMEOUT_MS);
+                conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                conn.setRequestProperty("User-Agent", "Miniutility/" + plugin.getDescription().getVersion());
 
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(response -> {
-                    if (response.statusCode() != 200) {
-                        logger.warning("アップデートのチェックに失敗しました: HTTP " + response.statusCode());
-                        return;
-                    }
-                    try {
-                        JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-                        String latestTag = json.get("tag_name").getAsString().replaceFirst("^v", "");
-                        String currentVersion = plugin.getDescription().getVersion();
+                int code = conn.getResponseCode();
+                InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
+                String body = readAll(is);
+                return new HttpResp(code, body);
+            } catch (Exception e) {
+                logger.warning("アップデートのチェック中にエラーが発生しました: " + e.getMessage());
+                return new HttpResp(-1, null);
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        }).thenAccept(resp -> {
+            if (resp == null || resp.code != 200 || resp.body == null) {
+                if (resp != null && resp.code != 200) {
+                    logger.warning("アップデートのチェックに失敗しました: HTTP " + resp.code);
+                }
+                return;
+            }
+            try {
+                com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(resp.body).getAsJsonObject();
+                String latestTag = json.get("tag_name").getAsString().replaceFirst("^v", "");
+                String url = json.get("html_url").getAsString();
+                String currentVersion = plugin.getDescription().getVersion();
 
-                        if (!currentVersion.equals(latestTag)) {
-                            String url = json.get("html_url").getAsString();
-                            String msg = "新しいバージョン " + latestTag + " が利用可能です！ ダウンロード: " + url;
-                            logger.info(msg);
-                            lastNotifiedVersion = latestTag;
+                if (!currentVersion.equals(latestTag) && !latestTag.equals(lastNotifiedVersion)) {
+                    String msg = "新しいバージョン " + latestTag + " が利用可能です！ ダウンロード: " + url;
+                    logger.info(msg);
+                    lastNotifiedVersion = latestTag;
 
-                            for (Player p : Bukkit.getOnlinePlayers()) {
-                                if (p.isOp()) {
-                                    FoliaUtil.runAtPlayer(plugin, p.getUniqueId(), () -> p.sendMessage(msg));
-                                }
-                            }
+                    // Folia安全にOPへ通知
+                    for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+                        if (p.isOp()) {
+                            org.hotamachisubaru.miniutility.util.FoliaUtil.runAtPlayer(
+                                    plugin, p.getUniqueId(), () -> p.sendMessage(msg)
+                            );
                         }
-                    } catch (Exception ex) {
-                        logger.warning("アップデート情報の解析に失敗しました: " + ex.getMessage());
                     }
-                })
-                .exceptionally(ex -> {
-                    logger.warning("アップデートのチェック中にエラーが発生しました: " + ex.getMessage());
-                    return null;
-                });
+                }
+            } catch (Exception ex) {
+                logger.warning("アップデート情報の解析に失敗しました: " + ex.getMessage());
+            }
+        });
     }
 
+    // ヘルパー：HTTPレスポンス保持
+    private static final class HttpResp {
+        final int code;
+        final String body;
+        HttpResp(int code, String body) { this.code = code; this.body = body; }
+    }
+
+    // ヘルパー：ストリーム→文字列
+    private static String readAll(InputStream is) throws Exception {
+        if (is == null) return null;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) sb.append(line);
+            return sb.toString();
+        }
+    }
     private void checkLuckPerms() {
         if (pm.getPlugin("LuckPerms") == null) {
             logger.info("LuckPermsが見つかりません。Prefixなしで続行します。");

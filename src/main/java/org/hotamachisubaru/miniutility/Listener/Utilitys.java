@@ -1,12 +1,8 @@
 package org.hotamachisubaru.miniutility.Listener;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -56,7 +52,7 @@ public class Utilitys {
     }
 
     // Paper/Spigot全バージョン両対応のタイトル取得
-    private String getTitleSafe(Component componentTitle, String stringTitle) {
+    private static String getTitleSafe(Component componentTitle, String stringTitle) {
         try {
             return PlainTextComponentSerializer.plainText().serialize(componentTitle).trim();
         } catch (Throwable e) {
@@ -65,7 +61,7 @@ public class Utilitys {
     }
 
     // メニューGUIのアイテムクリック処理
-    private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    public void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         if (clickedItem == null || clickedItem.getType().isAir()) return;
         event.setCancelled(true);
 
@@ -76,37 +72,38 @@ public class Utilitys {
             case DROPPER -> openTrashBox(player);
             case NAME_TAG -> GUI.NicknameMenu(player);
             case CREEPER_HEAD -> {
-                var creeperProtection = plugin.getMiniutility().getCreeperProtectionListener();
-                boolean enabled = creeperProtection.toggleCreeperProtection();
-                String status = enabled ? "有効" : "無効";
-                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " + status + " になりました。").color(NamedTextColor.GREEN));
+                var cp = plugin.getMiniutility().getCreeperProtectionListener();
+                boolean nowEnabled = cp.toggle(); // ← 新しい状態(true=有効)を返す想定
+                String status = nowEnabled ? "有効" : "無効";
+                player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が " + status + " になりました。");
                 player.closeInventory();
             }
+
             case EXPERIENCE_BOTTLE -> {
                 player.closeInventory();
                 Chat.setWaitingForExpInput(player, true);
                 player.sendMessage(
-                        Component.text("経験値を増減する数値をチャットに入力してください。").color(NamedTextColor.AQUA)
-                                .append(Component.text(" 例: \"10\" で +10レベル, \"-5\" で -5レベル").color(NamedTextColor.GRAY))
+                        ChatColor.AQUA + "経験値を増減する数値をチャットに入力してください。" +
+                                ChatColor.GRAY + " 例: \"10\" で +10レベル, \"-5\" で -5レベル"
                 );
             }
             case COMPASS -> {
                 GameMode current = player.getGameMode();
                 if (current == GameMode.SURVIVAL) {
                     player.setGameMode(GameMode.CREATIVE);
-                    player.sendMessage(Component.text("ゲームモードをクリエイティブに変更しました。").color(NamedTextColor.GREEN));
+                    player.sendMessage(ChatColor.GREEN + "ゲームモードをクリエイティブに変更しました。");
                 } else {
                     player.setGameMode(GameMode.SURVIVAL);
-                    player.sendMessage(Component.text("ゲームモードをサバイバルに変更しました。").color(NamedTextColor.GREEN));
+                    player.sendMessage(ChatColor.GREEN + "ゲームモードをサバイバルに変更しました。");
                 }
                 player.closeInventory();
             }
-            default -> player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
+            default -> player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
         }
     }
 
     // ゴミ箱GUIのアイテムクリック処理
-    private void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    public static void handleTrashBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         String title = getTitleSafe(event.getView().title(), event.getView().getTitle());
         if (!title.equals("ゴミ箱")) return;
         int clickedSlot = event.getRawSlot();
@@ -120,7 +117,7 @@ public class Utilitys {
     }
 
     // ゴミ箱→確認画面
-    private void confirm(Player player) {
+    public static void confirm(Player player) {
         Inventory confirmInventory;
         try {
             confirmInventory = Bukkit.createInventory(player, 27, Component.text("本当に捨てますか？"));
@@ -133,54 +130,54 @@ public class Utilitys {
     }
 
     // ゴミ箱確認画面
-    private void TrashConfirm(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    public static void TrashConfirm(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         event.setCancelled(true);
         if (clickedItem == null) return;
 
         switch (clickedItem.getType()) {
             case LIME_CONCRETE -> {
                 player.closeInventory();
-                player.sendMessage(Component.text("アイテムを削除しました。").color(NamedTextColor.GREEN));
+                player.sendMessage(ChatColor.GREEN + "アイテムを削除しました。");
                 // アイテム削除処理をここに追加
             }
             case RED_CONCRETE -> {
                 player.closeInventory();
-                player.sendMessage(Component.text("削除をキャンセルしました").color(NamedTextColor.YELLOW));
+                player.sendMessage(ChatColor.YELLOW + "削除をキャンセルしました");
             }
-            default -> player.sendMessage(Component.text("無効な選択です。").color(NamedTextColor.RED));
+            default -> player.sendMessage(ChatColor.RED + "無効な選択です。");
         }
     }
 
     // ニックネーム変更GUI
-    private void handleNicknameMenu(Player player, ItemStack clickedItem, InventoryClickEvent event) {
+    public static void handleNicknameMenu(Player player, ItemStack clickedItem, InventoryClickEvent event) {
         event.setCancelled(true);
         if (clickedItem == null || clickedItem.getType().isAir()) return;
 
         switch (clickedItem.getType()) {
             case PAPER -> {
-                player.sendMessage(Component.text("新しいニックネームをチャットに入力してください。").color(NamedTextColor.AQUA));
+                player.sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
                 Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
             }
             case BARRIER -> {
                 NicknameDatabase.deleteNickname(player);
                 NicknameManager.updateDisplayName(player);
-                player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
+                player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
                 player.closeInventory();
             }
-            default -> player.sendMessage(Component.text("無効な選択です。").color(NamedTextColor.RED));
+            default -> player.sendMessage(ChatColor.RED + "無効な選択です。");
         }
     }
 
     // 死亡地点ワープ（Paper/Folia両対応: teleportAsync/teleport）
     private void teleportToDeathLocation(Player player) {
         if (plugin.getMiniutility() == null) {
-            player.sendMessage(Component.text("プラグイン初期化中です。").color(NamedTextColor.RED));
+            player.sendMessage(ChatColor.RED + "プラグイン初期化中です。");
             return;
         }
         Location deathLocation = plugin.getMiniutility().getDeathLocation(player.getUniqueId());
         if (deathLocation == null) {
-            player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
+            player.sendMessage(ChatColor.RED + "死亡地点が見つかりません。");
             return;
         }
         if (APIVersionUtil.isModern()) {
@@ -193,7 +190,7 @@ public class Utilitys {
             player.teleport(deathLocation);
         }
         if (recentlyTeleported.add(player.getUniqueId())) {
-            player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
+            player.sendMessage(ChatColor.GREEN + "死亡地点にワープしました。");
             Bukkit.getScheduler().runTaskLater(plugin, () -> recentlyTeleported.remove(player.getUniqueId()), 20L);
         }
     }
@@ -212,11 +209,11 @@ public class Utilitys {
     }
 
     // メニュー用アイテム作成
-    private ItemStack createMenuItem(Material material, String name) {
+    private static ItemStack createMenuItem(Material material, String name) {
         ItemStack item = new ItemStack(material);
         var meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(Component.text(name).color(NamedTextColor.YELLOW));
+            meta.setDisplayName(ChatColor.YELLOW + name);
             item.setItemMeta(meta);
         }
         return item;

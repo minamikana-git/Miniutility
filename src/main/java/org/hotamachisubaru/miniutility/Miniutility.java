@@ -6,10 +6,13 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
-import org.hotamachisubaru.miniutility.Command.*;
+import org.hotamachisubaru.miniutility.Command.CommandManager;
 import org.hotamachisubaru.miniutility.Listener.*;
-import org.hotamachisubaru.miniutility.Nickname.*;
+import org.hotamachisubaru.miniutility.Nickname.NicknameDatabase;
+import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
+import org.hotamachisubaru.miniutility.Nickname.NicknameMigration;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -80,19 +83,7 @@ public class Miniutility {
     }
 
     private void registerListeners() {
-        // 旧式チャットは常に
-        pm.registerEvents(chatListener, plugin); // 旧式
-
-        try {
-            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
-            Object modern = Class.forName("org.hotamachisubaru.miniutility.Bridge.ChatPaperListener")
-                    .getDeclaredConstructor().newInstance();
-            pm.registerEvents((org.bukkit.event.Listener) modern, plugin);
-        } catch (ClassNotFoundException ignore) {
-        } catch (ReflectiveOperationException re) {
-            logger.warning("エラーが発生しました:" + re.getMessage());
-        }
-
+        pm.registerEvents(chatListener, plugin);
         pm.registerEvents(creeperProtectionListener, plugin);
         pm.registerEvents(new DeathListener(this), plugin);
         pm.registerEvents(new Menu(plugin), plugin);
@@ -160,10 +151,7 @@ public class Miniutility {
     }
 
     // ヘルパー：HTTPレスポンス保持
-    private static final class HttpResp {
-        final int code;
-        final String body;
-        HttpResp(int code, String body) { this.code = code; this.body = body; }
+        private record HttpResp(int code, String body) {
     }
 
     // ヘルパー：ストリーム→文字列

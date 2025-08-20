@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
@@ -28,20 +29,19 @@ public class Menu implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void handleInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null) return;
 
         Inventory clicked = event.getClickedInventory();
-        org.bukkit.inventory.InventoryHolder holder = clicked.getHolder();
-        if (!(holder instanceof GuiHolder)) return;
-        GuiHolder h = (GuiHolder) holder;
+        InventoryHolder holder = clicked.getHolder();
+        if (!(holder instanceof GuiHolder h)) return;
         if (h.getType() != GuiType.MENU) return;
 
         event.setCancelled(true);
         ItemStack clickedItem = event.getCurrentItem();
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
-        handleUtilityBox((Player) event.getWhoClicked(), clickedItem, event);
+        handleUtilityBox(player, clickedItem, event);
     }
 
 

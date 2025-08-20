@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Maven 依存関係（Paper/LuckPerms/Adventure などもここで検知）
+  - package-ecosystem: "maven"
+    directory: "/"                 # pom.xml がリポジトリ直下にある前提
+    schedule:
+      interval: "daily"           # daily / weekly / monthly
+      day: "monday"                # 週次の基準日（任意）
+      time: "00:00"                # UTC（日本時間+9h）→ JST 18:00 に相当
+    open-pull-requests-limit: 10
+    # PR のメタ情報（任意）
+    labels: ["dependencies", "maven"]
+    reviewers: ["minamikana-git"]  # レビュアー GitHub ユーザー名
+    assignees: ["minamikana-git"]
+    # まとめて更新（任意）：レビュー本数を減らせます
+    groups:
+      testing:
+        patterns: ["junit*", "org.mockito*"]
+      spring:
+        patterns: ["org.springframework.*"]
+      adventure:
+        patterns: ["net.kyori.*"]
+      minecraft:
+        patterns: ["io.papermc.paper*", "com.destroystokyo.paper*"]
+    # 上げたくないものを除外（任意）
+    ignore:
+      - dependency-name: "org.springframework.boot"
+        versions: ["3.x"]          # 例：3系は据え置き
+      - dependency-name: "io.papermc.paper"
+        update-types: ["version-update:semver-major"]  # メジャーは無視
+      - dependency-name: "net.kyori:adventure-api"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions（ワークフローの Action も更新対象に）
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "ci"]

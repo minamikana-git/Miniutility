@@ -21,30 +21,28 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class Utilitys implements Listener {
+public class Utilities implements Listener {
 
     // 再ワープ防止
     private static final Set<UUID> recentlyTeleported = new HashSet<>();
     private final MiniutilityLoader plugin;
     private final NicknameManager nicknameManager;
 
-    public Utilitys(MiniutilityLoader plugin, NicknameManager nicknameManager) {
+    public Utilities(MiniutilityLoader plugin, NicknameManager nicknameManager) {
         this.plugin = plugin;
         this.nicknameManager = nicknameManager;
     }
 
     @EventHandler(ignoreCancelled = true)
     public void handleInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player)) return;
-        Player player = (Player) event.getWhoClicked();
+        if (!(event.getWhoClicked() instanceof Player player)) return;
 
         if (event.getClickedInventory() == null) return;
         Inventory top = event.getView().getTopInventory();
         if (event.getClickedInventory() != top) return;
 
         InventoryHolder holder = top.getHolder();
-        if (!(holder instanceof GuiHolder)) return;
-        GuiHolder h = (GuiHolder) holder;
+        if (!(holder instanceof GuiHolder h)) return;
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getType() == Material.AIR) return; // 1.13互換

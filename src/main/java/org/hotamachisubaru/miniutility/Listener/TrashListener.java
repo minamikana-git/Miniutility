@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiHolder;
 import org.hotamachisubaru.miniutility.GUI.holder.GuiType;
@@ -63,14 +64,12 @@ public class TrashListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onTrashClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player)) return;
-        Player player = (Player) event.getWhoClicked();
+        if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null) return;
 
         Inventory inv = event.getClickedInventory();
-        org.bukkit.inventory.InventoryHolder holder = inv.getHolder();
-        if (!(holder instanceof GuiHolder)) return;
-        GuiHolder h = (GuiHolder) holder;
+        InventoryHolder holder = inv.getHolder();
+        if (!(holder instanceof GuiHolder h)) return;
 
         ItemStack item = event.getCurrentItem();
         if (item == null || item.getType() == Material.AIR) return;
@@ -79,7 +78,7 @@ public class TrashListener implements Listener {
         if (h.getType() == GuiType.TRASH) {
             int raw = event.getRawSlot();
 
-            // 53 は「捨てる」ボタンだけ常にキャンセルして処理
+            // 53 は「捨てる」ボタン
             if (raw == 53) {
                 event.setCancelled(true);
                 if (item.getType() == Material.LIME_WOOL) {
@@ -88,16 +87,16 @@ public class TrashListener implements Listener {
                 return;
             }
 
-            // 上段(0-52)と下段(>=54)は自由に移動可
+            // 上段(0-52)と下段(>=54)は自由
             event.setCancelled(false);
+            return;
         }
 
         // --- 確認画面 ---
-        else if (h.getType() == GuiType.TRASH_CONFIRM) {
+        if (h.getType() == GuiType.TRASH_CONFIRM) {
             event.setCancelled(true);
 
             if (item.getType() == Material.LIME_WOOL) {
-                // 削除
                 Inventory prev = lastTrashBox.get(player.getUniqueId());
                 if (prev != null) {
                     FoliaUtil.runAtPlayer(plugin, player.getUniqueId(), () -> {
@@ -114,7 +113,6 @@ public class TrashListener implements Listener {
             }
 
             if (item.getType() == Material.RED_WOOL) {
-                // 復元
                 ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
                 GuiHolder nh = new GuiHolder(GuiType.TRASH, player.getUniqueId());
                 Inventory newInv = Bukkit.createInventory(nh, 54, "ゴミ箱");
@@ -136,4 +134,5 @@ public class TrashListener implements Listener {
             }
         }
     }
+
 }

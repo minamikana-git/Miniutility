@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.plugin.Plugin;
 import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 import org.hotamachisubaru.miniutility.util.LuckPermsUtil;
@@ -15,7 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.bukkit.Bukkit.getPluginManager;
-import static org.bukkit.Bukkit.getServer;
 
 public class Chat implements Listener {
 
@@ -122,51 +120,50 @@ public class Chat implements Listener {
 
             String validated = validateNickname(input);
             if (validated != null) {
-
                 setWaitingForNickname(player, false);
-                Plugin pl = getPluginManager().getPlugin("Miniutility");
+                org.bukkit.plugin.Plugin pl = getPluginManager().getPlugin("Miniutility");
                 if (pl != null) {
                     FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
                         NicknameManager.setNickname(player, validated);
                         player.sendMessage(ChatColor.GREEN + "ニックネームを「" + validated + "」に設定しました。");
                     });
                 } else {
-                    // フォールバック（通常来ない）
                     NicknameManager.setNickname(player, validated);
                     player.sendMessage(ChatColor.GREEN + "ニックネームを「" + validated + "」に設定しました。");
                 }
             } else {
-                // 待機は維持（再入力促し）
                 player.sendMessage(ChatColor.RED + "無効なニックネームです。"
                         + "1〜16文字、記号は _- のみ使用可。空白不可。");
             }
             return true;
         }
 
-        if (isWaitingForColorInput(player)) {
-            final String input = plainMessage.trim();
-            org.bukkit.ChatColor parsed = parseChatColor(input);
-            if (parsed != null && parsed.isColor()) {
-                setWaitingForColorInput(player, false);
-                Plugin pl = getServer().getPluginManager().getPlugin("Miniutility");
-                if (pl != null) {
-                   FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
-                        NicknameManager.setColor(player, parsed);
-                        player.sendMessage(ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
-                    });
-                } else {
-                    NicknameManager.setColor(player, parsed);
-                    player.sendMessage(ChatColor.GREEN + "カラーコードを " + parsed.name() + " に設定しました。");
-                }
-            } else {
-                player.sendMessage(ChatColor.RED
-                        + "無効なカラーコードです。例: RED, BLUE, GREEN / &a, &b, &c / grey=GRAY, pink=LIGHT_PURPLE");
-            }
+        // ここを置き換え
+        // Chat.tryHandleWaitingInput 内（isWaitingForColorInput ブロック）
+        setWaitingForColorInput(player, false);
+
+        String raw = plainMessage == null ? "" : plainMessage.trim();
+        if (raw.isEmpty()) {
+            player.sendMessage(ChatColor.RED + "例: &6a, &bほたまち");
             return true;
         }
 
-        return false; // どれも消費しなかった
+// 可視文字だけで1〜16文字チェック（色コードは除外して判定）
+        String visible = raw.replaceAll("(?i)[&§][0-9a-fk-or]", "");
+        if (validateNickname(visible) == null) {
+            player.sendMessage(ChatColor.RED + "無効なニックネームです。1〜16文字、記号は _- のみ、空白不可。");
+            return true;
+        }
+
+// & → § に変換して色を付与
+        String colored = ChatColor.translateAlternateColorCodes('&', raw);
+
+// 保存＆適用
+        NicknameManager.setNickname(player, colored); // ← DB保存と apply を中で呼ぶ設計に
+        player.sendMessage(ChatColor.GREEN + "ニックネームを設定しました: " + colored + ChatColor.RESET);
+        return true;
     }
+
     // Chat クラスの private メソッドとして追加
     private static ChatColor parseChatColor(String in) {
         if (in == null) return null;

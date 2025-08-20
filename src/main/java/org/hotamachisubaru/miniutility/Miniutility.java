@@ -13,15 +13,11 @@ import org.hotamachisubaru.miniutility.Nickname.NicknameManager;
 import org.hotamachisubaru.miniutility.Nickname.NicknameMigration;
 import org.hotamachisubaru.miniutility.util.FoliaUtil;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
@@ -156,16 +152,7 @@ public class Miniutility {
     private record HttpResp(int code, String body) {
     }
 
-    // ヘルパー：ストリーム→文字列
-    private static String readAll(InputStream is) throws Exception {
-        if (is == null) return null;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) sb.append(line);
-            return sb.toString();
-        }
-    }
+
     private void checkLuckPerms() {
         if (pm.getPlugin("LuckPerms") == null) {
             logger.info("LuckPermsが見つかりません。Prefixなしで続行します。");

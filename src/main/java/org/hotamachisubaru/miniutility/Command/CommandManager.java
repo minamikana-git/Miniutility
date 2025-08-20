@@ -1,6 +1,7 @@
 package org.hotamachisubaru.miniutility.Command;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -28,41 +29,39 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         switch (name) {
             case "menu":
-                if (sender instanceof Player) {
-                    Player player = (Player) sender;
+                if (sender instanceof Player player) {
                     GUI.openMenu(player);
                 } else {
-                    sender.sendMessage("プレイヤーのみ使用できます。");
+                    sender.sendMessage(Component.text("プレイヤーのみ使用できます。", NamedTextColor.RED));
                 }
                 return true;
 
             case "load":
                 try {
                     NicknameDatabase.reload();
-                    sender.sendMessage(ChatColor.GREEN + "ニックネームデータを再読み込みしました。");
+                    sender.sendMessage(Component.text("ニックネームデータを再読み込みしました。", NamedTextColor.GREEN));
                 } catch (Throwable e) {
-                    sender.sendMessage(ChatColor.RED + "データベース再読み込みに失敗しました: " + e.getMessage());
+                    sender.sendMessage(Component.text("データベース再読み込みに失敗しました: " + e.getMessage(), NamedTextColor.RED));
                 }
                 return true;
 
             case "prefixtoggle":
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage("プレイヤーのみ実行可能です。");
+                if (!(sender instanceof Player p)) {
+                    sender.sendMessage(Component.text("プレイヤーのみ実行可能です。", NamedTextColor.RED));
                     return true;
                 }
-                Player p = (Player) sender;
                 boolean enabled;
                 try {
                     enabled = plugin.getMiniutility().getNicknameManager().togglePrefix(p.getUniqueId());
                 } catch (Throwable e) {
-                    sender.sendMessage(ChatColor.RED + "Prefixの切り替えに失敗しました: " + e.getMessage());
+                    sender.sendMessage(Component.text("Prefixの切り替えに失敗しました: " + e.getMessage(), NamedTextColor.RED));
                     return true;
                 }
-                p.sendMessage(ChatColor.GREEN + "Prefixの表示が " + (enabled ? "有効" : "無効") + " になりました。");
+                p.sendMessage(Component.text("Prefixの表示が " + (enabled ? "有効" : "無効") + " になりました。", NamedTextColor.GREEN));
                 return true;
 
             default:
-                sender.sendMessage(ChatColor.RED + "不明なコマンドです。");
+                sender.sendMessage(Component.text("不明なコマンドです。", NamedTextColor.RED));
                 return false;
         }
     }

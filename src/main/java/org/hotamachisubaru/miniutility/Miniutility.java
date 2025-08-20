@@ -17,9 +17,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -93,29 +96,28 @@ public class Miniutility {
 
     private void UpdateCheck() {
         final String owner = "minamikana-git";
-        final String repo  = "Miniutility";
+        final String repo = "Miniutility";
         final String apiUrl = "https://api.github.com/repos/" + owner + "/" + repo + "/releases/latest";
 
         CompletableFuture.supplyAsync(() -> {
-            HttpURLConnection conn = null;
             try {
-                URL url = new URL(apiUrl);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(HTTP_TIMEOUT_MS);
-                conn.setReadTimeout(HTTP_TIMEOUT_MS);
-                conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
-                conn.setRequestProperty("User-Agent", "Miniutility/" + plugin.getDescription().getVersion());
+                HttpClient client = HttpClient.newBuilder()
+                        .connectTimeout(Duration.ofMillis(HTTP_TIMEOUT_MS))
+                        .build();
 
-                int code = conn.getResponseCode();
-                InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
-                String body = readAll(is);
-                return new HttpResp(code, body);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(apiUrl))
+                        .timeout(Duration.ofMillis(HTTP_TIMEOUT_MS))
+                        .header("Accept", "application/vnd.github.v3+json")
+                        .header("User-Agent", "Miniutility/" + plugin.getDescription().getVersion())
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                return new HttpResp(response.statusCode(), response.body());
             } catch (Exception e) {
                 logger.warning("アップデートのチェック中にエラーが発生しました: " + e.getMessage());
                 return new HttpResp(-1, null);
-            } finally {
-                if (conn != null) conn.disconnect();
             }
         }).thenAccept(resp -> {
             if (resp == null || resp.code != 200 || resp.body == null) {
@@ -151,7 +153,7 @@ public class Miniutility {
     }
 
     // ヘルパー：HTTPレスポンス保持
-        private record HttpResp(int code, String body) {
+    private record HttpResp(int code, String body) {
     }
 
     // ヘルパー：ストリーム→文字列

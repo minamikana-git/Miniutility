@@ -28,13 +28,12 @@ public class NicknameListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onNicknameMenuClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null) return;
 
         Inventory inv = event.getClickedInventory();
         InventoryHolder holder = inv.getHolder();
-        if (!(holder instanceof GuiHolder)) return;
-        GuiHolder h = (GuiHolder) holder;
+        if (!(holder instanceof GuiHolder h)) return;
         if (h.getType() != GuiType.NICKNAME) return;
 
         event.setCancelled(true);
@@ -42,27 +41,23 @@ public class NicknameListener implements Listener {
         if (item == null || item.getType() == Material.AIR) return;
 
         switch (item.getType()) {
-            case PAPER:
-                event.getWhoClicked().sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
-                Chat.setWaitingForNickname((Player) event.getWhoClicked(), true);
-                event.getWhoClicked().closeInventory();
-                break;
-
-            case NAME_TAG:
-                event.getWhoClicked().sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
-                Chat.setWaitingForColorInput((Player) event.getWhoClicked(), true);
-                event.getWhoClicked().closeInventory();
-                break;
-
-            case BARRIER:
-                NicknameDatabase.deleteNickname((Player) event.getWhoClicked());
-                NicknameManager.updateDisplayName((Player) event.getWhoClicked());
-                event.getWhoClicked().sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
-                event.getWhoClicked().closeInventory();
-                break;
-
-            default:
-                event.getWhoClicked().sendMessage(ChatColor.RED + "無効な選択です。");
+            case PAPER -> {
+                player.sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
+                Chat.setWaitingForNickname(player, true);
+                player.closeInventory();
+            }
+            case NAME_TAG -> {
+                player.sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
+                Chat.setWaitingForColorInput(player, true);
+                player.closeInventory();
+            }
+            case BARRIER -> {
+                NicknameDatabase.deleteNickname(player);
+                NicknameManager.updateDisplayName(player);
+                player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
+                player.closeInventory();
+            }
+            default -> player.sendMessage(ChatColor.RED + "無効な選択です。");
         }
     }
 

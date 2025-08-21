@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import static org.bukkit.Bukkit.getOnlinePlayers;
 
 /**
- * Miniutility メインクラス (Paper/legacy完全両対応)
+ * Miniutility メインクラス (Paper対応)
  */
 public class Miniutility {
 

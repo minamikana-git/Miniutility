@@ -1,5 +1,5 @@
 // Bridge/ChatPaperListener.java
-package org.hotamachisubaru.miniutility.Bridge;
+package org.hotamachisubaru.miniutility.Listener;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -12,7 +12,7 @@ public final class ChatPaperListener implements Listener {
     public void onPaperAsyncChat(AsyncChatEvent e) {
         Player player = e.getPlayer();
         String plain = PlainTextComponentSerializer.plainText().serialize(e.message());
-        if (org.hotamachisubaru.miniutility.Listener.Chat.tryHandleWaitingInput(player, plain)) {
+        if (Chat.tryHandleWaitingInput(player, plain)) {
             e.setCancelled(true);
         }
     }

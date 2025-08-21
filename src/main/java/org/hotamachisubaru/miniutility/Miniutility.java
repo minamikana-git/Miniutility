@@ -88,6 +88,7 @@ public class Miniutility {
         pm.registerEvents(new Menu(plugin), plugin);
         pm.registerEvents(new NicknameListener(plugin, nicknameManager), plugin);
         pm.registerEvents(new TrashListener(plugin), plugin);
+        pm.registerEvents(new ChatPaperListener(), plugin);
     }
 
     private void UpdateCheck() {

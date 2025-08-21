@@ -121,7 +121,7 @@ public class Chat implements Listener {
             String validated = validateNickname(input);
             if (validated != null) {
                 setWaitingForNickname(player, false);
-                org.bukkit.plugin.Plugin pl = getPluginManager().getPlugin("Miniutility");
+                var pl = getPluginManager().getPlugin("Miniutility");
                 if (pl != null) {
                     FoliaUtil.runAtPlayer(pl, player.getUniqueId(), () -> {
                         NicknameManager.setNickname(player, validated);

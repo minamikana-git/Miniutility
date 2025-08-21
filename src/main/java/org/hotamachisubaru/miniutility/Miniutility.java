@@ -208,7 +208,7 @@ public class Miniutility {
 
     private void scheduleDailyUpdateCheck() {
         // 0.5秒後に初回チェック
-        org.hotamachisubaru.miniutility.util.FoliaUtil.runLater(
+        FoliaUtil.runLater(
                 plugin,
                 this::safeUpdateCheckAndReschedule,
                 10L
@@ -219,11 +219,11 @@ public class Miniutility {
         try {
             UpdateCheck(); // あなたの非同期版/同期版どちらでもOK（非同期版推奨）
         } catch (Throwable t) {
-            plugin.getLogger().warning("アップデートのチェックに失敗しました：" + t.getMessage());
+            logger.warning("アップデートのチェックに失敗しました：" + t.getMessage());
         } finally {
             // 1日後(= 20t * 60s * 60m * 24h)に再チェック
             long oneDayTicks = 20L * 60L * 60L * 24L;
-            org.hotamachisubaru.miniutility.util.FoliaUtil.runLater(
+            FoliaUtil.runLater(
                     plugin,
                     this::safeUpdateCheckAndReschedule,
                     oneDayTicks

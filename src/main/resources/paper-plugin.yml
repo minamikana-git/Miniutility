@@ -2,7 +2,7 @@ name: Miniutility
 version: '1.21.8'
 main: org.hotamachisubaru.miniutility.MiniutilityLoader
 bootstrapper: org.hotamachisubaru.miniutility.PluginLoad.MiniutilityBootstrap
-api-version: "1.19"
+api-version: "1.21"
 authors:
   - hotamachisubaru
 folia-supported: true

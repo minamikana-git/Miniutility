@@ -1,13 +1,13 @@
 package org.hotamachisubaru.miniutility.Nickname;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.cacheddata.CachedMetaData;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.UUID;
@@ -69,7 +69,7 @@ public class NicknameManager {
     /**
      * Prefix の表示をトグル。戻り値は新しい状態（true=表示）
      */
-    public boolean togglePrefix(@NotNull UUID uniqueId) {
+    public boolean togglePrefix(UUID uniqueId) {
         boolean newState = !prefixEnabled.getOrDefault(uniqueId, true);
         prefixEnabled.put(uniqueId, newState);
         // その場で表示を更新したい場合は呼び出し側で updateDisplayName を呼ぶ
@@ -165,7 +165,7 @@ public class NicknameManager {
         try {
             // 1) &/§ を両方受けるため、§ を & に寄せてからパース
             String normalized = legacyText == null ? "" : legacyText.replace('§', '&');
-            Component comp = LegacyComponentSerializer.legacyAmpersand().deserialize(normalized);
+            BaseComponent[] comp = TextComponent.fromLegacyText(normalized);
 
             // 2) Player#displayName(Component)
             Method mDisplay = Player.class.getMethod("displayName", Component.class);

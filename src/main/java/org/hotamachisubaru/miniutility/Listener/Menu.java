@@ -1,7 +1,7 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -30,25 +30,25 @@ public class Menu implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void handleInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getWhoClicked() instanceof Player)) return;
         if (event.getClickedInventory() == null) return;
 
         Inventory clicked = event.getClickedInventory();
         InventoryHolder holder = clicked.getHolder();
-        if (!(holder instanceof GuiHolder h)) return;
-        if (h.getType() != GuiType.MENU) return;
+        if (!(holder instanceof GuiHolder)) return;
+        if (((GuiHolder) holder).getType() != GuiType.MENU) return;
 
         event.setCancelled(true);
         ItemStack clickedItem = event.getCurrentItem();
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
-        handleUtilityBox(player, clickedItem, event);
+        handleUtilityBox((Player) event.getWhoClicked(), clickedItem, event);
     }
 
 
     // メニューGUIのクリック処理
     private void handleUtilityBox(Player player, ItemStack clickedItem, InventoryClickEvent event) {
-        if (clickedItem == null || clickedItem.getType().isAir()) return;
+        if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
         Material type = clickedItem.getType();
         switch (type) {
@@ -70,8 +70,12 @@ public class Menu implements Listener {
             case CREEPER_HEAD: {
                 CreeperProtectionListener cp = plugin.getMiniutility().getCreeperProtectionListener();
                 boolean nowEnabled = cp.toggle();
-                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が "
-                        + (nowEnabled ? "有効" : "無効") + " になりました。", NamedTextColor.GREEN));
+
+                TextComponent component = new TextComponent();
+                component.setText("クリーパーの爆破によるブロック破壊防止が " + (nowEnabled ? "有効" : "無効") + " になりました。");
+                component.setColor(ChatColor.GREEN);
+
+                player.sendMessage(component);
                 player.closeInventory();
                 break;
             }
@@ -79,24 +83,48 @@ public class Menu implements Listener {
             case EXPERIENCE_BOTTLE: {
                 player.closeInventory();
                 Chat.setWaitingForExpInput(player, true);
-                player.sendMessage(Component.text("経験値を増減する数値をチャットに入力してください。", NamedTextColor.AQUA)
-                        .append(Component.text(" 例: \"10\" で +10レベル, \"-5\" で -5レベル", NamedTextColor.GRAY)));
+
+                TextComponent component = new TextComponent();
+                component.setText("経験値を増減する数値をチャットに入力してください。");
+                component.setColor(ChatColor.AQUA);
+
+                TextComponent childComponent = new TextComponent();
+                childComponent.setText(" 例: \"10\" で +10レベル, \"-5\" で -5レベル");
+                childComponent.setColor(ChatColor.GRAY);
+
+                component.addExtra(childComponent);
+
+                player.sendMessage(component);
                 break;
             }
             case COMPASS: {
                 GameMode current = player.getGameMode();
                 if (current == GameMode.SURVIVAL) {
                     player.setGameMode(GameMode.CREATIVE);
-                    player.sendMessage(Component.text("ゲームモードをクリエイティブに変更しました。", NamedTextColor.GREEN));
+
+                    TextComponent component = new TextComponent();
+                    component.setText("ゲームモードをクリエイティブに変更しました。");
+                    component.setColor(ChatColor.GREEN);
+
+                    player.sendMessage(component);
                 } else {
                     player.setGameMode(GameMode.SURVIVAL);
-                    player.sendMessage(Component.text("ゲームモードをサバイバルに変更しました。", NamedTextColor.GREEN));
+
+                    TextComponent component = new TextComponent();
+                    component.setText("ゲームモードをサバイバルに変更しました。");
+                    component.setColor(ChatColor.GREEN);
+
+                    player.sendMessage(component);
                 }
                 player.closeInventory();
                 break;
             }
             default:
-                player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。", NamedTextColor.RED));
+                TextComponent component = new TextComponent();
+                component.setText("このアイテムにはアクションが設定されていません。");
+                component.setColor(ChatColor.RED);
+
+                player.sendMessage(component);
                 break;
         }
     }
@@ -117,12 +145,18 @@ public class Menu implements Listener {
     // 死亡地点ワープ（API差分両対応）
     private void teleportToDeathLocation(Player player) {
         if (plugin.getMiniutility() == null) {
-            player.sendMessage(Component.text("プラグイン初期化中です。", NamedTextColor.RED));
+            TextComponent component = new TextComponent();
+            component.setText("プラグイン初期化中です。");
+            component.setColor(ChatColor.RED);
+            player.sendMessage(component);
             return;
         }
         Location loc = plugin.getMiniutility().getDeathLocation(player.getUniqueId());
         if (loc == null) {
-            player.sendMessage(Component.text("死亡地点が見つかりません。", NamedTextColor.RED));
+            TextComponent component = new TextComponent();
+            component.setText("死亡地点が見つかりません。");
+            component.setColor(ChatColor.RED);
+            player.sendMessage(component);
             return;
         }
 
@@ -131,7 +165,10 @@ public class Menu implements Listener {
                 plugin, player.getUniqueId(),
                 () -> {
                     teleportCompat(player, loc);
-                    player.sendMessage(Component.text("死亡地点にワープしました。", NamedTextColor.GREEN));
+                    TextComponent component = new TextComponent();
+                    component.setText("死亡地点にワープしました。");
+                    component.setColor(ChatColor.GREEN);
+                    player.sendMessage(component);
                 }
         );
     }

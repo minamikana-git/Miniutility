@@ -1,7 +1,8 @@
 package org.hotamachisubaru.miniutility.Listener;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -42,22 +43,22 @@ public class NicknameListener implements Listener {
 
         switch (item.getType()) {
             case PAPER -> {
-                player.sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
+                player.sendMessage(Component.text("新しいニックネームをチャットに入力してください。", NamedTextColor.AQUA));
                 Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
             }
             case NAME_TAG -> {
-                player.sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
+                player.sendMessage(Component.text("色付きのニックネームをチャットで入力してください。例: &6ほたまち", NamedTextColor.AQUA));
                 Chat.setWaitingForColorInput(player, true);
                 player.closeInventory();
             }
             case BARRIER -> {
                 NicknameDatabase.deleteNickname(player);
                 NicknameManager.updateDisplayName(player);
-                player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
+                player.sendMessage(Component.text("ニックネームをリセットしました。", NamedTextColor.GREEN));
                 player.closeInventory();
             }
-            default -> player.sendMessage(ChatColor.RED + "無効な選択です。");
+            default -> player.sendMessage(Component.text("無効な選択です。", NamedTextColor.RED));
         }
     }
 
@@ -69,31 +70,31 @@ public class NicknameListener implements Listener {
 
         inv.setItem(2, createMenuItem(
                 Material.PAPER,
-                ChatColor.YELLOW + "ニックネームを入力",
-                ChatColor.GRAY + "クリックして新しいニックネームを入力"
+                Component.text("ニックネームを入力", NamedTextColor.YELLOW),
+                Component.text("クリックして新しいニックネームを入力", NamedTextColor.GRAY)
         ));
         inv.setItem(4, createMenuItem(
                 Material.NAME_TAG,
-                ChatColor.YELLOW + "カラーコード指定",
-                ChatColor.GRAY + "クリックして色付きニックネームを入力"
+                Component.text("カラーコード指定", NamedTextColor.YELLOW),
+                Component.text("クリックして色付きニックネームを入力", NamedTextColor.GRAY)
         ));
         inv.setItem(6, createMenuItem(
                 Material.BARRIER,
-                ChatColor.YELLOW + "リセット",
-                ChatColor.GRAY + "ニックネームをリセット"
+                Component.text("リセット", NamedTextColor.YELLOW),
+                Component.text("ニックネームをリセット", NamedTextColor.GRAY)
         ));
 
         player.openInventory(inv);
     }
 
-    private static ItemStack createMenuItem(Material material, String name, String lore) {
+    private static ItemStack createMenuItem(Material material, Component name, Component lore) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
-            java.util.List<String> loreList = new java.util.ArrayList<>();
+            meta.displayName(name);
+            java.util.List<Component> loreList = new java.util.ArrayList<>();
             loreList.add(lore);
-            meta.setLore(loreList);
+            meta.lore(loreList);
             item.setItemMeta(meta);
         }
         return item;

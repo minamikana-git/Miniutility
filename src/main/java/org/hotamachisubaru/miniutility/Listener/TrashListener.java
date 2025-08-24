@@ -1,7 +1,8 @@
 package org.hotamachisubaru.miniutility.Listener;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,18 +29,19 @@ public class TrashListener implements Listener {
 
     public TrashListener(MiniutilityLoader plugin) {
         this.plugin = plugin;
+
     }
 
     // ゴミ箱GUIを開く
     public static void openTrashBox(Player player) {
         GuiHolder h = new GuiHolder(GuiType.TRASH, player.getUniqueId());
-        Inventory inv = Bukkit.createInventory(h, 54, "ゴミ箱");
+        Inventory inv = Bukkit.createInventory(h, 54, Component.text("ゴミ箱"));
         h.bind(inv);
 
         // 53番に「捨てる」ボタン
         ItemStack confirm = createMenuItem(Material.LIME_WOOL,
-                ChatColor.RED + "捨てる",
-                ChatColor.GRAY + "クリックして削除確認へ");
+                Component.text("捨てる", NamedTextColor.RED),
+                Component.text("クリックして削除確認へ", NamedTextColor.GRAY));
         inv.setItem(53, confirm);
 
         lastTrashBox.put(player.getUniqueId(), inv);
@@ -54,11 +56,11 @@ public class TrashListener implements Listener {
         }
 
         GuiHolder h = new GuiHolder(GuiType.TRASH_CONFIRM, player.getUniqueId());
-        Inventory inv = Bukkit.createInventory(h, 9, "本当に捨てますか？");
+        Inventory inv = Bukkit.createInventory(h, 9, Component.text("本当に捨てますか？"));
         h.bind(inv);
 
-        inv.setItem(3, createMenuItem(Material.LIME_WOOL, ChatColor.GREEN + "はい", ChatColor.GRAY + "ゴミ箱を空にする"));
-        inv.setItem(5, createMenuItem(Material.RED_WOOL, ChatColor.RED + "いいえ", ChatColor.GRAY + "キャンセル"));
+        inv.setItem(3, createMenuItem(Material.LIME_WOOL, Component.text("はい", NamedTextColor.GREEN), Component.text("ゴミ箱を空にする", NamedTextColor.GRAY)));
+        inv.setItem(5, createMenuItem(Material.RED_WOOL, Component.text("いいえ", NamedTextColor.RED), Component.text("キャンセル", NamedTextColor.GRAY)));
         player.openInventory(inv);
     }
 
@@ -102,7 +104,7 @@ public class TrashListener implements Listener {
                     FoliaUtil.runAtPlayer(plugin, player.getUniqueId(), () -> {
                         for (int i = 0; i < 53; i++) prev.setItem(i, null);
                         player.closeInventory();
-                        player.sendMessage(ChatColor.GREEN + "ゴミ箱のアイテムをすべて削除しました。");
+                        player.sendMessage(Component.text("ゴミ箱のアイテムをすべて削除しました。", NamedTextColor.GREEN));
                     });
                     lastTrashBox.remove(player.getUniqueId());
                     trashBoxCache.remove(player.getUniqueId());
@@ -115,7 +117,7 @@ public class TrashListener implements Listener {
             if (item.getType() == Material.RED_WOOL) {
                 ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
                 GuiHolder nh = new GuiHolder(GuiType.TRASH, player.getUniqueId());
-                Inventory newInv = Bukkit.createInventory(nh, 54, "ゴミ箱");
+                Inventory newInv = Bukkit.createInventory(nh, 54, Component.text("ゴミ箱"));
                 nh.bind(newInv);
 
                 if (cache != null) {
@@ -123,14 +125,14 @@ public class TrashListener implements Listener {
                 }
                 newInv.setItem(53, createMenuItem(
                         Material.LIME_WOOL,
-                        ChatColor.RED + "捨てる",
-                        ChatColor.GRAY + "クリックして削除確認へ"
+                        Component.text("捨てる", NamedTextColor.RED),
+                        Component.text("クリックして削除確認へ", NamedTextColor.GRAY)
                 ));
 
                 lastTrashBox.put(player.getUniqueId(), newInv);
                 player.openInventory(newInv);
                 trashBoxCache.remove(player.getUniqueId());
-                player.sendMessage(ChatColor.YELLOW + "削除をキャンセルしました。");
+                player.sendMessage(Component.text("削除をキャンセルしました。", NamedTextColor.YELLOW));
             }
         }
     }

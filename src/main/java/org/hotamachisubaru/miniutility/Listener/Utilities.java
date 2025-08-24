@@ -1,6 +1,11 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import org.bukkit.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -104,8 +109,8 @@ public class Utilities implements Listener {
                 event.setCancelled(true);
                 CreeperProtectionListener cp = plugin.getMiniutility().getCreeperProtectionListener();
                 boolean nowEnabled = cp.toggle();
-                player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が "
-                        + (nowEnabled ? "有効" : "無効") + " になりました。");
+                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が " +
+                        (nowEnabled ? "有効" : "無効") + " になりました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
                 break;
             }
@@ -114,10 +119,8 @@ public class Utilities implements Listener {
                 event.setCancelled(true);
                 player.closeInventory();
                 Chat.setWaitingForExpInput(player, true);
-                player.sendMessage(
-                        ChatColor.AQUA + "経験値を増減する数値をチャットに入力してください。" +
-                                ChatColor.GRAY + " 例: \"10\" で +10レベル, \"-5\" で -5レベル"
-                );
+                player.sendMessage(Component.text("経験値を増減する数値をチャットに入力してください。").color(NamedTextColor.AQUA)
+                        .append(Component.text(" 例: \"10\" で +10レベル, \"-5\" で -5レベル").color(NamedTextColor.GRAY)));
                 break;
 
             case COMPASS:
@@ -125,17 +128,17 @@ public class Utilities implements Listener {
                 GameMode current = player.getGameMode();
                 if (current == GameMode.SURVIVAL) {
                     player.setGameMode(GameMode.CREATIVE);
-                    player.sendMessage(ChatColor.GREEN + "ゲームモードをクリエイティブに変更しました。");
+                    player.sendMessage(Component.text("ゲームモードをクリエイティブに変更しました。").color(NamedTextColor.GREEN));
                 } else {
                     player.setGameMode(GameMode.SURVIVAL);
-                    player.sendMessage(ChatColor.GREEN + "ゲームモードをサバイバルに変更しました。");
+                    player.sendMessage(Component.text("ゲームモードをサバイバルに変更しました。").color(NamedTextColor.GREEN));
                 }
                 player.closeInventory();
                 break;
 
             default:
                 event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
+                player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。").color(NamedTextColor.RED));
                 break;
         }
     }
@@ -161,8 +164,8 @@ public class Utilities implements Listener {
         Inventory confirm = Bukkit.createInventory(h, 9, "本当に捨てますか？");
         h.bind(confirm);
 
-        confirm.setItem(3, createMenuItem(Material.LIME_WOOL, ChatColor.GREEN + "はい"));
-        confirm.setItem(5, createMenuItem(Material.RED_WOOL, ChatColor.RED + "いいえ"));
+        confirm.setItem(3, createMenuItem(Material.LIME_WOOL, Component.text("はい").color(NamedTextColor.GREEN)));
+        confirm.setItem(5, createMenuItem(Material.RED_WOOL, Component.text("いいえ").color(NamedTextColor.RED)));
         player.openInventory(confirm);
     }
 
@@ -175,14 +178,14 @@ public class Utilities implements Listener {
             Inventory last = player.getOpenInventory().getTopInventory();
             for (int i = 0; i < 53; i++) last.setItem(i, null);
             player.closeInventory();
-            player.sendMessage(ChatColor.GREEN + "ゴミ箱のアイテムをすべて削除しました。");
+            player.sendMessage(Component.text("ゴミ箱のアイテムをすべて削除しました。").color(NamedTextColor.GREEN));
             return;
         }
 
         if (clickedItem.getType() == Material.RED_WOOL) {
             // キャンセル：単に閉じる
             player.closeInventory();
-            player.sendMessage(ChatColor.YELLOW + "削除をキャンセルしました。");
+            player.sendMessage(Component.text("削除をキャンセルしました。").color(NamedTextColor.YELLOW));
         }
     }
 
@@ -192,13 +195,13 @@ public class Utilities implements Listener {
 
         switch (clickedItem.getType()) {
             case PAPER:
-                player.sendMessage(ChatColor.AQUA + "新しいニックネームをチャットに入力してください。");
+                player.sendMessage(Component.text("新しいニックネームをチャットに入力してください。").color(NamedTextColor.AQUA));
                 Chat.setWaitingForNickname(player, true);
                 player.closeInventory();
                 break;
 
             case NAME_TAG:
-                player.sendMessage(ChatColor.AQUA + "色付きのニックネームをチャットで入力してください。例: &6ほたまち");
+                player.sendMessage(Component.text("色付きのニックネームをチャットで入力してください。例: &6ほたまち").color(NamedTextColor.AQUA));
                 Chat.setWaitingForColorInput(player, true);
                 player.closeInventory();
                 break;
@@ -206,12 +209,12 @@ public class Utilities implements Listener {
             case BARRIER:
                 NicknameDatabase.deleteNickname(player);
                 NicknameManager.updateDisplayName(player);
-                player.sendMessage(ChatColor.GREEN + "ニックネームをリセットしました。");
+                player.sendMessage(Component.text("ニックネームをリセットしました。").color(NamedTextColor.GREEN));
                 player.closeInventory();
                 break;
 
             default:
-                player.sendMessage(ChatColor.RED + "無効な選択です。");
+                player.sendMessage(Component.text("無効な選択です。").color(NamedTextColor.RED));
                 break;
         }
     }
@@ -219,12 +222,12 @@ public class Utilities implements Listener {
     // 死亡地点ワープ（Paper/Folia両対応）
     private void teleportToDeathLocation(Player player) {
         if (plugin.getMiniutility() == null) {
-            player.sendMessage(ChatColor.RED + "プラグイン初期化中です。");
+            player.sendMessage(Component.text("プラグイン初期化中です。").color(NamedTextColor.RED));
             return;
         }
         Location deathLocation = plugin.getMiniutility().getDeathLocation(player.getUniqueId());
         if (deathLocation == null) {
-            player.sendMessage(ChatColor.RED + "死亡地点が見つかりません。");
+            player.sendMessage(Component.text("死亡地点が見つかりません。").color(NamedTextColor.RED));
             return;
         }
 
@@ -236,10 +239,11 @@ public class Utilities implements Listener {
         }
 
         if (recentlyTeleported.add(player.getUniqueId())) {
-            player.sendMessage(ChatColor.GREEN + "死亡地点にワープしました。");
+            player.sendMessage(Component.text("死亡地点にワープしました。").color(NamedTextColor.GREEN));
             // Folia互換の遅延実行
             FoliaUtil.runLater(plugin, new Runnable() {
-                @Override public void run() {
+                @Override
+                public void run() {
                     recentlyTeleported.remove(player.getUniqueId());
                 }
             }, 20L);
@@ -247,11 +251,11 @@ public class Utilities implements Listener {
     }
 
     // シンプルなメニュー用アイテム
-    private static ItemStack createMenuItem(Material material, String name) {
+    private static ItemStack createMenuItem(Material material, Component name) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
+            meta.displayName(name);
             item.setItemMeta(meta);
         }
         return item;
@@ -263,7 +267,7 @@ public class Utilities implements Listener {
         Inventory inv = Bukkit.createInventory(h, 54, "ゴミ箱");
         h.bind(inv);
 
-        inv.setItem(53, createMenuItem(Material.LIME_WOOL, ChatColor.RED + "捨てる"));
+        inv.setItem(53, createMenuItem(Material.LIME_WOOL, Component.text("捨てる").color(NamedTextColor.RED)));
         player.openInventory(inv);
     }
 }

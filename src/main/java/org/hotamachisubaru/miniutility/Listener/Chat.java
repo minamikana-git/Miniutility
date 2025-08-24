@@ -1,5 +1,7 @@
 package org.hotamachisubaru.miniutility.Listener;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -108,7 +110,7 @@ public class Chat implements Listener {
                 int change = Integer.parseInt(plainMessage.trim());
                 int newLevel = Math.max(0, player.getLevel() + change);
                 player.setLevel(newLevel);
-                player.sendMessage(ChatColor.GREEN + "経験値レベルを " + newLevel + " に変更しました。");
+                player.sendMessage(Component.text(  "経験値レベルを " + newLevel + " に変更しました。", NamedTextColor.GREEN));
             } catch (NumberFormatException ex) {
                 player.sendMessage(ChatColor.RED + "数値を入力してください。");
             }
@@ -129,86 +131,67 @@ public class Chat implements Listener {
                     });
                 } else {
                     NicknameManager.setNickname(player, validated);
-                    player.sendMessage(ChatColor.GREEN + "ニックネームを「" + validated + "」に設定しました。");
+                    player.sendMessage(Component.text("ニックネームを「" + validated + "」に設定しました。", NamedTextColor.GREEN));
                 }
             } else {
-                player.sendMessage(ChatColor.RED + "無効なニックネームです。"
-                        + "1〜16文字、記号は _- のみ使用可。空白不可。");
+                player.sendMessage(Component.text("無効なニックネームです。"
+                        + "1〜16文字、記号は _- のみ使用可。空白不可。", NamedTextColor.RED));
             }
             return true;
         }
 
-        // ここを置き換え
-        // Chat.tryHandleWaitingInput 内（isWaitingForColorInput ブロック）
         setWaitingForColorInput(player, false);
 
         String raw = plainMessage == null ? "" : plainMessage.trim();
         if (raw.isEmpty()) {
-            player.sendMessage(ChatColor.RED + "例: &6a, &bほたまち");
+            player.sendMessage(Component.text("例: &6a, &bほたまち", NamedTextColor.RED));
             return true;
         }
 
-// 可視文字だけで1〜16文字チェック（色コードは除外して判定）
         String visible = raw.replaceAll("(?i)[&§][0-9a-fk-or]", "");
         if (validateNickname(visible) == null) {
-            player.sendMessage(ChatColor.RED + "無効なニックネームです。1〜16文字、記号は _- のみ、空白不可。");
+            player.sendMessage(Component.text("無効なニックネームです。1〜16文字、記号は _- のみ、空白不可。", NamedTextColor.RED));
             return true;
         }
 
-// & → § に変換して色を付与
         String colored = ChatColor.translateAlternateColorCodes('&', raw);
 
-// 保存＆適用
-        NicknameManager.setNickname(player, colored); // ← DB保存と apply を中で呼ぶ設計に
-        player.sendMessage(ChatColor.GREEN + "ニックネームを設定しました: " + colored + ChatColor.RESET);
+        NicknameManager.setNickname(player, colored);
+        player.sendMessage(Component.text("ニックネームを設定しました: " + colored, NamedTextColor.GREEN).append(Component.text("").color(null)));
         return true;
     }
 
-    // Chat クラスの private メソッドとして追加
     private static ChatColor parseChatColor(String in) {
         if (in == null) return null;
         String s = in.trim();
         if (s.isEmpty()) return null;
 
-        // 1) &a / §c など1文字コード
         if (s.length() >= 2 && (s.charAt(0) == '&' || s.charAt(0) == '§')) {
             ChatColor by = ChatColor.getByChar(Character.toLowerCase(s.charAt(1)));
             return (by != null && by.isColor()) ? by : null;
         }
 
-        // 2) よくあるエイリアス
         if (s.equalsIgnoreCase("grey")) s = "GRAY";
         if (s.equalsIgnoreCase("pink")) s = "LIGHT_PURPLE";
         if (s.equalsIgnoreCase("purple")) s = "DARK_PURPLE";
 
-        // 3) 正式名
         try {
             ChatColor c = ChatColor.valueOf(s.toUpperCase());
-            return c.isColor() ? c : null; // 装飾(BOLD 等)は拒否
+            return c.isColor() ? c : null;
         } catch (IllegalArgumentException ignored) {
             return null;
         }
     }
 
-
-
-
     private static String validateNickname(String s) {
         if (s == null) return null;
-        // 全角空白や半角空白を除去（空白を許可したいならこの行を削除）
         if (s.contains(" ") || s.contains("　")) return null;
 
-        // 文字数チェック（色コードを含めない前提）
         final int len = s.length();
         if (len < 1 || len > 16) return null;
 
-        // 許可文字種の一例（日本語・かな漢字も許容。危険記号だけ弾く）
-        // 記号は _ と - のみを許可
-        // ここでは簡易に <>\"'`$\\ を拒否しておく
         if (s.matches(".*[<>\"'`$\\\\].*")) return null;
 
-        // さらに厳格にしたい場合は Pattern を使ってホワイトリスト方式に
         return s;
     }
 }
-

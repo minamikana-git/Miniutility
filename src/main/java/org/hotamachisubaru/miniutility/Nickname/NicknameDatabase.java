@@ -20,7 +20,7 @@ public class NicknameDatabase {
     public static void init() {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS nickname (" +
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS nicknames (" +
                     "uuid TEXT PRIMARY KEY," +
                     "nickname TEXT NOT NULL)");
         } catch (SQLException e) {
@@ -31,7 +31,7 @@ public class NicknameDatabase {
     public static void saveNickname(Player player, String nickname) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement ps = conn.prepareStatement(
-                     "INSERT OR REPLACE INTO nickname (uuid, nickname) VALUES (?, ?)")) {
+                     "INSERT OR REPLACE INTO nicknames (uuid, nickname) VALUES (?, ?)")) {
             ps.setString(1, player.getUniqueId().toString());
             ps.setString(2, nickname);
             ps.executeUpdate();
@@ -43,11 +43,11 @@ public class NicknameDatabase {
     public static String loadNickname(Player player) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT nickname FROM nickname WHERE uuid = ?")) {
+                     "SELECT nickname FROM nicknames WHERE uuid = ?")) {
             ps.setString(1, player.getUniqueId().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getString("nickname");
+                    return rs.getString("nicknames");
                 }
             }
         } catch (SQLException e) {
@@ -59,7 +59,7 @@ public class NicknameDatabase {
     public static void deleteNickname(Player player) {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement ps = conn.prepareStatement(
-                     "DELETE FROM nickname WHERE uuid = ?")) {
+                     "DELETE FROM nicknames WHERE uuid = ?")) {
             ps.setString(1, player.getUniqueId().toString());
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -83,7 +83,7 @@ public class NicknameDatabase {
     }
 
     public void saveAll() {
-        String sql = "INSERT OR REPLACE INTO nickname (uuid, nickname) VALUES (?, ?)";
+        String sql = "INSERT OR REPLACE INTO nicknames (uuid, nickname) VALUES (?, ?)";
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 for (Map.Entry<UUID, String> entry : nicknameMap.entrySet()) {

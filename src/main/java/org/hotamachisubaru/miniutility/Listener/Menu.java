@@ -1,6 +1,7 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,7 +24,7 @@ public class Menu implements Listener {
 
     private final MiniutilityLoader plugin;
 
-    public Menu (MiniutilityLoader plugin) {
+    public Menu(MiniutilityLoader plugin) {
         this.plugin = plugin;
     }
 
@@ -55,8 +56,8 @@ public class Menu implements Listener {
                 teleportToDeathLocation(player);
                 break;
             case ENDER_CHEST:
-               player.openInventory(player.getEnderChest());
-               break;
+                player.openInventory(player.getEnderChest());
+                break;
             case CRAFTING_TABLE:
                 player.openWorkbench(null, true);
                 break;
@@ -69,8 +70,8 @@ public class Menu implements Listener {
             case CREEPER_HEAD: {
                 CreeperProtectionListener cp = plugin.getMiniutility().getCreeperProtectionListener();
                 boolean nowEnabled = cp.toggle();
-                player.sendMessage(ChatColor.GREEN + "クリーパーの爆破によるブロック破壊防止が "
-                        + (nowEnabled ? "有効" : "無効") + " になりました。");
+                player.sendMessage(Component.text("クリーパーの爆破によるブロック破壊防止が "
+                        + (nowEnabled ? "有効" : "無効") + " になりました。", NamedTextColor.GREEN));
                 player.closeInventory();
                 break;
             }
@@ -78,24 +79,25 @@ public class Menu implements Listener {
             case EXPERIENCE_BOTTLE: {
                 player.closeInventory();
                 Chat.setWaitingForExpInput(player, true);
-                player.sendMessage(ChatColor.AQUA + "経験値を増減する数値をチャットに入力してください。"
-                        + ChatColor.GRAY + " 例: \"10\" で +10レベル, \"-5\" で -5レベル");
+                player.sendMessage(Component.text("経験値を増減する数値をチャットに入力してください。", NamedTextColor.AQUA)
+                        .append(Component.text(" 例: \"10\" で +10レベル, \"-5\" で -5レベル", NamedTextColor.GRAY)));
                 break;
             }
             case COMPASS: {
                 GameMode current = player.getGameMode();
                 if (current == GameMode.SURVIVAL) {
                     player.setGameMode(GameMode.CREATIVE);
-                    player.sendMessage(ChatColor.GREEN + "ゲームモードをクリエイティブに変更しました。");
+                    player.sendMessage(Component.text("ゲームモードをクリエイティブに変更しました。", NamedTextColor.GREEN));
                 } else {
                     player.setGameMode(GameMode.SURVIVAL);
-                    player.sendMessage(ChatColor.GREEN + "ゲームモードをサバイバルに変更しました。");
+                    player.sendMessage(Component.text("ゲームモードをサバイバルに変更しました。", NamedTextColor.GREEN));
                 }
                 player.closeInventory();
                 break;
             }
-            default:  player.sendMessage(ChatColor.RED + "このアイテムにはアクションが設定されていません。");
-            break;
+            default:
+                player.sendMessage(Component.text("このアイテムにはアクションが設定されていません。", NamedTextColor.RED));
+                break;
         }
     }
 
@@ -115,12 +117,12 @@ public class Menu implements Listener {
     // 死亡地点ワープ（API差分両対応）
     private void teleportToDeathLocation(Player player) {
         if (plugin.getMiniutility() == null) {
-            player.sendMessage(ChatColor.RED + "プラグイン初期化中です。");
+            player.sendMessage(Component.text("プラグイン初期化中です。", NamedTextColor.RED));
             return;
         }
         Location loc = plugin.getMiniutility().getDeathLocation(player.getUniqueId());
         if (loc == null) {
-            player.sendMessage(ChatColor.RED + "死亡地点が見つかりません。");
+            player.sendMessage(Component.text("死亡地点が見つかりません。", NamedTextColor.RED));
             return;
         }
 
@@ -129,7 +131,7 @@ public class Menu implements Listener {
                 plugin, player.getUniqueId(),
                 () -> {
                     teleportCompat(player, loc);
-                    player.sendMessage(ChatColor.GREEN + "死亡地点にワープしました。");
+                    player.sendMessage(Component.text("死亡地点にワープしました。", NamedTextColor.GREEN));
                 }
         );
     }

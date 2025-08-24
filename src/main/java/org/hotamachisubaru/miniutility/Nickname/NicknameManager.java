@@ -186,7 +186,7 @@ public class NicknameManager {
             // Adventure のメソッドが無い（=旧API）
             return false;
         } catch (Throwable t) {
-            logger.warning("[Miniutility] Failed to apply Adventure display name: " + t.getMessage());
+            logger.warning("エラーが発生しました。" + t.getMessage());
             return false;
         }
     }

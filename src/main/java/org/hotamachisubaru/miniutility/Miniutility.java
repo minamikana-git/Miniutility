@@ -117,14 +117,14 @@ public class Miniutility {
                 return new HttpResp(-1, null);
             }
         }).thenAccept(resp -> {
-            if (resp == null || resp.code != 200 || resp.body == null) {
-                if (resp != null && resp.code != 200) {
-                    logger.warning("アップデートのチェックに失敗しました: HTTP " + resp.code);
+            if (resp == null || resp.code() != 200 || resp.body() == null) {
+                if (resp != null && resp.code() != 200) {
+                    logger.warning("アップデートのチェックに失敗しました: HTTP " + resp.code());
                 }
                 return;
             }
             try {
-                JsonObject json = JsonParser.parseString(resp.body).getAsJsonObject();
+                JsonObject json = new JsonParser().parse(resp.body()).getAsJsonObject();
                 String latestTag = json.get("tag_name").getAsString().replaceFirst("^v", "");
                 String url = json.get("html_url").getAsString();
                 String currentVersion = plugin.getDescription().getVersion();
@@ -150,9 +150,8 @@ public class Miniutility {
     }
 
     // ヘルパー：HTTPレスポンス保持
-    private record HttpResp(int code, String body) {
+        private record HttpResp(int code, String body) {
     }
-
 
     private void checkLuckPerms() {
         if (pm.getPlugin("LuckPerms") == null) {

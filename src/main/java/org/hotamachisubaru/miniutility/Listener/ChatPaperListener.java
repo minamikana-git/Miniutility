@@ -1,17 +1,16 @@
 // Bridge/ChatPaperListener.java
 package org.hotamachisubaru.miniutility.Listener;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public final class ChatPaperListener implements Listener {
     @EventHandler(ignoreCancelled = true)
-    public void onPaperAsyncChat(AsyncChatEvent e) {
+    public void onAsyncPlayerChatEvent(AsyncPlayerChatEvent e) {
         Player player = e.getPlayer();
-        String plain = PlainTextComponentSerializer.plainText().serialize(e.message());
+        String plain = e.getMessage();
         if (Chat.tryHandleWaitingInput(player, plain)) {
             e.setCancelled(true);
         }

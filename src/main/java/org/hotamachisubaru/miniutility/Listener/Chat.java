@@ -1,7 +1,6 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -110,7 +109,12 @@ public class Chat implements Listener {
                 int change = Integer.parseInt(plainMessage.trim());
                 int newLevel = Math.max(0, player.getLevel() + change);
                 player.setLevel(newLevel);
-                player.sendMessage(Component.text(  "経験値レベルを " + newLevel + " に変更しました。", NamedTextColor.GREEN));
+
+                TextComponent component = new TextComponent();
+                component.setText("経験値レベルを " + newLevel + " に変更しました。");
+                component.setColor(ChatColor.GREEN.asBungee());
+
+                player.sendMessage(component);
             } catch (NumberFormatException ex) {
                 player.sendMessage(ChatColor.RED + "数値を入力してください。");
             }
@@ -131,11 +135,19 @@ public class Chat implements Listener {
                     });
                 } else {
                     NicknameManager.setNickname(player, validated);
-                    player.sendMessage(Component.text("ニックネームを「" + validated + "」に設定しました。", NamedTextColor.GREEN));
+
+                    TextComponent component = new TextComponent();
+                    component.setText("ニックネームを「" + validated + "」に設定しました。");
+                    component.setColor(ChatColor.GREEN.asBungee());
+
+                    player.sendMessage(component);
                 }
             } else {
-                player.sendMessage(Component.text("無効なニックネームです。"
-                        + "1〜16文字、記号は _- のみ使用可。空白不可。", NamedTextColor.RED));
+                TextComponent component = new TextComponent();
+                component.setText("無効なニックネームです。1〜16文字、記号は _- のみ使用可。空白不可。");
+                component.setColor(ChatColor.RED.asBungee());
+
+                player.sendMessage(component);
             }
             return true;
         }
@@ -144,20 +156,33 @@ public class Chat implements Listener {
 
         String raw = plainMessage == null ? "" : plainMessage.trim();
         if (raw.isEmpty()) {
-            player.sendMessage(Component.text("例: &6a, &bほたまち", NamedTextColor.RED));
+            TextComponent component = new TextComponent();
+            component.setText("例: &6a, &bほたまち");
+            component.setColor(ChatColor.RED.asBungee());
+
+            player.sendMessage(component);
             return true;
         }
 
         String visible = raw.replaceAll("(?i)[&§][0-9a-fk-or]", "");
         if (validateNickname(visible) == null) {
-            player.sendMessage(Component.text("無効なニックネームです。1〜16文字、記号は _- のみ、空白不可。", NamedTextColor.RED));
+            TextComponent component = new TextComponent();
+            component.setText("無効なニックネームです。1〜16文字、記号は _- のみ、空白不可。");
+            component.setColor(ChatColor.RED.asBungee());
+
+            player.sendMessage(component);
             return true;
         }
 
         String colored = ChatColor.translateAlternateColorCodes('&', raw);
 
         NicknameManager.setNickname(player, colored);
-        player.sendMessage(Component.text("ニックネームを設定しました: " + colored, NamedTextColor.GREEN).append(Component.text("").color(null)));
+
+        TextComponent component = new TextComponent();
+        component.setText("ニックネームを設定しました: " + colored);
+        component.setColor(ChatColor.GREEN.asBungee());
+
+        player.sendMessage(component);
         return true;
     }
 

@@ -1,7 +1,7 @@
 package org.hotamachisubaru.miniutility.Command;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,39 +29,69 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         switch (name) {
             case "menu":
-                if (sender instanceof Player player) {
-                    GUI.openMenu(player);
+                if (sender instanceof Player) {
+                    GUI.openMenu((Player) sender);
                 } else {
-                    sender.sendMessage(Component.text("プレイヤーのみ使用できます。", NamedTextColor.RED));
+                    TextComponent component = new TextComponent();
+                    component.setText("プレイヤーのみ使用できます。");
+                    component.setColor(ChatColor.RED);
+                    sender.sendMessage(component);
                 }
                 return true;
 
             case "load":
                 try {
                     NicknameDatabase.reload();
-                    sender.sendMessage(Component.text("ニックネームデータを再読み込みしました。", NamedTextColor.GREEN));
+
+                    TextComponent component = new TextComponent();
+                    component.setText("ニックネームデータを再読み込みしました。");
+                    component.setColor(ChatColor.GREEN);
+
+                    sender.sendMessage(component);
                 } catch (Throwable e) {
-                    sender.sendMessage(Component.text("データベース再読み込みに失敗しました: " + e.getMessage(), NamedTextColor.RED));
+                    TextComponent component = new TextComponent();
+                    component.setText("データベース再読み込みに失敗しました: " + e.getMessage());
+                    component.setColor(ChatColor.RED);
+
+                    sender.sendMessage(component);
                 }
                 return true;
 
             case "prefixtoggle":
-                if (!(sender instanceof Player p)) {
-                    sender.sendMessage(Component.text("プレイヤーのみ実行可能です。", NamedTextColor.RED));
+                if (!(sender instanceof Player)) {
+                    TextComponent component = new TextComponent();
+                    component.setText("プレイヤーのみ実行可能です。");
+                    component.setColor(ChatColor.RED);
+
+                    sender.sendMessage(component);
                     return true;
                 }
+                Player player = (Player) sender;
                 boolean enabled;
                 try {
-                    enabled = plugin.getMiniutility().getNicknameManager().togglePrefix(p.getUniqueId());
+                    enabled = plugin.getMiniutility().getNicknameManager().togglePrefix(player.getUniqueId());
                 } catch (Throwable e) {
-                    sender.sendMessage(Component.text("Prefixの切り替えに失敗しました: " + e.getMessage(), NamedTextColor.RED));
+                    TextComponent component = new TextComponent();
+                    component.setText("Prefixの切り替えに失敗しました: " + e.getMessage());
+                    component.setColor(ChatColor.RED);
+
+                    sender.sendMessage(component);
                     return true;
                 }
-                p.sendMessage(Component.text("Prefixの表示が " + (enabled ? "有効" : "無効") + " になりました。", NamedTextColor.GREEN));
+
+                TextComponent component = new TextComponent();
+                component.setText("Prefixの表示が " + (enabled ? "有効" : "無効") + " になりました。");
+                component.setColor(ChatColor.GREEN);
+
+                player.sendMessage(component);
                 return true;
 
             default:
-                sender.sendMessage(Component.text("不明なコマンドです。", NamedTextColor.RED));
+                TextComponent componentp = new TextComponent();
+                componentp.setText("不明なコマンドです。");
+                componentp.setColor(ChatColor.RED);
+
+                sender.sendMessage(componentp);
                 return false;
         }
     }

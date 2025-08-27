@@ -1,8 +1,8 @@
 package org.hotamachisubaru.miniutility.Listener;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -35,13 +35,14 @@ public class TrashListener implements Listener {
     // ゴミ箱GUIを開く
     public static void openTrashBox(Player player) {
         GuiHolder h = new GuiHolder(GuiType.TRASH, player.getUniqueId());
-        Inventory inv = Bukkit.createInventory(h, 54, Component.text("ゴミ箱"));
+        Inventory inv = Bukkit.createInventory(h, 54, "ゴミ箱");
         h.bind(inv);
 
         // 53番に「捨てる」ボタン
         ItemStack confirm = createMenuItem(Material.LIME_WOOL,
-                Component.text("捨てる", NamedTextColor.RED),
-                Component.text("クリックして削除確認へ", NamedTextColor.GRAY));
+                "§c捨てる",          // RED
+                "§7クリックして削除確認へ"  // GRAY
+        );
         inv.setItem(53, confirm);
 
         lastTrashBox.put(player.getUniqueId(), inv);
@@ -56,28 +57,38 @@ public class TrashListener implements Listener {
         }
 
         GuiHolder h = new GuiHolder(GuiType.TRASH_CONFIRM, player.getUniqueId());
-        Inventory inv = Bukkit.createInventory(h, 9, Component.text("本当に捨てますか？"));
+        Inventory inv = Bukkit.createInventory(h, 9, "本当に捨てますか？");
         h.bind(inv);
 
-        inv.setItem(3, createMenuItem(Material.LIME_WOOL, Component.text("はい", NamedTextColor.GREEN), Component.text("ゴミ箱を空にする", NamedTextColor.GRAY)));
-        inv.setItem(5, createMenuItem(Material.RED_WOOL, Component.text("いいえ", NamedTextColor.RED), Component.text("キャンセル", NamedTextColor.GRAY)));
+        inv.setItem(3, createMenuItem(
+                Material.LIME_WOOL,
+                "§aはい",          // 緑色
+                "§7ゴミ箱を空にする" // グレー
+        ));
+        inv.setItem(5, createMenuItem(
+                Material.RED_WOOL,
+                "§cいいえ",        // 赤色
+                "§7キャンセル"      // グレー
+        ));
+
         player.openInventory(inv);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onTrashClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getWhoClicked() instanceof Player)) return;
         if (event.getClickedInventory() == null) return;
 
+        Player player = (Player) event.getWhoClicked();
         Inventory inv = event.getClickedInventory();
         InventoryHolder holder = inv.getHolder();
-        if (!(holder instanceof GuiHolder h)) return;
+        if (!(holder instanceof GuiHolder)) return;
 
         ItemStack item = event.getCurrentItem();
         if (item == null || item.getType() == Material.AIR) return;
 
         // --- ゴミ箱本体 ---
-        if (h.getType() == GuiType.TRASH) {
+        if (((GuiHolder) holder).getType() == GuiType.TRASH) {
             int raw = event.getRawSlot();
 
             // 53 は「捨てる」ボタン
@@ -95,7 +106,7 @@ public class TrashListener implements Listener {
         }
 
         // --- 確認画面 ---
-        if (h.getType() == GuiType.TRASH_CONFIRM) {
+        if (((GuiHolder) holder).getType() == GuiType.TRASH_CONFIRM) {
             event.setCancelled(true);
 
             if (item.getType() == Material.LIME_WOOL) {
@@ -104,7 +115,12 @@ public class TrashListener implements Listener {
                     FoliaUtil.runAtPlayer(plugin, player.getUniqueId(), () -> {
                         for (int i = 0; i < 53; i++) prev.setItem(i, null);
                         player.closeInventory();
-                        player.sendMessage(Component.text("ゴミ箱のアイテムをすべて削除しました。", NamedTextColor.GREEN));
+
+                        TextComponent component = new TextComponent();
+                        component.setText("ゴミ箱のアイテムをすべて削除しました。");
+                        component.setColor(ChatColor.GREEN.asBungee());
+
+                        player.sendMessage(component);
                     });
                     lastTrashBox.remove(player.getUniqueId());
                     trashBoxCache.remove(player.getUniqueId());
@@ -117,7 +133,7 @@ public class TrashListener implements Listener {
             if (item.getType() == Material.RED_WOOL) {
                 ItemStack[] cache = trashBoxCache.get(player.getUniqueId());
                 GuiHolder nh = new GuiHolder(GuiType.TRASH, player.getUniqueId());
-                Inventory newInv = Bukkit.createInventory(nh, 54, Component.text("ゴミ箱"));
+                Inventory newInv = Bukkit.createInventory(nh, 54, "ゴミ箱");
                 nh.bind(newInv);
 
                 if (cache != null) {
@@ -125,14 +141,19 @@ public class TrashListener implements Listener {
                 }
                 newInv.setItem(53, createMenuItem(
                         Material.LIME_WOOL,
-                        Component.text("捨てる", NamedTextColor.RED),
-                        Component.text("クリックして削除確認へ", NamedTextColor.GRAY)
+                        "§c捨てる",          // 赤色
+                        "§7クリックして削除確認へ" // グレー
                 ));
 
                 lastTrashBox.put(player.getUniqueId(), newInv);
                 player.openInventory(newInv);
                 trashBoxCache.remove(player.getUniqueId());
-                player.sendMessage(Component.text("削除をキャンセルしました。", NamedTextColor.YELLOW));
+
+                TextComponent component = new TextComponent();
+                component.setText("削除をキャンセルしました。");
+                component.setColor(ChatColor.YELLOW.asBungee());
+
+                player.sendMessage(component);
             }
         }
     }

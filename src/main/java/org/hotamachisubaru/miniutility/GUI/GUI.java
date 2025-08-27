@@ -1,6 +1,5 @@
 package org.hotamachisubaru.miniutility.GUI;
 
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -73,8 +72,8 @@ public class GUI {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.displayName(LegacyComponentSerializer.legacy('&').deserialize("&e" + name));
-            meta.lore(Collections.singletonList(LegacyComponentSerializer.legacy('&').deserialize("&7" + lore)));
+            meta.setDisplayName(("&e" + name).replace('&', '§'));
+            meta.setLore(Collections.singletonList(("&7" + lore).replace('&', '§')));
             item.setItemMeta(meta);
         }
         return item;
@@ -86,7 +85,7 @@ public class GUI {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.displayName(LegacyComponentSerializer.legacy('&').deserialize("&e" + name));
+            meta.setDisplayName(("&e" + name).replace('&', '§'));
             item.setItemMeta(meta);
         }
         return item;

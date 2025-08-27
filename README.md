@@ -1,3 +1,5 @@
+> legacy support for
+> mc 1.13.2 ~
 
 注意：LunaChatが導入されているサーバーでは、以下の設定が必要です。
 
